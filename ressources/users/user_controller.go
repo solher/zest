@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Solher/auth-scaffold/errors"
+	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/julienschmidt/httprouter"
 )
@@ -42,13 +42,13 @@ func (c *Controller) Create(w http.ResponseWriter, r *http.Request, _ httprouter
 	var users []User
 	err := json.NewDecoder(r.Body).Decode(&users)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, errors.BodyDecodingError, err)
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
 		return
 	}
 
 	users, err = c.interactor.Create(users)
 	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
 	}
 
@@ -58,13 +58,13 @@ func (c *Controller) Create(w http.ResponseWriter, r *http.Request, _ httprouter
 func (c *Controller) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, errors.FilterDecodingError, err)
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 		return
 	}
 
 	users, err := c.interactor.Find(filter)
 	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
 	}
 
@@ -74,13 +74,13 @@ func (c *Controller) Find(w http.ResponseWriter, r *http.Request, _ httprouter.P
 func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, errors.InvalidPathParams, err)
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return
 	}
 
 	user, err := c.interactor.FindByID(id)
 	if err != nil {
-		c.render.JSONError(w, http.StatusUnauthorized, errors.Unauthorized, err)
+		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
 	}
 
@@ -91,13 +91,13 @@ func (c *Controller) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter
 	var users []User
 	err := json.NewDecoder(r.Body).Decode(&users)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, errors.BodyDecodingError, err)
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
 		return
 	}
 
 	users, err = c.interactor.Upsert(users)
 	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
 	}
 
@@ -107,13 +107,13 @@ func (c *Controller) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter
 func (c *Controller) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, errors.FilterDecodingError, err)
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 		return
 	}
 
 	err = c.interactor.DeleteAll(filter)
 	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
 	}
 
@@ -123,13 +123,13 @@ func (c *Controller) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprou
 func (c *Controller) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, errors.InvalidPathParams, err)
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return
 	}
 
 	err = c.interactor.DeleteByID(id)
 	if err != nil {
-		c.render.JSONError(w, http.StatusUnauthorized, errors.Unauthorized, err)
+		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
 	}
 

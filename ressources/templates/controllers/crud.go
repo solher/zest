@@ -1,4 +1,4 @@
-package interfaces
+package controllers
 
 import (
 	"github.com/Solher/auth-scaffold/ressources/templates"
@@ -6,7 +6,9 @@ import (
 )
 
 func init() {
-	err := typewriter.Register(templates.NewWrite("controller", slice))
+	imports := []typewriter.ImportSpec{}
+
+	err := typewriter.Register(templates.NewWrite("controller", slice, imports))
 	if err != nil {
 		panic(err)
 	}
@@ -57,13 +59,13 @@ var create = &typewriter.Template{
 		var {{.Name}}s []{{.Type}}
 		err := json.NewDecoder(r.Body).Decode(&{{.Name}}s)
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, errors.BodyDecodingError, err)
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
 			return
 		}
 
 		{{.Name}}s, err = c.interactor.Create({{.Name}}s)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
 		}
 
@@ -77,13 +79,13 @@ var find = &typewriter.Template{
 	func (c *Controller) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		filter, err := interfaces.GetQueryFilter(r)
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, errors.FilterDecodingError, err)
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 			return
 		}
 
 		{{.Name}}s, err := c.interactor.Find(filter)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
 		}
 
@@ -97,13 +99,13 @@ var findByID = &typewriter.Template{
 	func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, err := strconv.Atoi(params.ByName("id"))
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, errors.InvalidPathParams, err)
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 			return
 		}
 
 		{{.Name}}, err := c.interactor.FindByID(id)
 		if err != nil {
-			c.render.JSONError(w, http.StatusUnauthorized, errors.Unauthorized, err)
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 			return
 		}
 
@@ -118,13 +120,13 @@ var upsert = &typewriter.Template{
 		var {{.Name}}s []{{.Type}}
 		err := json.NewDecoder(r.Body).Decode(&{{.Name}}s)
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, errors.BodyDecodingError, err)
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
 			return
 		}
 
 		{{.Name}}s, err = c.interactor.Upsert({{.Name}}s)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
 		}
 
@@ -138,13 +140,13 @@ var deleteAll = &typewriter.Template{
 	func (c *Controller) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		filter, err := interfaces.GetQueryFilter(r)
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, errors.FilterDecodingError, err)
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 			return
 		}
 
 		err = c.interactor.DeleteAll(filter)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, errors.InternalServerError, err)
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
 		}
 
@@ -158,13 +160,13 @@ var deleteByID = &typewriter.Template{
 	func (c *Controller) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, err := strconv.Atoi(params.ByName("id"))
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, errors.InvalidPathParams, err)
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 			return
 		}
 
 		err = c.interactor.DeleteByID(id)
 		if err != nil {
-			c.render.JSONError(w, http.StatusUnauthorized, errors.Unauthorized, err)
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 			return
 		}
 

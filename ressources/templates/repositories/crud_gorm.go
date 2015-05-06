@@ -1,4 +1,4 @@
-package interfaces
+package repositories
 
 import (
 	"github.com/Solher/auth-scaffold/ressources/templates"
@@ -6,7 +6,9 @@ import (
 )
 
 func init() {
-	err := typewriter.Register(templates.NewWrite("repository", slice))
+	imports := []typewriter.ImportSpec{}
+
+	err := typewriter.Register(templates.NewWrite("repository", slice, imports))
 	if err != nil {
 		panic(err)
 	}

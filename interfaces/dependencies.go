@@ -3,7 +3,7 @@ package interfaces
 import (
 	"net/http"
 
-	"github.com/Solher/auth-scaffold/errors"
+	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/jinzhu/gorm"
 	"github.com/julienschmidt/httprouter"
 )
@@ -19,7 +19,7 @@ type (
 	}
 
 	Render interface {
-		JSONError(w http.ResponseWriter, status int, apiError *errors.APIError, err error)
+		JSONError(w http.ResponseWriter, status int, apiError *apierrors.APIError, err error)
 		JSON(w http.ResponseWriter, status int, object interface{})
 	}
 

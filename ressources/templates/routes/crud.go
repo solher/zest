@@ -6,7 +6,9 @@ import (
 )
 
 func init() {
-	err := typewriter.Register(templates.NewWrite("routes", slice))
+	imports := []typewriter.ImportSpec{}
+
+	err := typewriter.Register(templates.NewWrite("routes", slice, imports))
 	if err != nil {
 		panic(err)
 	}

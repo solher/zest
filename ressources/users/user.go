@@ -7,7 +7,7 @@ import (
 )
 
 //go:generate gen -f
-//+gen routes controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" interactor:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" repository:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID"
+//+gen routes controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" controller_test interactor:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" interactor_test repository:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" repository_test
 type User struct {
 	domain.GormModel
 	ID        int            `json:"id,omitempty"`

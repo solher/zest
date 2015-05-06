@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/Solher/auth-scaffold/errors"
+	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -47,7 +47,7 @@ func MockHTTPRequest(route Route, body, filter string, params httprouter.Params)
 }
 
 func GetErrorCode(res string) string {
-	apiError := &errors.APIError{}
+	apiError := &apierrors.APIError{}
 	_ = json.Unmarshal([]byte(res), apiError)
 
 	return apiError.ErrorCode

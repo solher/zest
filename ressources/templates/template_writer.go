@@ -11,6 +11,7 @@ type (
 	Write struct {
 		name      string
 		templates typewriter.TemplateSlice
+		imports   []typewriter.ImportSpec
 	}
 
 	model struct {
@@ -19,17 +20,16 @@ type (
 	}
 )
 
-func NewWrite(name string, templates typewriter.TemplateSlice) *Write {
-	return &Write{name: name, templates: templates}
+func NewWrite(name string, templates typewriter.TemplateSlice, imports []typewriter.ImportSpec) *Write {
+	return &Write{name: name, templates: templates, imports: imports}
 }
 
 func (sw *Write) Name() string {
 	return sw.name
 }
 
-func (sw *Write) Imports(t typewriter.Type) (result []typewriter.ImportSpec) {
-	// none
-	return result
+func (sw *Write) Imports(t typewriter.Type) []typewriter.ImportSpec {
+	return sw.imports
 }
 
 func (sw *Write) Write(w io.Writer, t typewriter.Type) error {
