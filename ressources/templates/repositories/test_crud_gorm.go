@@ -72,7 +72,7 @@ var repositoryTest = &typewriter.Template{
 			gormFilter.Limit = filter.Limit
 			gormFilter.Offset = filter.Offset
 			gormFilter.Order = filter.Order
-			gormFilter.Where = "first_name IN ('Robert', 'Fabien') OR (last_name = 'Dupont')"
+			gormFilter.Where = ""
 		}
 
 		if len(gormFilter.Fields) != 0 {
@@ -106,7 +106,7 @@ var repositoryTest = &typewriter.Template{
 			return store, err
 		}
 
-		err = db.AutoMigrate(&{{.Type}}{}, &emails.Email{}).Error
+		err = db.AutoMigrate(&{{.Type}}{}).Error
 		if err != nil {
 			return store, err
 		}
@@ -126,14 +126,7 @@ var repositoryTest = &typewriter.Template{
 		Convey("Testing {{.Name}}s repository...", t, func() {
 			Convey("Should be able to create {{.Name}}s.", func() {
 				{{.Name}}s := []{{.Type}}{
-					{
-						FirstName: "Fabien",
-						LastName:  "Herfray",
-						Password:  "qwertyuiop",
-						Emails: []emails.Email{
-							{Email: "fabien.herfray@me.com"},
-						},
-					},
+					{},
 				}
 
 				{{.Name}}s, err = repo.Create({{.Name}}s)
@@ -145,13 +138,13 @@ var repositoryTest = &typewriter.Template{
 			Convey("Should be able to find {{.Name}}s.", func() {
 				{{.Name}}s, err := repo.Find(nil)
 				So(err, ShouldBeNil)
-				So({{.Name}}s[0].FirstName, ShouldEqual, "Fabien")
+				So(users[0].ID, ShouldEqual, 1)
 			})
 
 			Convey("Should be able to find {{.Name}} by id.", func() {
 				{{.Name}}, err := repo.FindByID(1)
 				So(err, ShouldBeNil)
-				So({{.Name}}.FirstName, ShouldEqual, "Fabien")
+				So(user.ID, ShouldEqual, 1)
 
 				{{.Name}}, err = repo.FindByID(10)
 				So(err, ShouldNotBeNil)
@@ -159,14 +152,7 @@ var repositoryTest = &typewriter.Template{
 
 			Convey("Should be able to upsert {{.Name}}s.", func() {
 				{{.Name}}s := []{{.Type}}{
-					{
-						FirstName: "Thomas",
-						LastName:  "Hourlier",
-						Password:  "1234",
-						Emails: []emails.Email{
-							{Email: "thomas.hourlier@cnode.fr"},
-						},
-					},
+					{},
 				}
 
 				{{.Name}}s, err = repo.Upsert({{.Name}}s)
@@ -174,13 +160,7 @@ var repositoryTest = &typewriter.Template{
 				So({{.Name}}s[0].ID, ShouldEqual, 2)
 
 				{{.Name}}s = []{{.Type}}{
-					{
-						ID:        2,
-						FirstName: "Fabien",
-						Emails: []emails.Email{
-							{Email: "hourliert@gmail.com"},
-						},
-					},
+					{},
 				}
 
 				{{.Name}}s, err = repo.Upsert({{.Name}}s)
@@ -188,13 +168,12 @@ var repositoryTest = &typewriter.Template{
 
 				{{.Name}}, err := repo.FindByID(2)
 				So(err, ShouldBeNil)
-				So({{.Name}}.FirstName, ShouldEqual, "Fabien")
-				So({{.Name}}.LastName, ShouldEqual, "Hourlier")
+				So(user.ID, ShouldEqual, 2)
 			})
 
 			Convey("Should be able to filter results.", func() {
 				filter := &interfaces.Filter{
-					Fields: []string{"lastName"},
+					Fields: []string{},
 					Limit:  0,
 					Offset: 0,
 					Order:  "id asc",
@@ -202,8 +181,6 @@ var repositoryTest = &typewriter.Template{
 
 				{{.Name}}s, err := repo.Find(filter)
 				So(err, ShouldBeNil)
-				So({{.Name}}s[0].FirstName, ShouldEqual, "")
-				So({{.Name}}s[0].LastName, ShouldEqual, "Herfray")
 
 				filter.Limit = 1
 				{{.Name}}s, err = repo.Find(filter)
@@ -213,26 +190,21 @@ var repositoryTest = &typewriter.Template{
 				filter.Offset = 1
 				{{.Name}}s, err = repo.Find(filter)
 				So(err, ShouldBeNil)
-				So({{.Name}}s[0].LastName, ShouldEqual, "Hourlier")
 
 				filter.Order = "id desc"
 				{{.Name}}s, err = repo.Find(filter)
 				So(err, ShouldBeNil)
-				So({{.Name}}s[0].LastName, ShouldEqual, "Herfray")
 
 				filter.Limit = 0
 				filter.Offset = 0
 
 				{{.Name}}s = []{{.Type}}{
-					{
-						ID:        2,
-						FirstName: "Thomas",
-					},
+
 				}
 				{{.Name}}s, err = repo.Upsert({{.Name}}s)
 
 				{{.Name}}s, err = repo.Find(filter)
-				So(len({{.Name}}s), ShouldEqual, 1)
+				So(len({{.Name}}s), ShouldEqual, 3)
 			})
 
 			Convey("Should be able to delete {{.Name}} by id.", func() {
