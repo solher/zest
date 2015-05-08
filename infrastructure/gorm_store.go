@@ -98,6 +98,18 @@ func (st *GormStore) BuildQuery(filter *interfaces.Filter) (*gorm.DB, error) {
 		if gormFilter.Where != "" {
 			query = query.Where(gormFilter.Where)
 		}
+
+		for _, include := range gormFilter.Include {
+			if include.Relation == "" {
+				break
+			}
+
+			if include.Where == "" {
+				query = query.Preload(include.Relation)
+			} else {
+				query = query.Preload(include.Relation, include.Where)
+			}
+		}
 	}
 
 	return query, nil
@@ -136,11 +148,19 @@ func processFilter(filter *interfaces.Filter) (*interfaces.GormFilter, error) {
 	}
 
 	processedFilter := &interfaces.GormFilter{Fields: dbNamedFields, Limit: filter.Limit, Offset: filter.Offset, Order: filter.Order}
+
 	buffer := &bytes.Buffer{}
-
-	processCondition(buffer, "", andSql, "", filter.Where)
-
+	err := processCondition(buffer, "", andSql, "", filter.Where)
+	if err != nil {
+		return nil, err
+	}
 	processedFilter.Where = buffer.String()
+
+	gormIncludes, err := processInclude(filter.Include)
+	if err != nil {
+		return nil, err
+	}
+	processedFilter.Include = gormIncludes
 
 	return processedFilter, nil
 }
@@ -354,4 +374,73 @@ func processSimpleOperationStr(buffer *bytes.Buffer, attribute, sign, condition 
 	buffer.WriteRune('\'')
 	buffer.WriteString(condition)
 	buffer.WriteRune('\'')
+}
+
+func processInclude(include []interface{}) ([]interfaces.GormInclude, error) {
+	processedIncludes := []interfaces.GormInclude{}
+
+	processedIncludes, err := processNestedInclude(include, processedIncludes, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return processedIncludes, nil
+}
+
+func processNestedInclude(include interface{}, processedIncludes []interfaces.GormInclude, parentModel string) ([]interfaces.GormInclude, error) {
+	switch include.(type) {
+	case []interface{}:
+		includeArr := include.([]interface{})
+
+		for _, nestedInclude := range includeArr {
+			var err error
+			processedIncludes, err = processNestedInclude(nestedInclude, processedIncludes, parentModel)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	case map[string]interface{}:
+		includeMap := include.(map[string]interface{})
+		processedInclude := interfaces.GormInclude{}
+
+		for k := range includeMap {
+			key := strings.ToLower(k)
+			value := includeMap[key]
+
+			switch key {
+			case "relation":
+				switch strValue := value.(type) {
+				case string:
+					processedInclude.Relation = parentModel + strings.Title(strings.ToLower(strValue))
+				}
+
+			case "where":
+				buffer := &bytes.Buffer{}
+
+				err := processCondition(buffer, "", andSql, "", value)
+				if err != nil {
+					return nil, err
+				}
+
+				processedInclude.Where = buffer.String()
+
+			case "include":
+				var err error
+				processedIncludes, err = processNestedInclude(value, processedIncludes, processedInclude.Relation+".")
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+
+		processedIncludes = append(processedIncludes, processedInclude)
+
+	case string:
+		relation := parentModel + strings.Title(strings.ToLower(include.(string)))
+		processedInclude := interfaces.GormInclude{Relation: relation}
+		processedIncludes = append(processedIncludes, processedInclude)
+	}
+
+	return processedIncludes, nil
 }

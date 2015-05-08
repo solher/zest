@@ -11,6 +11,10 @@ func init() {
 			Name: ".",
 			Path: "github.com/smartystreets/goconvey/convey",
 		},
+		typewriter.ImportSpec{
+			Name: "_",
+			Path: "github.com/mattn/go-sqlite3",
+		},
 	}
 
 	err := typewriter.Register(templates.NewWrite("repository_test", testSlice, imports))

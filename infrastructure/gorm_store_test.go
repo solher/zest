@@ -80,6 +80,19 @@ func TestGormStore(t *testing.T) {
 					"avg":        []float64{15.5, 13.24},
 					"birthPlace": []interface{}{"Chalon", "Macon"},
 				},
+				Include: []interface{}{
+					"Adresses",
+					map[string]interface{}{
+						"relation": "emAils",
+						"where": map[string]interface{}{
+							"graduated":  []int{2010, 2015},
+							"money":      3000.55,
+							"avg":        []float64{15.5, 13.24},
+							"birthPlace": []interface{}{"Chalon", "Macon"},
+						},
+						"include": []interface{}{"subjecT"},
+					},
+				},
 			}
 
 			_, err := store.BuildQuery(filter)
