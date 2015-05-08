@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/Solher/auth-boilerplate-3/infrastructure"
-	"github.com/Solher/auth-boilerplate-3/models"
+	"github.com/Solher/auth-scaffold/domain"
+	"github.com/Solher/auth-scaffold/infrastructure"
 )
 
 func migrateDatabase() {
@@ -18,7 +18,7 @@ func migrateDatabase() {
 
 	fmt.Println("Migrating database...")
 
-	err = store.MigrateTables([]interface{}{models.User{}, models.Email{}})
+	err = store.MigrateTables(domain.Models)
 	if err != nil {
 		panic("Could not migrate database.")
 	}
@@ -37,7 +37,7 @@ func reinitDatabase() {
 
 	fmt.Println("Reinitializing database...")
 
-	err = store.ReinitTables([]interface{}{models.User{}, models.Email{}})
+	err = store.ReinitTables(domain.Models)
 	if err != nil {
 		panic("Could not reinit database.")
 	}
