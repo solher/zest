@@ -9,7 +9,7 @@ import "github.com/Solher/auth-scaffold/interfaces"
 type UserRepository interface {
 	Create(users []User) ([]User, error)
 	Find(filter *interfaces.Filter) ([]User, error)
-	FindByID(id int) (*User, error)
+	FindByID(id int, filter *interfaces.Filter) (*User, error)
 	Upsert(users []User) ([]User, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
@@ -33,8 +33,8 @@ func (i *Interactor) Find(filter *interfaces.Filter) ([]User, error) {
 	return users, err
 }
 
-func (i *Interactor) FindByID(id int) (*User, error) {
-	user, err := i.repo.FindByID(id)
+func (i *Interactor) FindByID(id int, filter *interfaces.Filter) (*User, error) {
+	user, err := i.repo.FindByID(id, filter)
 	return user, err
 }
 

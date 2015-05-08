@@ -69,7 +69,7 @@ func (i *stubInteractor) Find(filter *interfaces.Filter) ([]User, error) {
 	return users, nil
 }
 
-func (i *stubInteractor) FindByID(id int) (*User, error) {
+func (i *stubInteractor) FindByID(id int, filter *interfaces.Filter) (*User, error) {
 	users := []User{
 		{
 			FirstName: "Fabien",

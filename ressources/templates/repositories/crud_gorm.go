@@ -81,11 +81,15 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (r *Repository) FindByID(id int) (*{{.Type}}, error) {
-		db := r.store.GetDB()
+	func (r *Repository) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
+		query, err := r.store.BuildQuery(filter)
+		if err != nil {
+			return nil, err
+		}
+
 		{{.Name}} := {{.Type}}{}
 
-		err := db.First(&{{.Name}}, id).Error
+		err = query.First(&{{.Name}}, id).Error
 		if err != nil {
 			return nil, err
 		}

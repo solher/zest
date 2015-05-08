@@ -36,7 +36,7 @@ var interactorTest = &typewriter.Template{
 		return []{{.Type}}{}, nil
 	}
 
-	func (r *stubRepository) FindByID(id int) (*{{.Type}}, error) {
+	func (r *stubRepository) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
 		return &{{.Type}}{}, nil
 	}
 
@@ -71,7 +71,7 @@ var interactorTest = &typewriter.Template{
 			})
 
 			Convey("Should be able to find a {{.Name}} by id.", func() {
-				_, err := interactor.FindByID(1)
+				_, err := interactor.FindByID(1, nil)
 
 				So(err, ShouldBeNil)
 			})

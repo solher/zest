@@ -30,7 +30,7 @@ var interactor = &typewriter.Template{
 	type {{.Type}}Repository interface {
 		Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
 		Find(filter *interfaces.Filter) ([]{{.Type}}, error)
-		FindByID(id int) (*{{.Type}}, error)
+		FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error)
 		Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
 		DeleteAll(filter *interfaces.Filter) error
 		DeleteByID(id int) error
@@ -66,8 +66,8 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (i *Interactor) FindByID(id int) (*{{.Type}}, error) {
-		{{.Name}}, err := i.repo.FindByID(id)
+	func (i *Interactor) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
+		{{.Name}}, err := i.repo.FindByID(id, filter)
 		return {{.Name}}, err
 	}
 `}

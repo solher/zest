@@ -17,7 +17,7 @@ import (
 type UserInteractor interface {
 	Create(users []User) ([]User, error)
 	Find(filter *interfaces.Filter) ([]User, error)
-	FindByID(id int) (*User, error)
+	FindByID(id int, filter *interfaces.Filter) (*User, error)
 	Upsert(users []User) ([]User, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
@@ -78,7 +78,13 @@ func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request, params htt
 		return
 	}
 
-	user, err := c.interactor.FindByID(id)
+	filter, err := interfaces.GetQueryFilter(r)
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
+		return
+	}
+
+	user, err := c.interactor.FindByID(id, filter)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return

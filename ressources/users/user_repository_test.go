@@ -140,11 +140,11 @@ func TestRepository(t *testing.T) {
 		})
 
 		Convey("Should be able to find user by id.", func() {
-			user, err := repo.FindByID(1)
+			user, err := repo.FindByID(1, nil)
 			So(err, ShouldBeNil)
 			So(user.FirstName, ShouldEqual, "Fabien")
 
-			user, err = repo.FindByID(10)
+			user, err = repo.FindByID(10, nil)
 			So(err, ShouldNotBeNil)
 		})
 
@@ -177,7 +177,7 @@ func TestRepository(t *testing.T) {
 			users, err = repo.Upsert(users)
 			So(err, ShouldBeNil)
 
-			user, err := repo.FindByID(2)
+			user, err := repo.FindByID(2, nil)
 			So(err, ShouldBeNil)
 			So(user.FirstName, ShouldEqual, "Fabien")
 			So(user.LastName, ShouldEqual, "Hourlier")
@@ -230,7 +230,7 @@ func TestRepository(t *testing.T) {
 			err := repo.DeleteByID(2)
 			So(err, ShouldBeNil)
 
-			_, err = repo.FindByID(2)
+			_, err = repo.FindByID(2, nil)
 			So(err.Error(), ShouldEqual, "record not found")
 		})
 

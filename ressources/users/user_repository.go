@@ -48,11 +48,15 @@ func (r *Repository) Find(filter *interfaces.Filter) ([]User, error) {
 	return users, nil
 }
 
-func (r *Repository) FindByID(id int) (*User, error) {
-	db := r.store.GetDB()
+func (r *Repository) FindByID(id int, filter *interfaces.Filter) (*User, error) {
+	query, err := r.store.BuildQuery(filter)
+	if err != nil {
+		return nil, err
+	}
+
 	user := User{}
 
-	err := db.First(&user, id).Error
+	err = query.First(&user, id).Error
 	if err != nil {
 		return nil, err
 	}

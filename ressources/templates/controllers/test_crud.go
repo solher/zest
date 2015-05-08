@@ -77,7 +77,7 @@ var controllerTest = &typewriter.Template{
 		return {{.Name}}s, nil
 	}
 
-	func (i *stubInteractor) FindByID(id int) (*{{.Type}}, error) {
+	func (i *stubInteractor) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
 		{{.Name}}s := []{{.Type}}{
 			{
 				FirstName: "Fabien",

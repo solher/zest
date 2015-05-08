@@ -21,7 +21,7 @@ func (r *stubRepository) Find(filter *interfaces.Filter) ([]User, error) {
 	return []User{}, nil
 }
 
-func (r *stubRepository) FindByID(id int) (*User, error) {
+func (r *stubRepository) FindByID(id int, filter *interfaces.Filter) (*User, error) {
 	return &User{}, nil
 }
 
@@ -56,7 +56,7 @@ func TestInteractor(t *testing.T) {
 		})
 
 		Convey("Should be able to find a user by id.", func() {
-			_, err := interactor.FindByID(1)
+			_, err := interactor.FindByID(1, nil)
 
 			So(err, ShouldBeNil)
 		})

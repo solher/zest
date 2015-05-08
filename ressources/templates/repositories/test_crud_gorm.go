@@ -146,11 +146,11 @@ var repositoryTest = &typewriter.Template{
 			})
 
 			Convey("Should be able to find {{.Name}} by id.", func() {
-				{{.Name}}, err := repo.FindByID(1)
+				{{.Name}}, err := repo.FindByID(1, nil)
 				So(err, ShouldBeNil)
 				So(user.ID, ShouldEqual, 1)
 
-				{{.Name}}, err = repo.FindByID(10)
+				{{.Name}}, err = repo.FindByID(10, nil)
 				So(err, ShouldNotBeNil)
 			})
 
@@ -170,7 +170,7 @@ var repositoryTest = &typewriter.Template{
 				{{.Name}}s, err = repo.Upsert({{.Name}}s)
 				So(err, ShouldBeNil)
 
-				{{.Name}}, err := repo.FindByID(2)
+				{{.Name}}, err := repo.FindByID(2, nil)
 				So(err, ShouldBeNil)
 				So(user.ID, ShouldEqual, 2)
 			})
@@ -215,7 +215,7 @@ var repositoryTest = &typewriter.Template{
 				err := repo.DeleteByID(2)
 				So(err, ShouldBeNil)
 
-				_, err = repo.FindByID(2)
+				_, err = repo.FindByID(2, nil)
 				So(err.Error(), ShouldEqual, "record not found")
 			})
 

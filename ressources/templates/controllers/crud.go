@@ -30,7 +30,7 @@ var controller = &typewriter.Template{
 	type {{.Type}}Interactor interface {
 		Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
 		Find(filter *interfaces.Filter) ([]{{.Type}}, error)
-		FindByID(id int) (*{{.Type}}, error)
+		FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error)
 		Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
 		DeleteAll(filter *interfaces.Filter) error
 		DeleteByID(id int) error
@@ -103,7 +103,13 @@ var findByID = &typewriter.Template{
 			return
 		}
 
-		{{.Name}}, err := c.interactor.FindByID(id)
+		filter, err := interfaces.GetQueryFilter(r)
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
+			return
+		}
+
+		{{.Name}}, err := c.interactor.FindByID(id, filter)
 		if err != nil {
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 			return
