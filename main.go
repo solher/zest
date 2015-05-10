@@ -6,6 +6,8 @@ import (
 
 	"github.com/Solher/auth-scaffold/infrastructure"
 	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/middlewares"
+	"github.com/Solher/auth-scaffold/ressources/sessions"
 	"github.com/Solher/auth-scaffold/ressources/users"
 	"github.com/codegangsta/negroni"
 	"github.com/julienschmidt/httprouter"
@@ -21,12 +23,11 @@ func main() {
 		return
 	}
 
-	negroni := negroni.New(negroni.NewRecovery(), negroni.NewLogger()) //, middlewares.NewSessions())
-
 	router := httprouter.New()
 	render := infrastructure.NewRender()
 	store := infrastructure.NewGormStore()
 
+	negroni := negroni.New(negroni.NewRecovery(), negroni.NewLogger(), middlewares.NewSessions(store))
 	negroni.UseHandler(router)
 
 	initApp(router, render, store)
@@ -60,6 +61,10 @@ func initApp(router *httprouter.Router, render *infrastructure.Render, store *in
 	usersRepository := users.NewRepository(store)
 	usersInteractor := users.NewInteractor(usersRepository)
 	users.NewController(usersInteractor, render, routes)
+
+	sessionsRepository := sessions.NewRepository(store)
+	sessionsInteractor := sessions.NewInteractor(sessionsRepository)
+	sessions.NewController(sessionsInteractor, render, routes)
 
 	routes.Register(router)
 }

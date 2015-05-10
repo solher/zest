@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-// func GetContext(r *http.Request) models.Context {
-// 	ctx := *context.Get(r, models.ContextKey).(*models.Context)
-//
-// 	return ctx
-// }
-
 // Copied from golint
 var commonInitialisms = []string{"API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SSH", "TLS", "TTL", "UI", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XSRF", "XSS"}
 var commonInitialismsReplacer *strings.Replacer

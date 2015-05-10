@@ -18,7 +18,7 @@ func migrateDatabase() {
 
 	fmt.Println("Migrating database...")
 
-	err = store.MigrateTables(domain.Models)
+	err = store.MigrateTables(domain.ModelDirectory.Models)
 	if err != nil {
 		panic("Could not migrate database.")
 	}
@@ -37,7 +37,7 @@ func reinitDatabase() {
 
 	fmt.Println("Reinitializing database...")
 
-	err = store.ReinitTables(domain.Models)
+	err = store.ReinitTables(domain.ModelDirectory.Models)
 	if err != nil {
 		panic("Could not reinit database.")
 	}

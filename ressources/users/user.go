@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	domain.Models.Register(User{})
+	domain.ModelDirectory.Register(User{})
 }
 
 //go:generate gen -f

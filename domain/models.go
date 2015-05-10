@@ -7,10 +7,12 @@ type GormModel struct {
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 }
 
-type modelDirectory []interface{}
-
-func (md modelDirectory) Register(model interface{}) {
-	md = append(md, model)
+type modelDirectory struct {
+	Models []interface{}
 }
 
-var Models modelDirectory = modelDirectory{}
+func (md *modelDirectory) Register(model interface{}) {
+	md.Models = append(md.Models, model)
+}
+
+var ModelDirectory *modelDirectory = &modelDirectory{}

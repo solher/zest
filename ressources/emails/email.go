@@ -3,7 +3,7 @@ package emails
 import "github.com/Solher/auth-scaffold/domain"
 
 func init() {
-	domain.Models.Register(Email{})
+	domain.ModelDirectory.Register(Email{})
 }
 
 //go:generate gen -f
