@@ -1,6 +1,9 @@
 package apierrors
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type APIError struct {
 	Status      int    `json:"status"`
@@ -20,8 +23,6 @@ var (
 )
 
 var (
-	BlankPassword       = &APIError{Description: "Password can't be blank.", ErrorCode: "BLANK_PASSWORD"}
-	BlankEmail          = &APIError{Description: "Email can't be blank.", ErrorCode: "BLANK_EMAIL"}
 	InvalidCredentials  = &APIError{Description: "Invalid credentials.", ErrorCode: "INVALID_CREDENTIALS"}
 	SessionNotFound     = &APIError{Description: "No active sessions were found.", ErrorCode: "SESSION_NOT_FOUND"}
 	DatabaseError       = &APIError{Description: "An error occured with the database. Please retry later.", ErrorCode: "SESSION_CREATION_ERROR"}
@@ -29,8 +30,17 @@ var (
 	Unauthorized        = &APIError{Description: "Authorization Required.", ErrorCode: "AUTHORIZATION_REQUIRED"}
 )
 
+func BlankParam(paramName string) *APIError {
+	titleName := strings.Title(strings.ToLower(paramName))
+	upperName := strings.ToUpper(paramName)
+	return &APIError{Description: titleName + " can't be blank.", ErrorCode: "BLANK_" + upperName}
+}
+
 func Make(apiError APIError, status int, err error) *APIError {
-	apiError.Raw = err.Error()
+	if err != nil {
+		apiError.Raw = err.Error()
+	}
+
 	apiError.Status = status
 
 	return &apiError

@@ -7,8 +7,7 @@ import (
 	"github.com/Solher/auth-scaffold/infrastructure"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/middlewares"
-	"github.com/Solher/auth-scaffold/ressources/sessions"
-	"github.com/Solher/auth-scaffold/ressources/users"
+	"github.com/Solher/auth-scaffold/ressources"
 	"github.com/codegangsta/negroni"
 	"github.com/julienschmidt/httprouter"
 )
@@ -58,13 +57,17 @@ func initApp(router *httprouter.Router, render *infrastructure.Render, store *in
 	}
 	routes := interfaces.NewRouteDirectory()
 
-	usersRepository := users.NewRepository(store)
-	usersInteractor := users.NewInteractor(usersRepository)
-	users.NewController(usersInteractor, render, routes)
+	userRepository := ressources.NewUserRepo(store)
+	userInteractor := ressources.NewUserInter(userRepository)
+	ressources.NewUserCtrl(userInteractor, render, routes)
 
-	sessionsRepository := sessions.NewRepository(store)
-	sessionsInteractor := sessions.NewInteractor(sessionsRepository)
-	sessions.NewController(sessionsInteractor, render, routes)
+	sessionRepository := ressources.NewSessionRepo(store)
+	sessionInteractor := ressources.NewSessionInter(sessionRepository)
+	ressources.NewSessionCtrl(sessionInteractor, render, routes)
+
+	accountRepository := ressources.NewAccountRepo(store)
+	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository)
+	ressources.NewAccountCtrl(accountInteractor, render, routes)
 
 	routes.Register(router)
 }

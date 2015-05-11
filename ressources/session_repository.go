@@ -2,19 +2,19 @@
 // TypeWriter: repository
 // Directive: +gen on Session
 
-package sessions
+package ressources
 
 import "github.com/Solher/auth-scaffold/interfaces"
 
-type Repository struct {
-	store interfaces.GormStore
+type SessionRepo struct {
+	store interfaces.AbstractGormStore
 }
 
-func NewRepository(store interfaces.GormStore) *Repository {
-	return &Repository{store: store}
+func NewSessionRepo(store interfaces.AbstractGormStore) *SessionRepo {
+	return &SessionRepo{store: store}
 }
 
-func (r *Repository) Create(sessions []Session) ([]Session, error) {
+func (r *SessionRepo) Create(sessions []Session) ([]Session, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -32,7 +32,7 @@ func (r *Repository) Create(sessions []Session) ([]Session, error) {
 	return sessions, nil
 }
 
-func (r *Repository) Find(filter *interfaces.Filter) ([]Session, error) {
+func (r *SessionRepo) Find(filter *interfaces.Filter) ([]Session, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (r *Repository) Find(filter *interfaces.Filter) ([]Session, error) {
 	return sessions, nil
 }
 
-func (r *Repository) FindByID(id int, filter *interfaces.Filter) (*Session, error) {
+func (r *SessionRepo) FindByID(id int, filter *interfaces.Filter) (*Session, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (r *Repository) FindByID(id int, filter *interfaces.Filter) (*Session, erro
 	return &session, nil
 }
 
-func (r *Repository) Upsert(sessions []Session) ([]Session, error) {
+func (r *SessionRepo) Upsert(sessions []Session) ([]Session, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -92,7 +92,7 @@ func (r *Repository) Upsert(sessions []Session) ([]Session, error) {
 	return sessions, nil
 }
 
-func (r *Repository) DeleteAll(filter *interfaces.Filter) error {
+func (r *SessionRepo) DeleteAll(filter *interfaces.Filter) error {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (r *Repository) DeleteAll(filter *interfaces.Filter) error {
 	return nil
 }
 
-func (r *Repository) DeleteByID(id int) error {
+func (r *SessionRepo) DeleteByID(id int) error {
 	db := r.store.GetDB()
 
 	err := db.Delete(&Session{ID: id}).Error

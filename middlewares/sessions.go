@@ -4,19 +4,19 @@ import (
 	"net/http"
 
 	"github.com/Solher/auth-scaffold/interfaces"
-	"github.com/Solher/auth-scaffold/ressources/sessions"
+	"github.com/Solher/auth-scaffold/ressources"
 	"github.com/gorilla/context"
 )
 
 type Sessions struct {
-	interactor *sessions.Interactor
+	interactor ressources.AbstractSessionInter
 }
 
-func NewSessions(store interfaces.GormStore) *Sessions {
-	sessionsRepository := sessions.NewRepository(store)
-	sessionsInteractor := sessions.NewInteractor(sessionsRepository)
+func NewSessions(store interfaces.AbstractGormStore) *Sessions {
+	sessionRepository := ressources.NewSessionRepo(store)
+	sessionInteractor := ressources.NewSessionInter(sessionRepository)
 
-	return &Sessions{interactor: sessionsInteractor}
+	return &Sessions{interactor: sessionInteractor}
 }
 
 func (s *Sessions) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -30,9 +30,10 @@ func (s *Sessions) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 	}
 
 	if authToken != "" {
-		session, user, _ := s.interactor.CurrentSession("toto")
-		context.Set(r, "currentSession", session)
-		context.Set(r, "currentUser", user)
+		session, _ := s.interactor.CurrentFromToken(authToken)
+		if session != nil {
+			context.Set(r, "currentSession", *session)
+		}
 	}
 
 	next(w, r)

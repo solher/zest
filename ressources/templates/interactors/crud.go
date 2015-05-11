@@ -27,7 +27,7 @@ var slice = typewriter.TemplateSlice{
 var interactor = &typewriter.Template{
 	Name: "Interactor",
 	Text: `
-	type {{.Type}}Repository interface {
+	type Abstract{{.Type}}Repo interface {
 		Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
 		Find(filter *interfaces.Filter) ([]{{.Type}}, error)
 		FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error)
@@ -36,19 +36,19 @@ var interactor = &typewriter.Template{
 		DeleteByID(id int) error
 	}
 
-	type Interactor struct {
-		repo {{.Type}}Repository
+	type {{.Type}}Inter struct {
+		repo Abstract{{.Type}}Repo
 	}
 
-	func NewInteractor(repo {{.Type}}Repository) *Interactor {
-		return &Interactor{repo: repo}
+	func New{{.Type}}Inter(repo Abstract{{.Type}}Repo) *{{.Type}}Inter {
+		return &{{.Type}}Inter{repo: repo}
 	}
 `}
 
 var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
-	func (i *Interactor) Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+	func (i *{{.Type}}Inter) Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
 		{{.Name}}s, err := i.repo.Create({{.Name}}s)
 		return {{.Name}}s, err
 	}
@@ -57,7 +57,7 @@ var create = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (i *Interactor) Find(filter *interfaces.Filter) ([]{{.Type}}, error) {
+	func (i *{{.Type}}Inter) Find(filter *interfaces.Filter) ([]{{.Type}}, error) {
 		{{.Name}}s, err := i.repo.Find(filter)
 		return {{.Name}}s, err
 	}
@@ -66,7 +66,7 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (i *Interactor) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
+	func (i *{{.Type}}Inter) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
 		{{.Name}}, err := i.repo.FindByID(id, filter)
 		return {{.Name}}, err
 	}
@@ -75,7 +75,7 @@ var findByID = &typewriter.Template{
 var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
-	func (i *Interactor) Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+	func (i *{{.Type}}Inter) Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
 		{{.Name}}s, err := i.repo.Upsert({{.Name}}s)
 		return {{.Name}}s, err
 	}
@@ -84,7 +84,7 @@ var upsert = &typewriter.Template{
 var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
-	func (i *Interactor) DeleteAll(filter *interfaces.Filter) error {
+	func (i *{{.Type}}Inter) DeleteAll(filter *interfaces.Filter) error {
 		err := i.repo.DeleteAll(filter)
 		return err
 	}
@@ -93,7 +93,7 @@ var deleteAll = &typewriter.Template{
 var deleteByID = &typewriter.Template{
 	Name: "DeleteByID",
 	Text: `
-	func (i *Interactor) DeleteByID(id int) error {
+	func (i *{{.Type}}Inter) DeleteByID(id int) error {
 		err := i.repo.DeleteByID(id)
 		return err
 	}

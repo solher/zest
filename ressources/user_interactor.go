@@ -2,11 +2,11 @@
 // TypeWriter: interactor
 // Directive: +gen on User
 
-package users
+package ressources
 
 import "github.com/Solher/auth-scaffold/interfaces"
 
-type UserRepository interface {
+type AbstractUserRepo interface {
 	Create(users []User) ([]User, error)
 	Find(filter *interfaces.Filter) ([]User, error)
 	FindByID(id int, filter *interfaces.Filter) (*User, error)
@@ -15,40 +15,40 @@ type UserRepository interface {
 	DeleteByID(id int) error
 }
 
-type Interactor struct {
-	repo UserRepository
+type UserInter struct {
+	repo AbstractUserRepo
 }
 
-func NewInteractor(repo UserRepository) *Interactor {
-	return &Interactor{repo: repo}
+func NewUserInter(repo AbstractUserRepo) *UserInter {
+	return &UserInter{repo: repo}
 }
 
-func (i *Interactor) Create(users []User) ([]User, error) {
+func (i *UserInter) Create(users []User) ([]User, error) {
 	users, err := i.repo.Create(users)
 	return users, err
 }
 
-func (i *Interactor) Find(filter *interfaces.Filter) ([]User, error) {
+func (i *UserInter) Find(filter *interfaces.Filter) ([]User, error) {
 	users, err := i.repo.Find(filter)
 	return users, err
 }
 
-func (i *Interactor) FindByID(id int, filter *interfaces.Filter) (*User, error) {
+func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*User, error) {
 	user, err := i.repo.FindByID(id, filter)
 	return user, err
 }
 
-func (i *Interactor) Upsert(users []User) ([]User, error) {
+func (i *UserInter) Upsert(users []User) ([]User, error) {
 	users, err := i.repo.Upsert(users)
 	return users, err
 }
 
-func (i *Interactor) DeleteAll(filter *interfaces.Filter) error {
+func (i *UserInter) DeleteAll(filter *interfaces.Filter) error {
 	err := i.repo.DeleteAll(filter)
 	return err
 }
 
-func (i *Interactor) DeleteByID(id int) error {
+func (i *UserInter) DeleteByID(id int) error {
 	err := i.repo.DeleteByID(id)
 	return err
 }

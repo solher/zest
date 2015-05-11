@@ -2,7 +2,7 @@
 // TypeWriter: controller
 // Directive: +gen on Session
 
-package sessions
+package ressources
 
 import (
 	"encoding/json"
@@ -14,31 +14,32 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type SessionInteractor interface {
+type AbstractSessionInter interface {
 	Create(sessions []Session) ([]Session, error)
 	Find(filter *interfaces.Filter) ([]Session, error)
 	FindByID(id int, filter *interfaces.Filter) (*Session, error)
 	Upsert(sessions []Session) ([]Session, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
+	CurrentFromToken(authToken string) (*Session, error)
 }
 
-type Controller struct {
-	interactor SessionInteractor
+type SessionCtrl struct {
+	interactor AbstractSessionInter
 	render     interfaces.Render
 }
 
-func NewController(interactor SessionInteractor, render interfaces.Render, routesDir interfaces.RouteDirectory) *Controller {
-	controller := &Controller{interactor: interactor, render: render}
+func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.Render, routesDir interfaces.RouteDirectory) *SessionCtrl {
+	controller := &SessionCtrl{interactor: interactor, render: render}
 
 	if routesDir != nil {
-		addRoutes(routesDir, controller)
+		addSessionRoutes(routesDir, controller)
 	}
 
 	return controller
 }
 
-func (c *Controller) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var sessions []Session
 	err := json.NewDecoder(r.Body).Decode(&sessions)
 	if err != nil {
@@ -55,7 +56,7 @@ func (c *Controller) Create(w http.ResponseWriter, r *http.Request, _ httprouter
 	c.render.JSON(w, http.StatusCreated, sessions)
 }
 
-func (c *Controller) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
@@ -71,7 +72,7 @@ func (c *Controller) Find(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	c.render.JSON(w, http.StatusOK, sessions)
 }
 
-func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -93,7 +94,7 @@ func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request, params htt
 	c.render.JSON(w, http.StatusOK, session)
 }
 
-func (c *Controller) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var sessions []Session
 	err := json.NewDecoder(r.Body).Decode(&sessions)
 	if err != nil {
@@ -110,7 +111,7 @@ func (c *Controller) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter
 	c.render.JSON(w, http.StatusCreated, sessions)
 }
 
-func (c *Controller) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
@@ -126,7 +127,7 @@ func (c *Controller) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprou
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
-func (c *Controller) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)

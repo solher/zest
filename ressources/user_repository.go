@@ -2,19 +2,19 @@
 // TypeWriter: repository
 // Directive: +gen on User
 
-package users
+package ressources
 
 import "github.com/Solher/auth-scaffold/interfaces"
 
-type Repository struct {
-	store interfaces.GormStore
+type UserRepo struct {
+	store interfaces.AbstractGormStore
 }
 
-func NewRepository(store interfaces.GormStore) *Repository {
-	return &Repository{store: store}
+func NewUserRepo(store interfaces.AbstractGormStore) *UserRepo {
+	return &UserRepo{store: store}
 }
 
-func (r *Repository) Create(users []User) ([]User, error) {
+func (r *UserRepo) Create(users []User) ([]User, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -32,7 +32,7 @@ func (r *Repository) Create(users []User) ([]User, error) {
 	return users, nil
 }
 
-func (r *Repository) Find(filter *interfaces.Filter) ([]User, error) {
+func (r *UserRepo) Find(filter *interfaces.Filter) ([]User, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (r *Repository) Find(filter *interfaces.Filter) ([]User, error) {
 	return users, nil
 }
 
-func (r *Repository) FindByID(id int, filter *interfaces.Filter) (*User, error) {
+func (r *UserRepo) FindByID(id int, filter *interfaces.Filter) (*User, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (r *Repository) FindByID(id int, filter *interfaces.Filter) (*User, error) 
 	return &user, nil
 }
 
-func (r *Repository) Upsert(users []User) ([]User, error) {
+func (r *UserRepo) Upsert(users []User) ([]User, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -92,7 +92,7 @@ func (r *Repository) Upsert(users []User) ([]User, error) {
 	return users, nil
 }
 
-func (r *Repository) DeleteAll(filter *interfaces.Filter) error {
+func (r *UserRepo) DeleteAll(filter *interfaces.Filter) error {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (r *Repository) DeleteAll(filter *interfaces.Filter) error {
 	return nil
 }
 
-func (r *Repository) DeleteByID(id int) error {
+func (r *UserRepo) DeleteByID(id int) error {
 	db := r.store.GetDB()
 
 	err := db.Delete(&User{ID: id}).Error

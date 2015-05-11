@@ -2,16 +2,15 @@
 // TypeWriter: interactor
 // Directive: +gen on Session
 
-package sessions
+package ressources
 
 import (
 	"time"
 
 	"github.com/Solher/auth-scaffold/interfaces"
-	"github.com/Solher/auth-scaffold/ressources/users"
 )
 
-type SessionRepository interface {
+type AbstractSessionRepo interface {
 	Create(sessions []Session) ([]Session, error)
 	Find(filter *interfaces.Filter) ([]Session, error)
 	FindByID(id int, filter *interfaces.Filter) (*Session, error)
@@ -20,65 +19,62 @@ type SessionRepository interface {
 	DeleteByID(id int) error
 }
 
-type Interactor struct {
-	repo SessionRepository
+type SessionInter struct {
+	repo AbstractSessionRepo
 }
 
-func NewInteractor(repo SessionRepository) *Interactor {
-	return &Interactor{repo: repo}
+func NewSessionInter(repo AbstractSessionRepo) *SessionInter {
+	return &SessionInter{repo: repo}
 }
 
-func (i *Interactor) Create(sessions []Session) ([]Session, error) {
+func (i *SessionInter) Create(sessions []Session) ([]Session, error) {
 	sessions, err := i.repo.Create(sessions)
 	return sessions, err
 }
 
-func (i *Interactor) Find(filter *interfaces.Filter) ([]Session, error) {
+func (i *SessionInter) Find(filter *interfaces.Filter) ([]Session, error) {
 	sessions, err := i.repo.Find(filter)
 	return sessions, err
 }
 
-func (i *Interactor) FindByID(id int, filter *interfaces.Filter) (*Session, error) {
+func (i *SessionInter) FindByID(id int, filter *interfaces.Filter) (*Session, error) {
 	session, err := i.repo.FindByID(id, filter)
 	return session, err
 }
 
-func (i *Interactor) Upsert(sessions []Session) ([]Session, error) {
+func (i *SessionInter) Upsert(sessions []Session) ([]Session, error) {
 	sessions, err := i.repo.Upsert(sessions)
 	return sessions, err
 }
 
-func (i *Interactor) DeleteAll(filter *interfaces.Filter) error {
+func (i *SessionInter) DeleteAll(filter *interfaces.Filter) error {
 	err := i.repo.DeleteAll(filter)
 	return err
 }
 
-func (i *Interactor) DeleteByID(id int) error {
+func (i *SessionInter) DeleteByID(id int) error {
 	err := i.repo.DeleteByID(id)
 	return err
 }
 
-func (i *Interactor) CurrentSession(authToken string) (*Session, *users.User, error) {
+func (i *SessionInter) CurrentFromToken(authToken string) (*Session, error) {
 	filter := &interfaces.Filter{
-		Limit:   1,
-		Where:   map[string]interface{}{"authToken": authToken},
-		Include: []interface{}{"user"},
+		Limit: 1,
+		Where: map[string]interface{}{"authToken": authToken},
 	}
 
 	sessions, err := i.repo.Find(filter)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if len(sessions) == 1 {
 		session := sessions[0]
 
 		if session.ValidTo.After(time.Now()) {
-			user := &session.User
-			session.User = users.User{}
-			return &session, user, nil
+			return &session, nil
 		}
 	}
 
-	return nil, nil, nil
+	return nil, nil
 }

@@ -27,19 +27,19 @@ var slice = typewriter.TemplateSlice{
 var repository = &typewriter.Template{
 	Name: "Repository",
 	Text: `
-  type Repository struct {
-  	store interfaces.GormStore
+  type {{.Type}}Repo struct {
+  	store interfaces.AbstractGormStore
   }
 
-  func NewRepository(store interfaces.GormStore) *Repository {
-  	return &Repository{store: store}
+  func New{{.Type}}Repo(store interfaces.AbstractGormStore) *{{.Type}}Repo {
+  	return &{{.Type}}Repo{store: store}
   }
 `}
 
 var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
-  func (r *Repository) Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+  func (r *{{.Type}}Repo) Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
   	db := r.store.GetDB()
   	transaction := db.Begin()
 
@@ -61,7 +61,7 @@ var create = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (r *Repository) Find(filter *interfaces.Filter) ([]{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Find(filter *interfaces.Filter) ([]{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (r *Repository) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
+	func (r *{{.Type}}Repo) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
 			return nil, err
@@ -101,7 +101,7 @@ var findByID = &typewriter.Template{
 var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
-	func (r *Repository) Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
 		db := r.store.GetDB()
 		transaction := db.Begin()
 
@@ -133,7 +133,7 @@ var upsert = &typewriter.Template{
 var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
-	func (r *Repository) DeleteAll(filter *interfaces.Filter) error {
+	func (r *{{.Type}}Repo) DeleteAll(filter *interfaces.Filter) error {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
 			return err
@@ -151,7 +151,7 @@ var deleteAll = &typewriter.Template{
 var deleteByID = &typewriter.Template{
 	Name: "DeleteByID",
 	Text: `
-	func (r *Repository) DeleteByID(id int) error {
+	func (r *{{.Type}}Repo) DeleteByID(id int) error {
 		db := r.store.GetDB()
 
 		err := db.Delete(&{{.Type}}{ID: id}).Error

@@ -2,11 +2,11 @@
 // TypeWriter: routes
 // Directive: +gen on User
 
-package users
+package ressources
 
 import "github.com/Solher/auth-scaffold/interfaces"
 
-func addRoutes(routesDir interfaces.RouteDirectory, controller *Controller) {
+func addUserRoutes(routesDir interfaces.RouteDirectory, controller *UserCtrl) {
 	key := interfaces.NewDirectoryKey(controller)
 
 	routesDir[key.For("Create")] = interfaces.Route{Method: "POST", Path: "/users", Handler: controller.Create}

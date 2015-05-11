@@ -21,7 +21,7 @@ var slice = typewriter.TemplateSlice{
 var routes = &typewriter.Template{
 	Name: "Routes",
 	Text: `
-  func addRoutes(routesDir interfaces.RouteDirectory, controller *Controller) {
+  func add{{.Type}}Routes(routesDir interfaces.RouteDirectory, controller *{{.Type}}Ctrl) {
   	key := interfaces.NewDirectoryKey(controller)
 
   	routesDir[key.For("Create")] = interfaces.Route{Method: "POST", Path: "/{{.Name}}s", Handler: controller.Create}

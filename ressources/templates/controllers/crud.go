@@ -27,7 +27,7 @@ var slice = typewriter.TemplateSlice{
 var controller = &typewriter.Template{
 	Name: "Controller",
 	Text: `
-	type {{.Type}}Interactor interface {
+	type Abstract{{.Type}}Inter interface {
 		Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
 		Find(filter *interfaces.Filter) ([]{{.Type}}, error)
 		FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error)
@@ -36,16 +36,16 @@ var controller = &typewriter.Template{
 		DeleteByID(id int) error
 	}
 
-	type Controller struct {
-		interactor {{.Type}}Interactor
+	type {{.Type}}Ctrl struct {
+		interactor Abstract{{.Type}}Inter
 		render     interfaces.Render
 	}
 
-	func NewController(interactor {{.Type}}Interactor, render interfaces.Render, routesDir interfaces.RouteDirectory) *Controller {
-		controller := &Controller{interactor: interactor, render: render}
+	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.Render, routesDir interfaces.RouteDirectory) *{{.Type}}Ctrl {
+		controller := &{{.Type}}Ctrl{interactor: interactor, render: render}
 
 		if routesDir != nil {
-			addRoutes(routesDir, controller)
+			add{{.Type}}Routes(routesDir, controller)
 		}
 
 		return controller
@@ -55,7 +55,7 @@ var controller = &typewriter.Template{
 var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
-	func (c *Controller) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		var {{.Name}}s []{{.Type}}
 		err := json.NewDecoder(r.Body).Decode(&{{.Name}}s)
 		if err != nil {
@@ -76,7 +76,7 @@ var create = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (c *Controller) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		filter, err := interfaces.GetQueryFilter(r)
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
@@ -96,7 +96,7 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	func (c *{{.Type}}Ctrl) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, err := strconv.Atoi(params.ByName("id"))
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -122,7 +122,7 @@ var findByID = &typewriter.Template{
 var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
-	func (c *Controller) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		var {{.Name}}s []{{.Type}}
 		err := json.NewDecoder(r.Body).Decode(&{{.Name}}s)
 		if err != nil {
@@ -143,7 +143,7 @@ var upsert = &typewriter.Template{
 var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
-	func (c *Controller) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		filter, err := interfaces.GetQueryFilter(r)
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
@@ -163,7 +163,7 @@ var deleteAll = &typewriter.Template{
 var deleteByID = &typewriter.Template{
 	Name: "DeleteByID",
 	Text: `
-	func (c *Controller) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	func (c *{{.Type}}Ctrl) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		id, err := strconv.Atoi(params.ByName("id"))
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
