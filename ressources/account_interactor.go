@@ -11,9 +11,11 @@ import (
 
 type AbstractAccountRepo interface {
 	Create(accounts []Account) ([]Account, error)
+	CreateOne(account *Account) (*Account, error)
 	Find(filter *interfaces.Filter) ([]Account, error)
 	FindByID(id int, filter *interfaces.Filter) (*Account, error)
 	Upsert(accounts []Account) ([]Account, error)
+	UpsertOne(account *Account) (*Account, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
 }
@@ -58,20 +60,20 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		validTo = time.Now().Add(24 * time.Hour)
 	}
 
-	session := []Session{{
+	session := &Session{
 		AccountID: user.AccountID,
 		AuthToken: authToken,
 		IP:        ip,
 		Agent:     userAgent,
 		ValidTo:   validTo,
-	}}
+	}
 
-	sessions, err := i.sessionRepo.Create(session)
+	session, err = i.sessionRepo.CreateOne(session)
 	if err != nil {
 		return nil, err
 	}
 
-	return &sessions[0], nil
+	return session, nil
 }
 
 func (i *AccountInter) Signout(currentSession *Session) error {
@@ -90,16 +92,16 @@ func (i *AccountInter) Signup(user *User) (*Account, error) {
 
 	user.Password = string(hashedPassword)
 
-	account := []Account{{
+	account := &Account{
 		Users: []User{*user},
-	}}
+	}
 
-	accounts, err := i.repo.Create(account)
+	account, err = i.repo.CreateOne(account)
 	if err != nil {
 		return nil, err
 	}
 
-	return &accounts[0], nil
+	return account, nil
 }
 func (i *AccountInter) Current(currentSession *Session) (*Account, error) {
 	filter := &interfaces.Filter{

@@ -17,9 +17,11 @@ func init() {
 var slice = typewriter.TemplateSlice{
 	repository,
 	create,
+	createOne,
 	find,
 	findByID,
 	upsert,
+	upsertOne,
 	deleteAll,
 	deleteByID,
 }
@@ -56,6 +58,21 @@ var create = &typewriter.Template{
   	transaction.Commit()
   	return {{.Name}}s, nil
   }
+`}
+
+var createOne = &typewriter.Template{
+	Name: "CreateOne",
+	Text: `
+	func (r *{{.Type}}Repo) CreateOne({{.Name}} *{{.Type}}) (*{{.Type}}, error) {
+		db := r.store.GetDB()
+
+		err := db.Create({{.Name}}).Error
+		if err != nil {
+			return nil, err
+		}
+
+		return {{.Name}}, nil
+	}
 `}
 
 var find = &typewriter.Template{
@@ -127,6 +144,30 @@ var upsert = &typewriter.Template{
 
 		transaction.Commit()
 		return {{.Name}}s, nil
+	}
+`}
+
+var upsertOne = &typewriter.Template{
+	Name: "UpsertOne",
+	Text: `
+	func (r *{{.Type}}Repo) UpsertOne({{.Name}} *{{.Type}}) (*{{.Type}}, error) {
+		db := r.store.GetDB()
+
+		if {{.Name}}.ID != 0 {
+			oldUser := {{.Type}}{}
+
+			err := db.First(&oldUser, {{.Name}}.ID).Updates({{.Name}}).Error
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err := db.Create(&{{.Name}}).Error
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return {{.Name}}, nil
 	}
 `}
 

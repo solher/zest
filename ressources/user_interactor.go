@@ -8,9 +8,11 @@ import "github.com/Solher/auth-scaffold/interfaces"
 
 type AbstractUserRepo interface {
 	Create(users []User) ([]User, error)
+	CreateOne(user *User) (*User, error)
 	Find(filter *interfaces.Filter) ([]User, error)
 	FindByID(id int, filter *interfaces.Filter) (*User, error)
 	Upsert(users []User) ([]User, error)
+	UpsertOne(user *User) (*User, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
 }
@@ -28,6 +30,11 @@ func (i *UserInter) Create(users []User) ([]User, error) {
 	return users, err
 }
 
+func (i *UserInter) CreateOne(user *User) (*User, error) {
+	user, err := i.repo.CreateOne(user)
+	return user, err
+}
+
 func (i *UserInter) Find(filter *interfaces.Filter) ([]User, error) {
 	users, err := i.repo.Find(filter)
 	return users, err
@@ -41,6 +48,11 @@ func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*User, error) {
 func (i *UserInter) Upsert(users []User) ([]User, error) {
 	users, err := i.repo.Upsert(users)
 	return users, err
+}
+
+func (i *UserInter) UpsertOne(user *User) (*User, error) {
+	user, err := i.repo.UpsertOne(user)
+	return user, err
 }
 
 func (i *UserInter) DeleteAll(filter *interfaces.Filter) error {

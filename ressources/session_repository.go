@@ -32,6 +32,17 @@ func (r *SessionRepo) Create(sessions []Session) ([]Session, error) {
 	return sessions, nil
 }
 
+func (r *SessionRepo) CreateOne(session *Session) (*Session, error) {
+	db := r.store.GetDB()
+
+	err := db.Create(session).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
+}
+
 func (r *SessionRepo) Find(filter *interfaces.Filter) ([]Session, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
@@ -90,6 +101,26 @@ func (r *SessionRepo) Upsert(sessions []Session) ([]Session, error) {
 
 	transaction.Commit()
 	return sessions, nil
+}
+
+func (r *SessionRepo) UpsertOne(session *Session) (*Session, error) {
+	db := r.store.GetDB()
+
+	if session.ID != 0 {
+		oldUser := Session{}
+
+		err := db.First(&oldUser, session.ID).Updates(session).Error
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := db.Create(&session).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return session, nil
 }
 
 func (r *SessionRepo) DeleteAll(filter *interfaces.Filter) error {

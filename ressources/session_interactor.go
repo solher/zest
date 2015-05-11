@@ -12,9 +12,11 @@ import (
 
 type AbstractSessionRepo interface {
 	Create(sessions []Session) ([]Session, error)
+	CreateOne(session *Session) (*Session, error)
 	Find(filter *interfaces.Filter) ([]Session, error)
 	FindByID(id int, filter *interfaces.Filter) (*Session, error)
 	Upsert(sessions []Session) ([]Session, error)
+	UpsertOne(session *Session) (*Session, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
 }
@@ -32,6 +34,11 @@ func (i *SessionInter) Create(sessions []Session) ([]Session, error) {
 	return sessions, err
 }
 
+func (i *SessionInter) CreateOne(session *Session) (*Session, error) {
+	session, err := i.repo.CreateOne(session)
+	return session, err
+}
+
 func (i *SessionInter) Find(filter *interfaces.Filter) ([]Session, error) {
 	sessions, err := i.repo.Find(filter)
 	return sessions, err
@@ -45,6 +52,11 @@ func (i *SessionInter) FindByID(id int, filter *interfaces.Filter) (*Session, er
 func (i *SessionInter) Upsert(sessions []Session) ([]Session, error) {
 	sessions, err := i.repo.Upsert(sessions)
 	return sessions, err
+}
+
+func (i *SessionInter) UpsertOne(session *Session) (*Session, error) {
+	session, err := i.repo.UpsertOne(session)
+	return session, err
 }
 
 func (i *SessionInter) DeleteAll(filter *interfaces.Filter) error {

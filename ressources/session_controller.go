@@ -6,6 +6,7 @@ package ressources
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -16,9 +17,11 @@ import (
 
 type AbstractSessionInter interface {
 	Create(sessions []Session) ([]Session, error)
+	CreateOne(session *Session) (*Session, error)
 	Find(filter *interfaces.Filter) ([]Session, error)
 	FindByID(id int, filter *interfaces.Filter) (*Session, error)
 	Upsert(sessions []Session) ([]Session, error)
+	UpsertOne(session *Session) (*Session, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
 	CurrentFromToken(authToken string) (*Session, error)
@@ -40,20 +43,37 @@ func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.Render, r
 }
 
 func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	session := &Session{}
 	var sessions []Session
-	err := json.NewDecoder(r.Body).Decode(&sessions)
+
+	buffer, _ := ioutil.ReadAll(r.Body)
+
+	err := json.Unmarshal(buffer, session)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
-		return
+		err := json.Unmarshal(buffer, &sessions)
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+			return
+		}
 	}
 
-	sessions, err = c.interactor.Create(sessions)
-	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-		return
-	}
+	if sessions == nil {
+		session, err = c.interactor.CreateOne(session)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
 
-	c.render.JSON(w, http.StatusCreated, sessions)
+		c.render.JSON(w, http.StatusCreated, session)
+	} else {
+		sessions, err = c.interactor.Create(sessions)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
+
+		c.render.JSON(w, http.StatusCreated, sessions)
+	}
 }
 
 func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -95,20 +115,37 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ht
 }
 
 func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	session := &Session{}
 	var sessions []Session
-	err := json.NewDecoder(r.Body).Decode(&sessions)
+
+	buffer, _ := ioutil.ReadAll(r.Body)
+
+	err := json.Unmarshal(buffer, session)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
-		return
+		err := json.Unmarshal(buffer, &sessions)
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+			return
+		}
 	}
 
-	sessions, err = c.interactor.Upsert(sessions)
-	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-		return
-	}
+	if sessions == nil {
+		session, err = c.interactor.UpsertOne(session)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
 
-	c.render.JSON(w, http.StatusCreated, sessions)
+		c.render.JSON(w, http.StatusCreated, session)
+	} else {
+		sessions, err = c.interactor.Upsert(sessions)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
+
+		c.render.JSON(w, http.StatusCreated, sessions)
+	}
 }
 
 func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

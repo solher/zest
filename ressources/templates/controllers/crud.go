@@ -29,9 +29,11 @@ var controller = &typewriter.Template{
 	Text: `
 	type Abstract{{.Type}}Inter interface {
 		Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
+		CreateOne({{.Name}} *{{.Type}}) (*{{.Type}}, error)
 		Find(filter *interfaces.Filter) ([]{{.Type}}, error)
 		FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error)
 		Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
+		UpsertOne({{.Name}} *{{.Type}}) (*{{.Type}}, error)
 		DeleteAll(filter *interfaces.Filter) error
 		DeleteByID(id int) error
 	}
@@ -56,20 +58,37 @@ var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
 	func (c *{{.Type}}Ctrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		{{.Name}} := &{{.Type}}{}
 		var {{.Name}}s []{{.Type}}
-		err := json.NewDecoder(r.Body).Decode(&{{.Name}}s)
+
+		buffer, _ := ioutil.ReadAll(r.Body)
+
+		err := json.Unmarshal(buffer, {{.Name}})
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
-			return
+			err := json.Unmarshal(buffer, &{{.Name}}s)
+			if err != nil {
+				c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+				return
+			}
 		}
 
-		{{.Name}}s, err = c.interactor.Create({{.Name}}s)
-		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			return
-		}
+		if {{.Name}}s == nil {
+			{{.Name}}, err = c.interactor.CreateOne({{.Name}})
+			if err != nil {
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				return
+			}
 
-		c.render.JSON(w, http.StatusCreated, {{.Name}}s)
+			c.render.JSON(w, http.StatusCreated, {{.Name}})
+		} else {
+			{{.Name}}s, err = c.interactor.Create({{.Name}}s)
+			if err != nil {
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				return
+			}
+
+			c.render.JSON(w, http.StatusCreated, {{.Name}}s)
+		}
 	}
 `}
 
@@ -123,20 +142,37 @@ var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
 	func (c *{{.Type}}Ctrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		{{.Name}} := &{{.Type}}{}
 		var {{.Name}}s []{{.Type}}
-		err := json.NewDecoder(r.Body).Decode(&{{.Name}}s)
+
+		buffer, _ := ioutil.ReadAll(r.Body)
+
+		err := json.Unmarshal(buffer, {{.Name}})
 		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
-			return
+			err := json.Unmarshal(buffer, &{{.Name}}s)
+			if err != nil {
+				c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+				return
+			}
 		}
 
-		{{.Name}}s, err = c.interactor.Upsert({{.Name}}s)
-		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			return
-		}
+		if {{.Name}}s == nil {
+			{{.Name}}, err = c.interactor.UpsertOne({{.Name}})
+			if err != nil {
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				return
+			}
 
-		c.render.JSON(w, http.StatusCreated, {{.Name}}s)
+			c.render.JSON(w, http.StatusCreated, {{.Name}})
+		} else {
+			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s)
+			if err != nil {
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				return
+			}
+
+			c.render.JSON(w, http.StatusCreated, {{.Name}}s)
+		}
 	}
 `}
 

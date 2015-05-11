@@ -6,6 +6,7 @@ package ressources
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -16,9 +17,11 @@ import (
 
 type AbstractUserInter interface {
 	Create(users []User) ([]User, error)
+	CreateOne(user *User) (*User, error)
 	Find(filter *interfaces.Filter) ([]User, error)
 	FindByID(id int, filter *interfaces.Filter) (*User, error)
 	Upsert(users []User) ([]User, error)
+	UpsertOne(user *User) (*User, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
 }
@@ -39,20 +42,37 @@ func NewUserCtrl(interactor AbstractUserInter, render interfaces.Render, routesD
 }
 
 func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	user := &User{}
 	var users []User
-	err := json.NewDecoder(r.Body).Decode(&users)
+
+	buffer, _ := ioutil.ReadAll(r.Body)
+
+	err := json.Unmarshal(buffer, user)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
-		return
+		err := json.Unmarshal(buffer, &users)
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+			return
+		}
 	}
 
-	users, err = c.interactor.Create(users)
-	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-		return
-	}
+	if users == nil {
+		user, err = c.interactor.CreateOne(user)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
 
-	c.render.JSON(w, http.StatusCreated, users)
+		c.render.JSON(w, http.StatusCreated, user)
+	} else {
+		users, err = c.interactor.Create(users)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
+
+		c.render.JSON(w, http.StatusCreated, users)
+	}
 }
 
 func (c *UserCtrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -94,20 +114,37 @@ func (c *UserCtrl) FindByID(w http.ResponseWriter, r *http.Request, params httpr
 }
 
 func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	user := &User{}
 	var users []User
-	err := json.NewDecoder(r.Body).Decode(&users)
+
+	buffer, _ := ioutil.ReadAll(r.Body)
+
+	err := json.Unmarshal(buffer, user)
 	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
-		return
+		err := json.Unmarshal(buffer, &users)
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+			return
+		}
 	}
 
-	users, err = c.interactor.Upsert(users)
-	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-		return
-	}
+	if users == nil {
+		user, err = c.interactor.UpsertOne(user)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
 
-	c.render.JSON(w, http.StatusCreated, users)
+		c.render.JSON(w, http.StatusCreated, user)
+	} else {
+		users, err = c.interactor.Upsert(users)
+		if err != nil {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			return
+		}
+
+		c.render.JSON(w, http.StatusCreated, users)
+	}
 }
 
 func (c *UserCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

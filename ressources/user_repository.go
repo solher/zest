@@ -32,6 +32,17 @@ func (r *UserRepo) Create(users []User) ([]User, error) {
 	return users, nil
 }
 
+func (r *UserRepo) CreateOne(user *User) (*User, error) {
+	db := r.store.GetDB()
+
+	err := db.Create(user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *UserRepo) Find(filter *interfaces.Filter) ([]User, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
@@ -90,6 +101,26 @@ func (r *UserRepo) Upsert(users []User) ([]User, error) {
 
 	transaction.Commit()
 	return users, nil
+}
+
+func (r *UserRepo) UpsertOne(user *User) (*User, error) {
+	db := r.store.GetDB()
+
+	if user.ID != 0 {
+		oldUser := User{}
+
+		err := db.First(&oldUser, user.ID).Updates(user).Error
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := db.Create(&user).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return user, nil
 }
 
 func (r *UserRepo) DeleteAll(filter *interfaces.Filter) error {

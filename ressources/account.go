@@ -7,7 +7,7 @@ func init() {
 }
 
 //go:generate gen -f
-//+gen routes repository:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID"
+//+gen repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Account struct {
 	domain.GormModel
 	ID          int       `json:"id,omitempty" gorm:"primary_key"`
