@@ -12,6 +12,7 @@ import (
 
 	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -61,7 +62,12 @@ func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 		user, err = c.interactor.CreateOne(user)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 
@@ -73,7 +79,12 @@ func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 		users, err = c.interactor.Create(users)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 
@@ -137,7 +148,12 @@ func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	if users == nil {
 		user, err = c.interactor.UpsertOne(user)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 
@@ -145,7 +161,12 @@ func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	} else {
 		users, err = c.interactor.Upsert(users)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 

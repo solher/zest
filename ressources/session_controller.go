@@ -12,6 +12,7 @@ import (
 
 	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -59,17 +60,32 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ httproute
 
 	if sessions == nil {
 		session.ScopeModel()
+
 		session, err = c.interactor.CreateOne(session)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 
 		c.render.JSON(w, http.StatusCreated, session)
 	} else {
+		for i := range sessions {
+			(&sessions[i]).ScopeModel()
+		}
+
 		sessions, err = c.interactor.Create(sessions)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 
@@ -133,7 +149,12 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httproute
 	if sessions == nil {
 		session, err = c.interactor.UpsertOne(session)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 
@@ -141,7 +162,12 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httproute
 	} else {
 		sessions, err = c.interactor.Upsert(sessions)
 		if err != nil {
-			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
 			return
 		}
 

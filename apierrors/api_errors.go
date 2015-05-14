@@ -34,6 +34,7 @@ var (
 
 var (
 	InvalidCredentials   = &APIError{Description: "Invalid credentials.", ErrorCode: "INVALID_CREDENTIALS"}
+	ViolatedConstraint   = &APIError{Description: "A database constraint was violated.", ErrorCode: "VIOLATED_CONSTRAINT"}
 	AlreadyExistingEmail = &APIError{Description: "Email already in use.", ErrorCode: "ALREADY_EXISTING_EMAIL"}
 	SessionNotFound      = &APIError{Description: "No active sessions were found.", ErrorCode: "SESSION_NOT_FOUND"}
 	InternalServerError  = &APIError{Description: "An internal error occured. Please retry later.", ErrorCode: "INTERNAL_SERVER_ERROR"}

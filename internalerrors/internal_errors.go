@@ -9,7 +9,18 @@ func (internalError *InternalError) Error() string {
 }
 
 var (
-	RessourceNotFound  = &InternalError{Description: "The specified ressource was not found."}
-	ViolatedConstraint = &InternalError{Description: "A database constraint was violated."}
-	DatabaseError      = &InternalError{Description: "A database error occured."}
+	RessourceNotFound = &InternalError{Description: "The specified ressource was not found."}
+	DatabaseError     = &InternalError{Description: "A database error occured."}
 )
+
+type ViolatedConstraint struct {
+	InternalError
+}
+
+func (violatedConstraint *ViolatedConstraint) Error() string {
+	return violatedConstraint.Description
+}
+
+func NewViolatedConstraint(description string) *ViolatedConstraint {
+	return &ViolatedConstraint{InternalError: InternalError{Description: description}}
+}

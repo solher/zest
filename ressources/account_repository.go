@@ -10,7 +10,6 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/jinzhu/gorm"
 )
 
 type AccountRepo struct {
@@ -30,8 +29,8 @@ func (r *AccountRepo) Create(accounts []Account) ([]Account, error) {
 		if err != nil {
 			transaction.Rollback()
 
-			if err == gorm.InvalidSql {
-
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			} else {
 				return nil, internalerrors.DatabaseError
 			}
@@ -50,7 +49,7 @@ func (r *AccountRepo) CreateOne(account *Account) (*Account, error) {
 	err := db.Create(account).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
-			return nil, internalerrors.ViolatedConstraint
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
 		} else {
 			return nil, internalerrors.DatabaseError
 		}
@@ -62,14 +61,14 @@ func (r *AccountRepo) CreateOne(account *Account) (*Account, error) {
 func (r *AccountRepo) Find(filter *interfaces.Filter) ([]Account, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	accounts := []Account{}
 
 	err = query.Find(&accounts).Error
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	return accounts, nil
@@ -78,14 +77,14 @@ func (r *AccountRepo) Find(filter *interfaces.Filter) ([]Account, error) {
 func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*Account, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	account := Account{}
 
 	err = query.First(&account, id).Error
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	return &account, nil
@@ -102,13 +101,23 @@ func (r *AccountRepo) Upsert(accounts []Account) ([]Account, error) {
 			err := db.First(&oldUser, account.ID).Updates(account).Error
 			if err != nil {
 				transaction.Rollback()
-				return nil, err
+
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.NewViolatedConstraint(err.Error())
+				} else {
+					return nil, internalerrors.DatabaseError
+				}
 			}
 		} else {
 			err := db.Create(&account).Error
 			if err != nil {
 				transaction.Rollback()
-				return nil, err
+
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.NewViolatedConstraint(err.Error())
+				} else {
+					return nil, internalerrors.DatabaseError
+				}
 			}
 		}
 
@@ -127,12 +136,20 @@ func (r *AccountRepo) UpsertOne(account *Account) (*Account, error) {
 
 		err := db.First(&oldUser, account.ID).Updates(account).Error
 		if err != nil {
-			return nil, err
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
+			} else {
+				return nil, internalerrors.DatabaseError
+			}
 		}
 	} else {
 		err := db.Create(&account).Error
 		if err != nil {
-			return nil, err
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
+			} else {
+				return nil, internalerrors.DatabaseError
+			}
 		}
 	}
 
@@ -142,12 +159,12 @@ func (r *AccountRepo) UpsertOne(account *Account) (*Account, error) {
 func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
-		return err
+		return internalerrors.DatabaseError
 	}
 
 	err = query.Delete(Account{}).Error
 	if err != nil {
-		return err
+		return internalerrors.DatabaseError
 	}
 
 	return nil
@@ -158,7 +175,7 @@ func (r *AccountRepo) DeleteByID(id int) error {
 
 	err := db.Delete(&Account{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
-		return err
+		return internalerrors.DatabaseError
 	}
 
 	return nil

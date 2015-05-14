@@ -77,7 +77,12 @@ var create = &typewriter.Template{
 
 			{{.Name}}, err = c.interactor.CreateOne({{.Name}})
 			if err != nil {
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				switch err.(type) {
+				case *internalerrors.ViolatedConstraint:
+					c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+				default:
+					c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				}
 				return
 			}
 
@@ -89,7 +94,12 @@ var create = &typewriter.Template{
 
 			{{.Name}}s, err = c.interactor.Create({{.Name}}s)
 			if err != nil {
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				switch err.(type) {
+				case *internalerrors.ViolatedConstraint:
+					c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+				default:
+					c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				}
 				return
 			}
 
@@ -165,7 +175,12 @@ var upsert = &typewriter.Template{
 		if {{.Name}}s == nil {
 			{{.Name}}, err = c.interactor.UpsertOne({{.Name}})
 			if err != nil {
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				switch err.(type) {
+				case *internalerrors.ViolatedConstraint:
+					c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+				default:
+					c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				}
 				return
 			}
 
@@ -173,7 +188,12 @@ var upsert = &typewriter.Template{
 		} else {
 			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s)
 			if err != nil {
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				switch err.(type) {
+				case *internalerrors.ViolatedConstraint:
+					c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+				default:
+					c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+				}
 				return
 			}
 

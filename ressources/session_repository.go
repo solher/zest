@@ -5,8 +5,11 @@
 package ressources
 
 import (
+	"strings"
+
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/internalerrors"
 )
 
 type SessionRepo struct {
@@ -25,7 +28,12 @@ func (r *SessionRepo) Create(sessions []Session) ([]Session, error) {
 		err := db.Create(&session).Error
 		if err != nil {
 			transaction.Rollback()
-			return nil, err
+
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
+			} else {
+				return nil, internalerrors.DatabaseError
+			}
 		}
 
 		sessions[i] = session
@@ -40,7 +48,11 @@ func (r *SessionRepo) CreateOne(session *Session) (*Session, error) {
 
 	err := db.Create(session).Error
 	if err != nil {
-		return nil, err
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		} else {
+			return nil, internalerrors.DatabaseError
+		}
 	}
 
 	return session, nil
@@ -49,14 +61,14 @@ func (r *SessionRepo) CreateOne(session *Session) (*Session, error) {
 func (r *SessionRepo) Find(filter *interfaces.Filter) ([]Session, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	sessions := []Session{}
 
 	err = query.Find(&sessions).Error
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	return sessions, nil
@@ -65,14 +77,14 @@ func (r *SessionRepo) Find(filter *interfaces.Filter) ([]Session, error) {
 func (r *SessionRepo) FindByID(id int, filter *interfaces.Filter) (*Session, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	session := Session{}
 
 	err = query.First(&session, id).Error
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	return &session, nil
@@ -89,13 +101,23 @@ func (r *SessionRepo) Upsert(sessions []Session) ([]Session, error) {
 			err := db.First(&oldUser, session.ID).Updates(session).Error
 			if err != nil {
 				transaction.Rollback()
-				return nil, err
+
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.NewViolatedConstraint(err.Error())
+				} else {
+					return nil, internalerrors.DatabaseError
+				}
 			}
 		} else {
 			err := db.Create(&session).Error
 			if err != nil {
 				transaction.Rollback()
-				return nil, err
+
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.NewViolatedConstraint(err.Error())
+				} else {
+					return nil, internalerrors.DatabaseError
+				}
 			}
 		}
 
@@ -114,12 +136,20 @@ func (r *SessionRepo) UpsertOne(session *Session) (*Session, error) {
 
 		err := db.First(&oldUser, session.ID).Updates(session).Error
 		if err != nil {
-			return nil, err
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
+			} else {
+				return nil, internalerrors.DatabaseError
+			}
 		}
 	} else {
 		err := db.Create(&session).Error
 		if err != nil {
-			return nil, err
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
+			} else {
+				return nil, internalerrors.DatabaseError
+			}
 		}
 	}
 
@@ -129,12 +159,12 @@ func (r *SessionRepo) UpsertOne(session *Session) (*Session, error) {
 func (r *SessionRepo) DeleteAll(filter *interfaces.Filter) error {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
-		return err
+		return internalerrors.DatabaseError
 	}
 
 	err = query.Delete(Session{}).Error
 	if err != nil {
-		return err
+		return internalerrors.DatabaseError
 	}
 
 	return nil
@@ -145,7 +175,7 @@ func (r *SessionRepo) DeleteByID(id int) error {
 
 	err := db.Delete(&Session{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
-		return err
+		return internalerrors.DatabaseError
 	}
 
 	return nil

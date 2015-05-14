@@ -124,12 +124,12 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ httproute
 
 	account, err := c.interactor.Signup(&user)
 	if err != nil {
-		if err == internalerrors.ViolatedConstraint {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
 			c.render.JSONError(w, 422, apierrors.AlreadyExistingEmail, err)
-		} else {
+		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		}
-
 		return
 	}
 
