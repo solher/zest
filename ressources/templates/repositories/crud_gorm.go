@@ -49,7 +49,12 @@ var create = &typewriter.Template{
   		err := db.Create(&{{.Name}}).Error
   		if err != nil {
   			transaction.Rollback()
-  			return nil, err
+
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.ViolatedConstraint
+				} else {
+					return nil, internalerrors.DatabaseError
+				}
   		}
 
       {{.Name}}s[i] = {{.Name}}
@@ -68,7 +73,11 @@ var createOne = &typewriter.Template{
 
 		err := db.Create({{.Name}}).Error
 		if err != nil {
-			return nil, err
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.ViolatedConstraint
+			} else {
+				return nil, internalerrors.DatabaseError
+			}
 		}
 
 		return {{.Name}}, nil
@@ -81,14 +90,14 @@ var find = &typewriter.Template{
 	func (r *{{.Type}}Repo) Find(filter *interfaces.Filter) ([]{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
-			return nil, err
+			return nil, internalerrors.DatabaseError
 		}
 
 		{{.Name}}s := []{{.Type}}{}
 
 		err = query.Find(&{{.Name}}s).Error
 		if err != nil {
-			return nil, err
+			return nil, internalerrors.DatabaseError
 		}
 
 		return {{.Name}}s, nil
@@ -101,14 +110,14 @@ var findByID = &typewriter.Template{
 	func (r *{{.Type}}Repo) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
-			return nil, err
+			return nil, internalerrors.DatabaseError
 		}
 
 		{{.Name}} := {{.Type}}{}
 
 		err = query.First(&{{.Name}}, id).Error
 		if err != nil {
-			return nil, err
+			return nil, internalerrors.DatabaseError
 		}
 
 		return &{{.Name}}, nil
@@ -129,13 +138,23 @@ var upsert = &typewriter.Template{
 				err := db.First(&oldUser, {{.Name}}.ID).Updates({{.Name}}).Error
 				if err != nil {
 					transaction.Rollback()
-					return nil, err
+
+					if strings.Contains(err.Error(), "constraint") {
+						return nil, internalerrors.ViolatedConstraint
+					} else {
+						return nil, internalerrors.DatabaseError
+					}
 				}
 			} else {
 				err := db.Create(&{{.Name}}).Error
 				if err != nil {
 					transaction.Rollback()
-					return nil, err
+
+					if strings.Contains(err.Error(), "constraint") {
+						return nil, internalerrors.ViolatedConstraint
+					} else {
+						return nil, internalerrors.DatabaseError
+					}
 				}
 			}
 
@@ -158,12 +177,20 @@ var upsertOne = &typewriter.Template{
 
 			err := db.First(&oldUser, {{.Name}}.ID).Updates({{.Name}}).Error
 			if err != nil {
-				return nil, err
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.ViolatedConstraint
+				} else {
+					return nil, internalerrors.DatabaseError
+				}
 			}
 		} else {
 			err := db.Create(&{{.Name}}).Error
 			if err != nil {
-				return nil, err
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.ViolatedConstraint
+				} else {
+					return nil, internalerrors.DatabaseError
+				}
 			}
 		}
 
@@ -177,12 +204,12 @@ var deleteAll = &typewriter.Template{
 	func (r *{{.Type}}Repo) DeleteAll(filter *interfaces.Filter) error {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
-			return err
+			return internalerrors.DatabaseError
 		}
 
 		err = query.Delete({{.Type}}{}).Error
 		if err != nil {
-			return err
+			return internalerrors.DatabaseError
 		}
 
 		return nil
@@ -196,8 +223,9 @@ var deleteByID = &typewriter.Template{
 		db := r.store.GetDB()
 
 		err := db.Delete(&{{.Type}}{ID: id}).Error
+		err := db.Delete(&{{.Type}}{GormModel: domain.GormModel{ID: id}}).Error
 		if err != nil {
-			return err
+			return nil, internalerrors.DatabaseError
 		}
 
 		return nil

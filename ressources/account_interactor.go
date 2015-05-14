@@ -1,10 +1,10 @@
 package ressources
 
 import (
-	"errors"
 	"time"
 
 	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -42,7 +42,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 	}
 
 	if len(users) == 0 {
-		return nil, errors.New("Invalid credentials")
+		return nil, internalerrors.RessourceNotFound
 	}
 	user := users[0]
 

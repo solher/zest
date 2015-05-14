@@ -73,6 +73,8 @@ var create = &typewriter.Template{
 		}
 
 		if {{.Name}}s == nil {
+			{{.Name}}.ScopeModel()
+
 			{{.Name}}, err = c.interactor.CreateOne({{.Name}})
 			if err != nil {
 				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -81,6 +83,10 @@ var create = &typewriter.Template{
 
 			c.render.JSON(w, http.StatusCreated, {{.Name}})
 		} else {
+			for i := range {{.Name}}s {
+				(&{{.Name}}s[i]).ScopeModel()
+			}
+
 			{{.Name}}s, err = c.interactor.Create({{.Name}}s)
 			if err != nil {
 				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)

@@ -1,6 +1,10 @@
 package ressources
 
-import "github.com/Solher/auth-scaffold/domain"
+import (
+	"time"
+
+	"github.com/Solher/auth-scaffold/domain"
+)
 
 func init() {
 	domain.ModelDirectory.Register(Account{})
@@ -10,9 +14,14 @@ func init() {
 //+gen repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Account struct {
 	domain.GormModel
-	ID          int       `json:"id,omitempty" gorm:"primary_key"`
 	Users       []User    `json:"users,omitempty"`
 	Sessions    []Session `json:"sessions,omitempty"`
 	IsAdmin     bool      `json:"isAdmin,omitempty"`
 	IsActivated bool      `json:"isActivated,omitempty"`
+}
+
+func (m *Account) ScopeModel() {
+	m.ID = 0
+	m.CreatedAt = time.Time{}
+	m.UpdatedAt = m.CreatedAt
 }

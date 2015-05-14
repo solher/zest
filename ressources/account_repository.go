@@ -4,7 +4,14 @@
 
 package ressources
 
-import "github.com/Solher/auth-scaffold/interfaces"
+import (
+	"strings"
+
+	"github.com/Solher/auth-scaffold/domain"
+	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/jinzhu/gorm"
+)
 
 type AccountRepo struct {
 	store interfaces.AbstractGormStore
@@ -22,7 +29,12 @@ func (r *AccountRepo) Create(accounts []Account) ([]Account, error) {
 		err := db.Create(&account).Error
 		if err != nil {
 			transaction.Rollback()
-			return nil, err
+
+			if err == gorm.InvalidSql {
+
+			} else {
+				return nil, internalerrors.DatabaseError
+			}
 		}
 
 		accounts[i] = account
@@ -37,7 +49,11 @@ func (r *AccountRepo) CreateOne(account *Account) (*Account, error) {
 
 	err := db.Create(account).Error
 	if err != nil {
-		return nil, err
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.ViolatedConstraint
+		} else {
+			return nil, internalerrors.DatabaseError
+		}
 	}
 
 	return account, nil
@@ -140,7 +156,7 @@ func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
 func (r *AccountRepo) DeleteByID(id int) error {
 	db := r.store.GetDB()
 
-	err := db.Delete(&Account{ID: id}).Error
+	err := db.Delete(&Account{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return err
 	}

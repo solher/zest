@@ -6,6 +6,7 @@ import (
 
 	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/gorilla/context"
 
 	"github.com/julienschmidt/httprouter"
@@ -123,7 +124,12 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ httproute
 
 	account, err := c.interactor.Signup(&user)
 	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		if err == internalerrors.ViolatedConstraint {
+			c.render.JSONError(w, 422, apierrors.AlreadyExistingEmail, err)
+		} else {
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+
 		return
 	}
 

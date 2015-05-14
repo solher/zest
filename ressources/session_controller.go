@@ -58,6 +58,7 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ httproute
 	}
 
 	if sessions == nil {
+		session.ScopeModel()
 		session, err = c.interactor.CreateOne(session)
 		if err != nil {
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)

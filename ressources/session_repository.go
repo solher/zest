@@ -4,7 +4,10 @@
 
 package ressources
 
-import "github.com/Solher/auth-scaffold/interfaces"
+import (
+	"github.com/Solher/auth-scaffold/domain"
+	"github.com/Solher/auth-scaffold/interfaces"
+)
 
 type SessionRepo struct {
 	store interfaces.AbstractGormStore
@@ -140,7 +143,7 @@ func (r *SessionRepo) DeleteAll(filter *interfaces.Filter) error {
 func (r *SessionRepo) DeleteByID(id int) error {
 	db := r.store.GetDB()
 
-	err := db.Delete(&Session{ID: id}).Error
+	err := db.Delete(&Session{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return err
 	}

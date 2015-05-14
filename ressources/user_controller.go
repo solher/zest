@@ -57,6 +57,8 @@ func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	}
 
 	if users == nil {
+		user.ScopeModel()
+
 		user, err = c.interactor.CreateOne(user)
 		if err != nil {
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -65,6 +67,10 @@ func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 		c.render.JSON(w, http.StatusCreated, user)
 	} else {
+		for i := range users {
+			(&users[i]).ScopeModel()
+		}
+
 		users, err = c.interactor.Create(users)
 		if err != nil {
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
