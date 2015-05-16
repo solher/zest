@@ -20,7 +20,7 @@ func NewUserRepo(store interfaces.AbstractGormStore) *UserRepo {
 	return &UserRepo{store: store}
 }
 
-func (r *UserRepo) Create(users []User) ([]User, error) {
+func (r *UserRepo) Create(users []domain.User) ([]domain.User, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -43,7 +43,7 @@ func (r *UserRepo) Create(users []User) ([]User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) CreateOne(user *User) (*User, error) {
+func (r *UserRepo) CreateOne(user *domain.User) (*domain.User, error) {
 	db := r.store.GetDB()
 
 	err := db.Create(user).Error
@@ -58,13 +58,13 @@ func (r *UserRepo) CreateOne(user *User) (*User, error) {
 	return user, nil
 }
 
-func (r *UserRepo) Find(filter *interfaces.Filter) ([]User, error) {
+func (r *UserRepo) Find(filter *interfaces.Filter) ([]domain.User, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	users := []User{}
+	users := []domain.User{}
 
 	err = query.Find(&users).Error
 	if err != nil {
@@ -74,13 +74,13 @@ func (r *UserRepo) Find(filter *interfaces.Filter) ([]User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) FindByID(id int, filter *interfaces.Filter) (*User, error) {
+func (r *UserRepo) FindByID(id int, filter *interfaces.Filter) (*domain.User, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	user := User{}
+	user := domain.User{}
 
 	err = query.First(&user, id).Error
 	if err != nil {
@@ -90,13 +90,13 @@ func (r *UserRepo) FindByID(id int, filter *interfaces.Filter) (*User, error) {
 	return &user, nil
 }
 
-func (r *UserRepo) Upsert(users []User) ([]User, error) {
+func (r *UserRepo) Upsert(users []domain.User) ([]domain.User, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
 	for i, user := range users {
 		if user.ID != 0 {
-			oldUser := User{}
+			oldUser := domain.User{}
 
 			err := db.First(&oldUser, user.ID).Updates(user).Error
 			if err != nil {
@@ -128,11 +128,11 @@ func (r *UserRepo) Upsert(users []User) ([]User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) UpsertOne(user *User) (*User, error) {
+func (r *UserRepo) UpsertOne(user *domain.User) (*domain.User, error) {
 	db := r.store.GetDB()
 
 	if user.ID != 0 {
-		oldUser := User{}
+		oldUser := domain.User{}
 
 		err := db.First(&oldUser, user.ID).Updates(user).Error
 		if err != nil {
@@ -162,7 +162,7 @@ func (r *UserRepo) DeleteAll(filter *interfaces.Filter) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(User{}).Error
+	err = query.Delete(domain.User{}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -173,7 +173,7 @@ func (r *UserRepo) DeleteAll(filter *interfaces.Filter) error {
 func (r *UserRepo) DeleteByID(id int) error {
 	db := r.store.GetDB()
 
-	err := db.Delete(&User{GormModel: domain.GormModel{ID: id}}).Error
+	err := db.Delete(&domain.User{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}

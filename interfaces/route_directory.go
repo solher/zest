@@ -39,6 +39,7 @@ func (routes RouteDirectory) Register(router *httprouter.Router) {
 
 	for _, k := range keys {
 		route := routes[k]
-		router.Handle(route.Method, route.Path, route.Handler)
+		permissionGate := NewPermissionGate(route.Handler)
+		router.Handle(route.Method, route.Path, permissionGate.Handler)
 	}
 }

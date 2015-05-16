@@ -20,7 +20,7 @@ func NewAccountRepo(store interfaces.AbstractGormStore) *AccountRepo {
 	return &AccountRepo{store: store}
 }
 
-func (r *AccountRepo) Create(accounts []Account) ([]Account, error) {
+func (r *AccountRepo) Create(accounts []domain.Account) ([]domain.Account, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -43,7 +43,7 @@ func (r *AccountRepo) Create(accounts []Account) ([]Account, error) {
 	return accounts, nil
 }
 
-func (r *AccountRepo) CreateOne(account *Account) (*Account, error) {
+func (r *AccountRepo) CreateOne(account *domain.Account) (*domain.Account, error) {
 	db := r.store.GetDB()
 
 	err := db.Create(account).Error
@@ -58,13 +58,13 @@ func (r *AccountRepo) CreateOne(account *Account) (*Account, error) {
 	return account, nil
 }
 
-func (r *AccountRepo) Find(filter *interfaces.Filter) ([]Account, error) {
+func (r *AccountRepo) Find(filter *interfaces.Filter) ([]domain.Account, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	accounts := []Account{}
+	accounts := []domain.Account{}
 
 	err = query.Find(&accounts).Error
 	if err != nil {
@@ -74,13 +74,13 @@ func (r *AccountRepo) Find(filter *interfaces.Filter) ([]Account, error) {
 	return accounts, nil
 }
 
-func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*Account, error) {
+func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Account, error) {
 	query, err := r.store.BuildQuery(filter)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	account := Account{}
+	account := domain.Account{}
 
 	err = query.First(&account, id).Error
 	if err != nil {
@@ -90,13 +90,13 @@ func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*Account, err
 	return &account, nil
 }
 
-func (r *AccountRepo) Upsert(accounts []Account) ([]Account, error) {
+func (r *AccountRepo) Upsert(accounts []domain.Account) ([]domain.Account, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
 	for i, account := range accounts {
 		if account.ID != 0 {
-			oldUser := Account{}
+			oldUser := domain.Account{}
 
 			err := db.First(&oldUser, account.ID).Updates(account).Error
 			if err != nil {
@@ -128,11 +128,11 @@ func (r *AccountRepo) Upsert(accounts []Account) ([]Account, error) {
 	return accounts, nil
 }
 
-func (r *AccountRepo) UpsertOne(account *Account) (*Account, error) {
+func (r *AccountRepo) UpsertOne(account *domain.Account) (*domain.Account, error) {
 	db := r.store.GetDB()
 
 	if account.ID != 0 {
-		oldUser := Account{}
+		oldUser := domain.Account{}
 
 		err := db.First(&oldUser, account.ID).Updates(account).Error
 		if err != nil {
@@ -162,7 +162,7 @@ func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(Account{}).Error
+	err = query.Delete(domain.Account{}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -173,7 +173,7 @@ func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
 func (r *AccountRepo) DeleteByID(id int) error {
 	db := r.store.GetDB()
 
-	err := db.Delete(&Account{GormModel: domain.GormModel{ID: id}}).Error
+	err := db.Delete(&domain.Account{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}

@@ -28,12 +28,12 @@ var controller = &typewriter.Template{
 	Name: "Controller",
 	Text: `
 	type Abstract{{.Type}}Inter interface {
-		Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
-		CreateOne({{.Name}} *{{.Type}}) (*{{.Type}}, error)
-		Find(filter *interfaces.Filter) ([]{{.Type}}, error)
-		FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error)
-		Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
-		UpsertOne({{.Name}} *{{.Type}}) (*{{.Type}}, error)
+		Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
+		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
+		Find(filter *interfaces.Filter) ([]domain.{{.Type}}, error)
+		FindByID(id int, filter *interfaces.Filter) (*domain.{{.Type}}, error)
+		Upsert({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
+		UpsertOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
 		DeleteAll(filter *interfaces.Filter) error
 		DeleteByID(id int) error
 	}
@@ -58,8 +58,8 @@ var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
 	func (c *{{.Type}}Ctrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		{{.Name}} := &{{.Type}}{}
-		var {{.Name}}s []{{.Type}}
+		{{.Name}} := &domain.{{.Type}}{}
+		var {{.Name}}s []domain.{{.Type}}
 
 		buffer, _ := ioutil.ReadAll(r.Body)
 
@@ -158,8 +158,8 @@ var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
 	func (c *{{.Type}}Ctrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		{{.Name}} := &{{.Type}}{}
-		var {{.Name}}s []{{.Type}}
+		{{.Name}} := &domain.{{.Type}}{}
+		var {{.Name}}s []domain.{{.Type}}
 
 		buffer, _ := ioutil.ReadAll(r.Body)
 

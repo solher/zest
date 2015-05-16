@@ -11,21 +11,21 @@ import (
 	"strconv"
 
 	"github.com/Solher/auth-scaffold/apierrors"
+	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/julienschmidt/httprouter"
 )
 
 type AbstractSessionInter interface {
-	Create(sessions []Session) ([]Session, error)
-	CreateOne(session *Session) (*Session, error)
-	Find(filter *interfaces.Filter) ([]Session, error)
-	FindByID(id int, filter *interfaces.Filter) (*Session, error)
-	Upsert(sessions []Session) ([]Session, error)
-	UpsertOne(session *Session) (*Session, error)
+	Create(sessions []domain.Session) ([]domain.Session, error)
+	CreateOne(session *domain.Session) (*domain.Session, error)
+	Find(filter *interfaces.Filter) ([]domain.Session, error)
+	FindByID(id int, filter *interfaces.Filter) (*domain.Session, error)
+	Upsert(sessions []domain.Session) ([]domain.Session, error)
+	UpsertOne(session *domain.Session) (*domain.Session, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
-	CurrentFromToken(authToken string) (*Session, error)
 }
 
 type SessionCtrl struct {
@@ -44,8 +44,8 @@ func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.Render, r
 }
 
 func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	session := &Session{}
-	var sessions []Session
+	session := &domain.Session{}
+	var sessions []domain.Session
 
 	buffer, _ := ioutil.ReadAll(r.Body)
 
@@ -132,8 +132,8 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ht
 }
 
 func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	session := &Session{}
-	var sessions []Session
+	session := &domain.Session{}
+	var sessions []domain.Session
 
 	buffer, _ := ioutil.ReadAll(r.Body)
 

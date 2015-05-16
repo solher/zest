@@ -5,18 +5,17 @@
 package ressources
 
 import (
-	"time"
-
+	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 )
 
 type AbstractSessionRepo interface {
-	Create(sessions []Session) ([]Session, error)
-	CreateOne(session *Session) (*Session, error)
-	Find(filter *interfaces.Filter) ([]Session, error)
-	FindByID(id int, filter *interfaces.Filter) (*Session, error)
-	Upsert(sessions []Session) ([]Session, error)
-	UpsertOne(session *Session) (*Session, error)
+	Create(sessions []domain.Session) ([]domain.Session, error)
+	CreateOne(session *domain.Session) (*domain.Session, error)
+	Find(filter *interfaces.Filter) ([]domain.Session, error)
+	FindByID(id int, filter *interfaces.Filter) (*domain.Session, error)
+	Upsert(sessions []domain.Session) ([]domain.Session, error)
+	UpsertOne(session *domain.Session) (*domain.Session, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
 }
@@ -29,32 +28,32 @@ func NewSessionInter(repo AbstractSessionRepo) *SessionInter {
 	return &SessionInter{repo: repo}
 }
 
-func (i *SessionInter) Create(sessions []Session) ([]Session, error) {
+func (i *SessionInter) Create(sessions []domain.Session) ([]domain.Session, error) {
 	sessions, err := i.repo.Create(sessions)
 	return sessions, err
 }
 
-func (i *SessionInter) CreateOne(session *Session) (*Session, error) {
+func (i *SessionInter) CreateOne(session *domain.Session) (*domain.Session, error) {
 	session, err := i.repo.CreateOne(session)
 	return session, err
 }
 
-func (i *SessionInter) Find(filter *interfaces.Filter) ([]Session, error) {
+func (i *SessionInter) Find(filter *interfaces.Filter) ([]domain.Session, error) {
 	sessions, err := i.repo.Find(filter)
 	return sessions, err
 }
 
-func (i *SessionInter) FindByID(id int, filter *interfaces.Filter) (*Session, error) {
+func (i *SessionInter) FindByID(id int, filter *interfaces.Filter) (*domain.Session, error) {
 	session, err := i.repo.FindByID(id, filter)
 	return session, err
 }
 
-func (i *SessionInter) Upsert(sessions []Session) ([]Session, error) {
+func (i *SessionInter) Upsert(sessions []domain.Session) ([]domain.Session, error) {
 	sessions, err := i.repo.Upsert(sessions)
 	return sessions, err
 }
 
-func (i *SessionInter) UpsertOne(session *Session) (*Session, error) {
+func (i *SessionInter) UpsertOne(session *domain.Session) (*domain.Session, error) {
 	session, err := i.repo.UpsertOne(session)
 	return session, err
 }
@@ -67,26 +66,4 @@ func (i *SessionInter) DeleteAll(filter *interfaces.Filter) error {
 func (i *SessionInter) DeleteByID(id int) error {
 	err := i.repo.DeleteByID(id)
 	return err
-}
-
-func (i *SessionInter) CurrentFromToken(authToken string) (*Session, error) {
-	filter := &interfaces.Filter{
-		Limit: 1,
-		Where: map[string]interface{}{"authToken": authToken},
-	}
-
-	sessions, err := i.repo.Find(filter)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sessions) == 1 {
-		session := sessions[0]
-
-		if session.ValidTo.After(time.Now()) {
-			return &session, nil
-		}
-	}
-
-	return nil, nil
 }

@@ -1,19 +1,14 @@
-package ressources
+package domain
 
-import (
-	"time"
-
-	"github.com/Solher/auth-scaffold/domain"
-)
+import "time"
 
 func init() {
-	domain.ModelDirectory.Register(Account{})
+	ModelDirectory.Register(Account{})
 }
 
-//go:generate gen -f
 //+gen repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Account struct {
-	domain.GormModel
+	GormModel
 	Users       []User    `json:"users,omitempty"`
 	Sessions    []Session `json:"sessions,omitempty"`
 	IsAdmin     bool      `json:"isAdmin,omitempty"`

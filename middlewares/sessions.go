@@ -3,20 +3,18 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/ressources"
 	"github.com/gorilla/context"
 )
 
 type Sessions struct {
-	interactor ressources.AbstractSessionInter
+	interactor ressources.AbstractAccountInter
 }
 
-func NewSessions(store interfaces.AbstractGormStore) *Sessions {
-	sessionRepository := ressources.NewSessionRepo(store)
-	sessionInteractor := ressources.NewSessionInter(sessionRepository)
+func NewSessions(accountRepo ressources.AbstractAccountRepo, userRepo ressources.AbstractUserRepo, sessionRepo ressources.AbstractSessionRepo) *Sessions {
+	accountInteractor := ressources.NewAccountInter(accountRepo, userRepo, sessionRepo)
 
-	return &Sessions{interactor: sessionInteractor}
+	return &Sessions{interactor: accountInteractor}
 }
 
 func (s *Sessions) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -30,7 +28,7 @@ func (s *Sessions) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 	}
 
 	if authToken != "" {
-		session, _ := s.interactor.CurrentFromToken(authToken)
+		session, _ := s.interactor.CurrentSessionFromToken(authToken)
 		if session != nil {
 			context.Set(r, "currentSession", *session)
 		}

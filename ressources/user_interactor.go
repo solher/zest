@@ -4,15 +4,18 @@
 
 package ressources
 
-import "github.com/Solher/auth-scaffold/interfaces"
+import (
+	"github.com/Solher/auth-scaffold/domain"
+	"github.com/Solher/auth-scaffold/interfaces"
+)
 
 type AbstractUserRepo interface {
-	Create(users []User) ([]User, error)
-	CreateOne(user *User) (*User, error)
-	Find(filter *interfaces.Filter) ([]User, error)
-	FindByID(id int, filter *interfaces.Filter) (*User, error)
-	Upsert(users []User) ([]User, error)
-	UpsertOne(user *User) (*User, error)
+	Create(users []domain.User) ([]domain.User, error)
+	CreateOne(user *domain.User) (*domain.User, error)
+	Find(filter *interfaces.Filter) ([]domain.User, error)
+	FindByID(id int, filter *interfaces.Filter) (*domain.User, error)
+	Upsert(users []domain.User) ([]domain.User, error)
+	UpsertOne(user *domain.User) (*domain.User, error)
 	DeleteAll(filter *interfaces.Filter) error
 	DeleteByID(id int) error
 }
@@ -25,32 +28,32 @@ func NewUserInter(repo AbstractUserRepo) *UserInter {
 	return &UserInter{repo: repo}
 }
 
-func (i *UserInter) Create(users []User) ([]User, error) {
+func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
 	users, err := i.repo.Create(users)
 	return users, err
 }
 
-func (i *UserInter) CreateOne(user *User) (*User, error) {
+func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
 	user, err := i.repo.CreateOne(user)
 	return user, err
 }
 
-func (i *UserInter) Find(filter *interfaces.Filter) ([]User, error) {
+func (i *UserInter) Find(filter *interfaces.Filter) ([]domain.User, error) {
 	users, err := i.repo.Find(filter)
 	return users, err
 }
 
-func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*User, error) {
+func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*domain.User, error) {
 	user, err := i.repo.FindByID(id, filter)
 	return user, err
 }
 
-func (i *UserInter) Upsert(users []User) ([]User, error) {
+func (i *UserInter) Upsert(users []domain.User) ([]domain.User, error) {
 	users, err := i.repo.Upsert(users)
 	return users, err
 }
 
-func (i *UserInter) UpsertOne(user *User) (*User, error) {
+func (i *UserInter) UpsertOne(user *domain.User) (*domain.User, error) {
 	user, err := i.repo.UpsertOne(user)
 	return user, err
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Solher/auth-scaffold/apierrors"
+	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/gorilla/context"
@@ -19,10 +20,11 @@ type Credentials struct {
 }
 
 type AbstractAccountInter interface {
-	Signin(ip, userAgent string, credentials *Credentials) (*Session, error)
-	Signout(currentSession *Session) error
-	Signup(user *User) (*Account, error)
-	Current(currentSession *Session) (*Account, error)
+	Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error)
+	Signout(currentSession *domain.Session) error
+	Signup(user *domain.User) (*domain.Account, error)
+	Current(currentSession *domain.Session) (*domain.Account, error)
+	CurrentSessionFromToken(authToken string) (*domain.Session, error)
 }
 
 type AccountCtrl struct {
@@ -78,7 +80,7 @@ func (c *AccountCtrl) Signout(w http.ResponseWriter, r *http.Request, _ httprout
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
 		return
 	}
-	session := sessionCtx.(Session)
+	session := sessionCtx.(domain.Session)
 
 	err := c.interactor.Signout(&session)
 
@@ -115,7 +117,7 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ httproute
 		return
 	}
 
-	user := User{
+	user := domain.User{
 		FirstName: params.FirstName,
 		LastName:  params.LastName,
 		Password:  params.Password,
@@ -143,7 +145,7 @@ func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ httprout
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
 		return
 	}
-	session := sessionCtx.(Session)
+	session := sessionCtx.(domain.Session)
 
 	account, err := c.interactor.Current(&session)
 	if err != nil {

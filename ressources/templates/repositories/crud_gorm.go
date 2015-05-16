@@ -41,7 +41,7 @@ var repository = &typewriter.Template{
 var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
-  func (r *{{.Type}}Repo) Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+  func (r *{{.Type}}Repo) Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error) {
   	db := r.store.GetDB()
   	transaction := db.Begin()
 
@@ -68,7 +68,7 @@ var create = &typewriter.Template{
 var createOne = &typewriter.Template{
 	Name: "CreateOne",
 	Text: `
-	func (r *{{.Type}}Repo) CreateOne({{.Name}} *{{.Type}}) (*{{.Type}}, error) {
+	func (r *{{.Type}}Repo) CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
 		db := r.store.GetDB()
 
 		err := db.Create({{.Name}}).Error
@@ -87,13 +87,13 @@ var createOne = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (r *{{.Type}}Repo) Find(filter *interfaces.Filter) ([]{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Find(filter *interfaces.Filter) ([]domain.{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
 		}
 
-		{{.Name}}s := []{{.Type}}{}
+		{{.Name}}s := []domain.{{.Type}}{}
 
 		err = query.Find(&{{.Name}}s).Error
 		if err != nil {
@@ -107,13 +107,13 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (r *{{.Type}}Repo) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
+	func (r *{{.Type}}Repo) FindByID(id int, filter *interfaces.Filter) (*domain.{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
 		}
 
-		{{.Name}} := {{.Type}}{}
+		{{.Name}} := domain.{{.Type}}{}
 
 		err = query.First(&{{.Name}}, id).Error
 		if err != nil {
@@ -127,13 +127,13 @@ var findByID = &typewriter.Template{
 var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
-	func (r *{{.Type}}Repo) Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Upsert({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error) {
 		db := r.store.GetDB()
 		transaction := db.Begin()
 
 		for i, {{.Name}} := range {{.Name}}s {
 			if {{.Name}}.ID != 0 {
-				oldUser := {{.Type}}{}
+				oldUser := domain.{{.Type}}{}
 
 				err := db.First(&oldUser, {{.Name}}.ID).Updates({{.Name}}).Error
 				if err != nil {
@@ -169,11 +169,11 @@ var upsert = &typewriter.Template{
 var upsertOne = &typewriter.Template{
 	Name: "UpsertOne",
 	Text: `
-	func (r *{{.Type}}Repo) UpsertOne({{.Name}} *{{.Type}}) (*{{.Type}}, error) {
+	func (r *{{.Type}}Repo) UpsertOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
 		db := r.store.GetDB()
 
 		if {{.Name}}.ID != 0 {
-			oldUser := {{.Type}}{}
+			oldUser := domain.{{.Type}}{}
 
 			err := db.First(&oldUser, {{.Name}}.ID).Updates({{.Name}}).Error
 			if err != nil {
@@ -207,7 +207,7 @@ var deleteAll = &typewriter.Template{
 			return internalerrors.DatabaseError
 		}
 
-		err = query.Delete({{.Type}}{}).Error
+		err = query.Delete(domain.{{.Type}}{}).Error
 		if err != nil {
 			return internalerrors.DatabaseError
 		}
@@ -222,7 +222,7 @@ var deleteByID = &typewriter.Template{
 	func (r *{{.Type}}Repo) DeleteByID(id int) error {
 		db := r.store.GetDB()
 
-		err := db.Delete(&{{.Type}}{GormModel: domain.GormModel{ID: id}}).Error
+		err := db.Delete(&domain.{{.Type}}{GormModel: domain.GormModel{ID: id}}).Error
 		if err != nil {
 			return internalerrors.DatabaseError
 		}

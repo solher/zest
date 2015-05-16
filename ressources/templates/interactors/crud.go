@@ -30,12 +30,12 @@ var interactor = &typewriter.Template{
 	Name: "Interactor",
 	Text: `
 	type Abstract{{.Type}}Repo interface {
-		Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
-		CreateOne({{.Name}} *{{.Type}}) (*{{.Type}}, error)
-		Find(filter *interfaces.Filter) ([]{{.Type}}, error)
-		FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error)
-		Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error)
-		UpsertOne({{.Name}} *{{.Type}}) (*{{.Type}}, error)
+		Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
+		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
+		Find(filter *interfaces.Filter) ([]domain.{{.Type}}, error)
+		FindByID(id int, filter *interfaces.Filter) (*domain.{{.Type}}, error)
+		Upsert({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
+		UpsertOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
 		DeleteAll(filter *interfaces.Filter) error
 		DeleteByID(id int) error
 	}
@@ -52,7 +52,7 @@ var interactor = &typewriter.Template{
 var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
-	func (i *{{.Type}}Inter) Create({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+	func (i *{{.Type}}Inter) Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error) {
 		{{.Name}}s, err := i.repo.Create({{.Name}}s)
 		return {{.Name}}s, err
 	}
@@ -61,7 +61,7 @@ var create = &typewriter.Template{
 var createOne = &typewriter.Template{
 	Name: "CreateOne",
 	Text: `
-	func (i *{{.Type}}Inter) CreateOne({{.Name}} *{{.Type}}) (*{{.Type}}, error) {
+	func (i *{{.Type}}Inter) CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
 		{{.Name}}, err := i.repo.CreateOne({{.Name}})
 		return {{.Name}}, err
 	}
@@ -70,7 +70,7 @@ var createOne = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (i *{{.Type}}Inter) Find(filter *interfaces.Filter) ([]{{.Type}}, error) {
+	func (i *{{.Type}}Inter) Find(filter *interfaces.Filter) ([]domain.{{.Type}}, error) {
 		{{.Name}}s, err := i.repo.Find(filter)
 		return {{.Name}}s, err
 	}
@@ -79,7 +79,7 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (i *{{.Type}}Inter) FindByID(id int, filter *interfaces.Filter) (*{{.Type}}, error) {
+	func (i *{{.Type}}Inter) FindByID(id int, filter *interfaces.Filter) (*domain.{{.Type}}, error) {
 		{{.Name}}, err := i.repo.FindByID(id, filter)
 		return {{.Name}}, err
 	}
@@ -88,7 +88,7 @@ var findByID = &typewriter.Template{
 var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
-	func (i *{{.Type}}Inter) Upsert({{.Name}}s []{{.Type}}) ([]{{.Type}}, error) {
+	func (i *{{.Type}}Inter) Upsert({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error) {
 		{{.Name}}s, err := i.repo.Upsert({{.Name}}s)
 		return {{.Name}}s, err
 	}
@@ -97,7 +97,7 @@ var upsert = &typewriter.Template{
 var upsertOne = &typewriter.Template{
 	Name: "UpsertOne",
 	Text: `
-	func (i *{{.Type}}Inter) UpsertOne({{.Name}} *{{.Type}}) (*{{.Type}}, error) {
+	func (i *{{.Type}}Inter) UpsertOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
 		{{.Name}}, err := i.repo.UpsertOne({{.Name}})
 		return {{.Name}}, err
 	}
