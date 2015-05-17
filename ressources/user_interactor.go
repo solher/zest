@@ -7,6 +7,7 @@ package ressources
 import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AbstractUserRepo interface {
@@ -29,12 +30,28 @@ func NewUserInter(repo AbstractUserRepo) *UserInter {
 }
 
 func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
+	for i := range users {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
+		if err != nil {
+			return nil, err
+		}
+
+		users[i].Password = string(hashedPassword)
+	}
+
 	users, err := i.repo.Create(users)
 	return users, err
 }
 
 func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
-	user, err := i.repo.CreateOne(user)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Password = string(hashedPassword)
+
+	user, err = i.repo.CreateOne(user)
 	return user, err
 }
 
@@ -49,12 +66,28 @@ func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*domain.User, e
 }
 
 func (i *UserInter) Upsert(users []domain.User) ([]domain.User, error) {
+	for i := range users {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
+		if err != nil {
+			return nil, err
+		}
+
+		users[i].Password = string(hashedPassword)
+	}
+
 	users, err := i.repo.Upsert(users)
 	return users, err
 }
 
 func (i *UserInter) UpsertOne(user *domain.User) (*domain.User, error) {
-	user, err := i.repo.UpsertOne(user)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Password = string(hashedPassword)
+
+	user, err = i.repo.UpsertOne(user)
 	return user, err
 }
 
