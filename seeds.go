@@ -5,6 +5,8 @@ import (
 
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/infrastructure"
+	"github.com/Solher/auth-scaffold/ressources"
+	"github.com/Solher/auth-scaffold/utils"
 )
 
 func migrateDatabase() {
@@ -42,36 +44,36 @@ func reinitDatabase() {
 		panic("Could not reinit database.")
 	}
 
+	err = seedDatabase(store)
+	if err != nil {
+		panic("Could not seed database.")
+	}
+
 	fmt.Println("Done.")
 }
 
-// func seedDatabase() {
-// 	fmt.Println("Seeding database...")
-//
-// 	users := []User{
-// 		{
-// 			FirstName: "Fabien",
-// 			LastName:  "Herfray",
-// 			Password:  "qwertyuiop",
-// 			Emails: []Email{
-// 				{Email: "fabien.herfray@me.com"},
-// 			},
-// 		},
-// 		{
-// 			FirstName: "Thomas",
-// 			LastName:  "Hourlier",
-// 			Password:  "1234",
-// 			Emails: []Email{
-// 				{Email: "thomas.hourlier@cnode.fr"},
-// 				{Email: "hourliert@gmail.com"},
-// 			},
-// 		},
-// 	}
-//
-// 	for _, user := range users {
-// 		GlobalDatabase.Create(&user)
-// 		fmt.Println("User created:\n", user)
-// 	}
-//
-// 	fmt.Println("Done.")
-// }
+func seedDatabase(store *infrastructure.GormStore) error {
+	fmt.Println("Seeding database...")
+
+	accounts := []domain.Account{
+		{
+			Users: []domain.User{
+				{
+					FirstName: "Fabien",
+					LastName:  "Herfray",
+					Password:  utils.QuickHashPassword("qwertyuiop"),
+					Email:     "fabien.herfray@me.com",
+				},
+			},
+			IsAdmin: true,
+		},
+	}
+
+	accountRepository := ressources.NewAccountRepo(store)
+	_, err := accountRepository.Create(accounts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

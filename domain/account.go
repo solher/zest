@@ -9,10 +9,9 @@ func init() {
 //+gen repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Account struct {
 	GormModel
-	Users       []User    `json:"users,omitempty"`
-	Sessions    []Session `json:"sessions,omitempty"`
-	IsAdmin     bool      `json:"isAdmin,omitempty"`
-	IsActivated bool      `json:"isActivated,omitempty"`
+	Users    []User    `json:"users,omitempty"`
+	Sessions []Session `json:"sessions,omitempty"`
+	IsAdmin  bool      `json:"isAdmin,omitempty"`
 }
 
 func (m *Account) ScopeModel() {

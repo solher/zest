@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Copied from golint
@@ -79,6 +81,15 @@ func MarshalToStr(obj interface{}) string {
 	}
 
 	return string(objBytes)
+}
+
+func QuickHashPassword(password string) string {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 0)
+	if err != nil {
+		panic("Hash failed")
+	}
+
+	return string(hashedPassword)
 }
 
 func Dump(obj interface{}) {
