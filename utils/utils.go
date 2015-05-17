@@ -82,9 +82,9 @@ func MarshalToStr(obj interface{}) string {
 }
 
 func Dump(obj interface{}) {
-	fmt.Println("Dump: %v", obj)
+	fmt.Println("Dump:", obj)
 }
 
 func DumpPanic(obj interface{}) {
-	panic(fmt.Sprintf("Dump: %v", obj))
+	panic(fmt.Sprintf("Dump:", obj))
 }

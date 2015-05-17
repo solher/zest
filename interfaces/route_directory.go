@@ -1,12 +1,15 @@
 package interfaces
 
-import "github.com/julienschmidt/httprouter"
+import (
+	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/julienschmidt/httprouter"
+)
 
 type (
 	Route struct {
 		Method  string
 		Path    string
-		Handler httprouter.Handle
+		Handler *httprouter.Handle
 	}
 
 	DirectoryKey struct {
@@ -30,7 +33,7 @@ func NewRouteDirectory() RouteDirectory {
 	return RouteDirectory{}
 }
 
-func (routes RouteDirectory) Register(router *httprouter.Router) {
+func (routes RouteDirectory) Register(router *httprouter.Router, permissions usecases.PermissionDirectory, render AbstractRender) {
 	var keys []DirectoryKey
 
 	for k := range routes {
@@ -39,7 +42,7 @@ func (routes RouteDirectory) Register(router *httprouter.Router) {
 
 	for _, k := range keys {
 		route := routes[k]
-		permissionGate := NewPermissionGate(route.Handler)
+		permissionGate := NewPermissionGate(route.Handler, routes, permissions, render)
 		router.Handle(route.Method, route.Path, permissionGate.Handler)
 	}
 }

@@ -6,7 +6,7 @@ func init() {
 	ModelDirectory.Register(Session{})
 }
 
-//+gen routes controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
+//+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Session struct {
 	GormModel
 	AccountID int       `json:"accountId,omitempty" sql:"index"`

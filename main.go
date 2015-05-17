@@ -8,6 +8,7 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/middlewares"
 	"github.com/Solher/auth-scaffold/ressources"
+	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/codegangsta/negroni"
 	"github.com/julienschmidt/httprouter"
 )
@@ -54,20 +55,21 @@ func initApp(app *negroni.Negroni, router *httprouter.Router, render *infrastruc
 		panic("Could not connect to database.")
 	}
 	routes := interfaces.NewRouteDirectory()
+	permissions := usecases.NewPermissionDirectory()
 
 	userRepository := ressources.NewUserRepo(store)
 	userInteractor := ressources.NewUserInter(userRepository)
-	ressources.NewUserCtrl(userInteractor, render, routes)
+	ressources.NewUserCtrl(userInteractor, render, routes, permissions)
 
 	sessionRepository := ressources.NewSessionRepo(store)
 	sessionInteractor := ressources.NewSessionInter(sessionRepository)
-	ressources.NewSessionCtrl(sessionInteractor, render, routes)
+	ressources.NewSessionCtrl(sessionInteractor, render, routes, permissions)
 
 	accountRepository := ressources.NewAccountRepo(store)
 	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository)
-	ressources.NewAccountCtrl(accountInteractor, render, routes)
+	ressources.NewAccountCtrl(accountInteractor, render, routes, permissions)
 
-	routes.Register(router)
+	routes.Register(router, permissions, render)
 
 	app.Use(negroni.NewLogger())
 	app.Use(negroni.NewRecovery())

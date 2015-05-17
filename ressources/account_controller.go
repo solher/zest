@@ -8,6 +8,7 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/gorilla/context"
 
 	"github.com/julienschmidt/httprouter"
@@ -29,14 +30,15 @@ type AbstractAccountInter interface {
 
 type AccountCtrl struct {
 	interactor AbstractAccountInter
-	render     interfaces.Render
+	render     interfaces.AbstractRender
 }
 
-func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.Render, routesDir interfaces.RouteDirectory) *AccountCtrl {
+func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender,
+	routeDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *AccountCtrl {
 	controller := &AccountCtrl{interactor: interactor, render: render}
 
-	if routesDir != nil {
-		addAccountRoutes(routesDir, controller)
+	if routeDir != nil && permissionDir != nil {
+		setAccountAccessOptions(routeDir, permissionDir, controller)
 	}
 
 	return controller
@@ -67,7 +69,7 @@ func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ httproute
 		return
 	}
 
-	cookie := http.Cookie{Name: "authToken", Value: session.AuthToken, Expires: session.ValidTo}
+	cookie := http.Cookie{Name: "authToken", Value: session.AuthToken, Expires: session.ValidTo, Path: "/"}
 	http.SetCookie(w, &cookie)
 
 	c.render.JSON(w, http.StatusCreated, session)

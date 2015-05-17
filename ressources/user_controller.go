@@ -14,6 +14,7 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -30,14 +31,15 @@ type AbstractUserInter interface {
 
 type UserCtrl struct {
 	interactor AbstractUserInter
-	render     interfaces.Render
+	render     interfaces.AbstractRender
 }
 
-func NewUserCtrl(interactor AbstractUserInter, render interfaces.Render, routesDir interfaces.RouteDirectory) *UserCtrl {
+func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender,
+	routeDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *UserCtrl {
 	controller := &UserCtrl{interactor: interactor, render: render}
 
-	if routesDir != nil {
-		addUserRoutes(routesDir, controller)
+	if routeDir != nil && permissionDir != nil {
+		setUserAccessOptions(routeDir, permissionDir, controller)
 	}
 
 	return controller

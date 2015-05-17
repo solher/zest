@@ -17,7 +17,7 @@ type (
 		BuildQuery(filter *Filter) (*gorm.DB, error)
 	}
 
-	Render interface {
+	AbstractRender interface {
 		JSONError(w http.ResponseWriter, status int, apiError *apierrors.APIError, err error)
 		JSON(w http.ResponseWriter, status int, object interface{})
 	}

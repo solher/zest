@@ -21,7 +21,7 @@ var slice = typewriter.TemplateSlice{
 var routes = &typewriter.Template{
 	Name: "Access",
 	Text: `
-	func setAccessOptions(routesDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *{{.Type}}Ctrl) {
+	func set{{.Type}}AccessOptions(routesDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *{{.Type}}Ctrl) {
 		key := interfaces.NewDirectoryKey(controller)
 		create := httprouter.Handle(controller.Create)
 		find := httprouter.Handle(controller.Find)
@@ -38,9 +38,9 @@ var routes = &typewriter.Template{
   	routesDir[key.For("DeleteByID")] = interfaces.Route{Method: "DELETE", Path: "/{{.Name}}s/:id", Handler: &deleteByID}
 
 		permissions := permissionDir["admin"]
-		permissions.GrantAll()
+		permissions.Add(&create).Add(&find).Add(&findByID).Add(&upsert).Add(&deleteAll).Add(&deleteByID)
 		permissions = permissionDir["authenticated"]
-		permissions.GrantAll()
+		permissions.Add(&create).Add(&find).Add(&findByID).Add(&upsert).Add(&deleteAll).Add(&deleteByID)
 		permissions = permissionDir["guest"]
 	}
 `}
