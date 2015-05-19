@@ -11,10 +11,30 @@ import (
 	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/codegangsta/negroni"
 	"github.com/julienschmidt/httprouter"
+
+	_ "github.com/clipperhouse/typewriter" // Forced to permit vendoring.
 )
+
+var Environment, Port, DatabaseURL string
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	env := os.Getenv("GOENV")
+	if env == "development" || env == "production" {
+		Environment = env
+	} else {
+		Environment = "development"
+	}
+
+	port := os.Getenv("PORT")
+	if port != "" {
+		Port = ":" + os.Getenv("PORT")
+	} else {
+		Port = ":3000"
+	}
+
+	DatabaseURL = os.Getenv("DATABASE_URL")
 }
 
 func main() {
@@ -31,7 +51,7 @@ func main() {
 	initApp(app, router, render, store)
 	defer closeApp(store)
 
-	app.Run(":3001")
+	app.Run(Port)
 }
 
 func handleOsArgs() bool {
@@ -49,11 +69,24 @@ func handleOsArgs() bool {
 	return false
 }
 
+func connectDB(store *infrastructure.GormStore) error {
+	var err error
+
+	if DatabaseURL != "" {
+		err = store.Connect("postgres", DatabaseURL)
+	} else {
+		err = store.Connect("sqlite3", "database.db")
+	}
+
+	return err
+}
+
 func initApp(app *negroni.Negroni, router *httprouter.Router, render *infrastructure.Render, store *infrastructure.GormStore) {
-	err := store.Connect("sqlite3", "database.db")
+	err := connectDB(store)
 	if err != nil {
 		panic("Could not connect to database.")
 	}
+
 	routes := interfaces.NewRouteDirectory()
 	permissions := usecases.NewPermissionDirectory()
 

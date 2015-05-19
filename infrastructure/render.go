@@ -20,5 +20,9 @@ func (r *Render) JSONError(w http.ResponseWriter, status int, apiError *apierror
 }
 
 func (r *Render) JSON(w http.ResponseWriter, status int, object interface{}) {
-	r.renderer.JSON(w, status, object)
+	if object == nil {
+		w.WriteHeader(status)
+	} else {
+		r.renderer.JSON(w, status, object)
+	}
 }

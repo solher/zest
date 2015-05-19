@@ -12,7 +12,7 @@ import (
 func migrateDatabase() {
 	store := infrastructure.NewGormStore()
 
-	err := store.Connect("sqlite3", "database.db")
+	err := connectDB(store)
 	if err != nil {
 		panic("Could not connect to database.")
 	}
@@ -31,7 +31,7 @@ func migrateDatabase() {
 func reinitDatabase() {
 	store := infrastructure.NewGormStore()
 
-	err := store.Connect("sqlite3", "database.db")
+	err := connectDB(store)
 	if err != nil {
 		panic("Could not connect to database.")
 	}
