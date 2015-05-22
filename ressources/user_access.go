@@ -7,24 +7,24 @@ package ressources
 import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/usecases"
-	"github.com/julienschmidt/httprouter"
+	"github.com/dimfeld/httptreemux"
 )
 
-func setUserAccessOptions(routesDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *UserCtrl) {
-	key := interfaces.NewDirectoryKey(controller)
-	create := httprouter.Handle(controller.Create)
-	find := httprouter.Handle(controller.Find)
-	findByID := httprouter.Handle(controller.FindByID)
-	upsert := httprouter.Handle(controller.Upsert)
-	deleteAll := httprouter.Handle(controller.DeleteAll)
-	deleteByID := httprouter.Handle(controller.DeleteByID)
+func setUserAccessOptions(routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *UserCtrl) {
+	key := interfaces.NewDirectoryKey("users")
+	create := httptreemux.HandlerFunc(controller.Create)
+	find := httptreemux.HandlerFunc(controller.Find)
+	findByID := httptreemux.HandlerFunc(controller.FindByID)
+	upsert := httptreemux.HandlerFunc(controller.Upsert)
+	deleteAll := httptreemux.HandlerFunc(controller.DeleteAll)
+	deleteByID := httptreemux.HandlerFunc(controller.DeleteByID)
 
-	routesDir[key.For("Create")] = interfaces.Route{Method: "POST", Path: "/users", Handler: &create}
-	routesDir[key.For("Find")] = interfaces.Route{Method: "GET", Path: "/users", Handler: &find}
-	routesDir[key.For("FindByID")] = interfaces.Route{Method: "GET", Path: "/users/:id", Handler: &findByID}
-	routesDir[key.For("Upsert")] = interfaces.Route{Method: "PUT", Path: "/users", Handler: &upsert}
-	routesDir[key.For("DeleteAll")] = interfaces.Route{Method: "DELETE", Path: "/users", Handler: &deleteAll}
-	routesDir[key.For("DeleteByID")] = interfaces.Route{Method: "DELETE", Path: "/users/:id", Handler: &deleteByID}
+	routeDir.Add(key.For("Create"), &interfaces.Route{Method: "POST", Path: "/users", Handler: &create, Visible: true}, true)
+	routeDir.Add(key.For("Find"), &interfaces.Route{Method: "GET", Path: "/users", Handler: &find, Visible: true}, true)
+	routeDir.Add(key.For("FindByID"), &interfaces.Route{Method: "GET", Path: "/users/:id", Handler: &findByID, Visible: true}, true)
+	routeDir.Add(key.For("Upsert"), &interfaces.Route{Method: "PUT", Path: "/users", Handler: &upsert, Visible: true}, true)
+	routeDir.Add(key.For("DeleteAll"), &interfaces.Route{Method: "DELETE", Path: "/users", Handler: &deleteAll, Visible: true}, true)
+	routeDir.Add(key.For("DeleteByID"), &interfaces.Route{Method: "DELETE", Path: "/users/:id", Handler: &deleteByID, Visible: true}, true)
 
 	permissions := permissionDir["admin"]
 	permissions.Add(&create).Add(&find).Add(&findByID).Add(&upsert).Add(&deleteAll).Add(&deleteByID)

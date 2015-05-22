@@ -21,12 +21,3 @@ type GormFilter struct {
 type GormInclude struct {
 	Relation, Where string
 }
-
-//[
-// 	{
-// 		"relation": "toto",
-//		"filter": Filter,
-//		"include": Include
-// 	},
-// 	"tutu",
-//]

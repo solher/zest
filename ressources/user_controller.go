@@ -15,7 +15,6 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
-	"github.com/julienschmidt/httprouter"
 )
 
 type AbstractUserInter interface {
@@ -32,11 +31,12 @@ type AbstractUserInter interface {
 type UserCtrl struct {
 	interactor AbstractUserInter
 	render     interfaces.AbstractRender
+	routeDir   *interfaces.RouteDirectory
 }
 
 func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender,
-	routeDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *UserCtrl {
-	controller := &UserCtrl{interactor: interactor, render: render}
+	routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *UserCtrl {
+	controller := &UserCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil && permissionDir != nil {
 		setUserAccessOptions(routeDir, permissionDir, controller)
@@ -45,7 +45,7 @@ func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender,
 	return controller
 }
 
-func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	user := &domain.User{}
 	var users []domain.User
 
@@ -60,47 +60,43 @@ func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		}
 	}
 
+	lastRessource := interfaces.GetLastRessource(r)
+
 	if users == nil {
-		user.ScopeModel()
-
+		user.ScopeModel(lastRessource.ID)
 		user, err = c.interactor.CreateOne(user)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
-
-		c.render.JSON(w, http.StatusCreated, user)
 	} else {
 		for i := range users {
-			(&users[i]).ScopeModel()
+			(&users[i]).ScopeModel(lastRessource.ID)
 		}
-
 		users, err = c.interactor.Create(users)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
+	}
 
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	if users == nil {
+		c.render.JSON(w, http.StatusCreated, user)
+	} else {
 		c.render.JSON(w, http.StatusCreated, users)
 	}
 }
 
-func (c *UserCtrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *UserCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 		return
 	}
+
+	filter = interfaces.FilterIfLastRessource(r, filter)
 
 	users, err := c.interactor.Find(filter)
 	if err != nil {
@@ -111,8 +107,8 @@ func (c *UserCtrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	c.render.JSON(w, http.StatusOK, users)
 }
 
-func (c *UserCtrl) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	id, err := strconv.Atoi(params.ByName("id"))
+func (c *UserCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return
@@ -133,7 +129,7 @@ func (c *UserCtrl) FindByID(w http.ResponseWriter, r *http.Request, params httpr
 	c.render.JSON(w, http.StatusOK, user)
 }
 
-func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	user := &domain.User{}
 	var users []domain.User
 
@@ -148,41 +144,43 @@ func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		}
 	}
 
-	if users == nil {
-		user, err = c.interactor.UpsertOne(user)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
+	lastRessource := interfaces.GetLastRessource(r)
 
+	if users == nil {
+		user.ScopeModel(lastRessource.ID)
+		user, err = c.interactor.UpsertOne(user)
+	} else {
+		for i := range users {
+			(&users[i]).ScopeModel(lastRessource.ID)
+		}
+		users, err = c.interactor.Upsert(users)
+	}
+
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	if users == nil {
 		c.render.JSON(w, http.StatusCreated, user)
 	} else {
-		users, err = c.interactor.Upsert(users)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
-
 		c.render.JSON(w, http.StatusCreated, users)
 	}
 }
 
-func (c *UserCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *UserCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 		return
 	}
+
+	filter = interfaces.FilterIfLastRessource(r, filter)
 
 	err = c.interactor.DeleteAll(filter)
 	if err != nil {
@@ -193,8 +191,8 @@ func (c *UserCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httproute
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
-func (c *UserCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	id, err := strconv.Atoi(params.ByName("id"))
+func (c *UserCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return

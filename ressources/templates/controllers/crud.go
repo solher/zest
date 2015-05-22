@@ -41,11 +41,12 @@ var controller = &typewriter.Template{
 	type {{.Type}}Ctrl struct {
 		interactor Abstract{{.Type}}Inter
 		render     interfaces.AbstractRender
+		routeDir   *interfaces.RouteDirectory
 	}
 
 	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.AbstractRender,
-		routeDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *{{.Type}}Ctrl {
-		controller := &{{.Type}}Ctrl{interactor: interactor, render: render}
+		routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *{{.Type}}Ctrl {
+		controller := &{{.Type}}Ctrl{interactor: interactor, render: render, routeDir: routeDir}
 
 		if routeDir != nil && permissionDir != nil {
 			set{{.Type}}AccessOptions(routeDir, permissionDir, controller)
@@ -58,7 +59,7 @@ var controller = &typewriter.Template{
 var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
-	func (c *{{.Type}}Ctrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 		{{.Name}} := &domain.{{.Type}}{}
 		var {{.Name}}s []domain.{{.Type}}
 
@@ -73,12 +74,14 @@ var create = &typewriter.Template{
 			}
 		}
 
+		lastRessource := interfaces.GetLastRessource(r)
+
 		if {{.Name}}s == nil {
-			{{.Name}}.ScopeModel()
+			{{.Name}}.ScopeModel(lastRessource.ID)
 			{{.Name}}, err = c.interactor.CreateOne({{.Name}})
 		} else {
 			for i := range {{.Name}}s {
-				(&{{.Name}}s[i]).ScopeModel()
+				(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
 			}
 			{{.Name}}s, err = c.interactor.Create({{.Name}}s)
 		}
@@ -104,12 +107,14 @@ var create = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (c *{{.Type}}Ctrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 		filter, err := interfaces.GetQueryFilter(r)
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 			return
 		}
+
+		filter = interfaces.FilterIfLastRessource(r, filter)
 
 		{{.Name}}s, err := c.interactor.Find(filter)
 		if err != nil {
@@ -124,8 +129,8 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (c *{{.Type}}Ctrl) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		id, err := strconv.Atoi(params.ByName("id"))
+	func (c *{{.Type}}Ctrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 			return
@@ -150,7 +155,7 @@ var findByID = &typewriter.Template{
 var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
-	func (c *{{.Type}}Ctrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 		{{.Name}} := &domain.{{.Type}}{}
 		var {{.Name}}s []domain.{{.Type}}
 
@@ -165,12 +170,14 @@ var upsert = &typewriter.Template{
 			}
 		}
 
+		lastRessource := interfaces.GetLastRessource(r)
+
 		if {{.Name}}s == nil {
-			{{.Name}}.ScopeModel()
+			{{.Name}}.ScopeModel(lastRessource.ID)
 			{{.Name}}, err = c.interactor.UpsertOne({{.Name}})
 		} else {
 			for i := range {{.Name}}s {
-				(&{{.Name}}s[i]).ScopeModel()
+				(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
 			}
 			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s)
 		}
@@ -196,12 +203,14 @@ var upsert = &typewriter.Template{
 var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
-	func (c *{{.Type}}Ctrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	func (c *{{.Type}}Ctrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 		filter, err := interfaces.GetQueryFilter(r)
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 			return
 		}
+
+		filter = interfaces.FilterIfLastRessource(r, filter)
 
 		err = c.interactor.DeleteAll(filter)
 		if err != nil {
@@ -216,8 +225,8 @@ var deleteAll = &typewriter.Template{
 var deleteByID = &typewriter.Template{
 	Name: "DeleteByID",
 	Text: `
-	func (c *{{.Type}}Ctrl) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		id, err := strconv.Atoi(params.ByName("id"))
+	func (c *{{.Type}}Ctrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 			return

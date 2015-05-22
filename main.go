@@ -10,7 +10,7 @@ import (
 	"github.com/Solher/auth-scaffold/ressources"
 	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/codegangsta/negroni"
-	"github.com/julienschmidt/httprouter"
+	"github.com/dimfeld/httptreemux"
 
 	_ "github.com/clipperhouse/typewriter" // Forced to permit vendoring.
 )
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	app := negroni.New()
-	router := httprouter.New()
+	router := httptreemux.New()
 	render := infrastructure.NewRender()
 	store := infrastructure.NewGormStore()
 
@@ -81,14 +81,14 @@ func connectDB(store *infrastructure.GormStore) error {
 	return err
 }
 
-func initApp(app *negroni.Negroni, router *httprouter.Router, render *infrastructure.Render, store *infrastructure.GormStore) {
+func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render, store *infrastructure.GormStore) {
 	err := connectDB(store)
 	if err != nil {
 		panic("Could not connect to database.")
 	}
 
-	routes := interfaces.NewRouteDirectory()
 	permissions := usecases.NewPermissionDirectory()
+	routes := interfaces.NewRouteDirectory(permissions, render)
 
 	userRepository := ressources.NewUserRepo(store)
 	userInteractor := ressources.NewUserInter(userRepository)
@@ -102,7 +102,7 @@ func initApp(app *negroni.Negroni, router *httprouter.Router, render *infrastruc
 	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository)
 	ressources.NewAccountCtrl(accountInteractor, render, routes, permissions)
 
-	routes.Register(router, permissions, render)
+	routes.Register(router)
 
 	app.Use(negroni.NewLogger())
 	app.Use(negroni.NewRecovery())

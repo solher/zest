@@ -31,12 +31,14 @@ func NewUserInter(repo AbstractUserRepo) *UserInter {
 
 func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
 	for i := range users {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
-		if err != nil {
-			return nil, err
-		}
+		if users[i].Password != "" {
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
+			if err != nil {
+				return nil, err
+			}
 
-		users[i].Password = string(hashedPassword)
+			users[i].Password = string(hashedPassword)
+		}
 	}
 
 	users, err := i.repo.Create(users)
@@ -44,14 +46,16 @@ func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
 }
 
 func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
-	if err != nil {
-		return nil, err
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+		if err != nil {
+			return nil, err
+		}
+
+		user.Password = string(hashedPassword)
 	}
 
-	user.Password = string(hashedPassword)
-
-	user, err = i.repo.CreateOne(user)
+	user, err := i.repo.CreateOne(user)
 	return user, err
 }
 
@@ -67,12 +71,14 @@ func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*domain.User, e
 
 func (i *UserInter) Upsert(users []domain.User) ([]domain.User, error) {
 	for i := range users {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
-		if err != nil {
-			return nil, err
-		}
+		if users[i].Password != "" {
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
+			if err != nil {
+				return nil, err
+			}
 
-		users[i].Password = string(hashedPassword)
+			users[i].Password = string(hashedPassword)
+		}
 	}
 
 	users, err := i.repo.Upsert(users)
@@ -80,14 +86,16 @@ func (i *UserInter) Upsert(users []domain.User) ([]domain.User, error) {
 }
 
 func (i *UserInter) UpsertOne(user *domain.User) (*domain.User, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
-	if err != nil {
-		return nil, err
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+		if err != nil {
+			return nil, err
+		}
+
+		user.Password = string(hashedPassword)
 	}
 
-	user.Password = string(hashedPassword)
-
-	user, err = i.repo.UpsertOne(user)
+	user, err := i.repo.UpsertOne(user)
 	return user, err
 }
 

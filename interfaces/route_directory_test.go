@@ -27,7 +27,7 @@ func TestRoutes(t *testing.T) {
 		})
 
 		Convey("Should be able to mock HTTP requests.", func() {
-			route := Route{Method: "GET", Path: "/", Handler: func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {}}
+			route := Route{Method: "GET", Path: "/", Handler: func(w http.ResponseWriter, r *http.Request, _ map[string]string) {}}
 			res := MockHTTPRequest(route, "", "", nil)
 			So(res, ShouldEqual, "")
 

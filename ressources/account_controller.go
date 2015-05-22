@@ -9,9 +9,8 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 type Credentials struct {
@@ -31,11 +30,12 @@ type AbstractAccountInter interface {
 type AccountCtrl struct {
 	interactor AbstractAccountInter
 	render     interfaces.AbstractRender
+	routeDir   *interfaces.RouteDirectory
 }
 
 func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender,
-	routeDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *AccountCtrl {
-	controller := &AccountCtrl{interactor: interactor, render: render}
+	routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *AccountCtrl {
+	controller := &AccountCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil && permissionDir != nil {
 		setAccountAccessOptions(routeDir, permissionDir, controller)
@@ -44,7 +44,7 @@ func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractR
 	return controller
 }
 
-func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	var credentials Credentials
 
 	err := json.NewDecoder(r.Body).Decode(&credentials)
@@ -63,7 +63,7 @@ func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ httproute
 		return
 	}
 
-	session, err := c.interactor.Signin(r.Host, r.UserAgent(), &credentials)
+	session, err := c.interactor.Signin(r.RemoteAddr, r.UserAgent(), &credentials)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.InvalidCredentials, err)
 		return
@@ -75,7 +75,7 @@ func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ httproute
 	c.render.JSON(w, http.StatusCreated, session)
 }
 
-func (c *AccountCtrl) Signout(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *AccountCtrl) Signout(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	sessionCtx := context.Get(r, "currentSession")
 
 	if sessionCtx == nil {
@@ -94,7 +94,7 @@ func (c *AccountCtrl) Signout(w http.ResponseWriter, r *http.Request, _ httprout
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	type Params struct {
 		FirstName string `json:"firstName"`
 		LastName  string `json:"lastName"`
@@ -140,7 +140,7 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ httproute
 	c.render.JSON(w, http.StatusCreated, account)
 }
 
-func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	sessionCtx := context.Get(r, "currentSession")
 
 	if sessionCtx == nil {
@@ -156,4 +156,56 @@ func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ httprout
 	}
 
 	c.render.JSON(w, http.StatusOK, account)
+}
+
+func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	sessionCtx := context.Get(r, "currentSession")
+
+	if sessionCtx == nil {
+		c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+		return
+	}
+	session := sessionCtx.(domain.Session)
+
+	related := params["related"]
+	key := interfaces.NewDirectoryKey(related)
+
+	var handler *httptreemux.HandlerFunc
+	switch r.Method {
+	case "POST":
+		handler = c.routeDir.Get(key.For("Create")).Handler
+	case "GET":
+		handler = c.routeDir.Get(key.For("Find")).Handler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("Upsert")).Handler
+	case "DELETE":
+		handler = c.routeDir.Get(key.For("DeleteAll")).Handler
+	}
+
+	if handler == nil {
+		c.render.JSON(w, http.StatusNotFound, nil)
+		return
+	}
+
+	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "accountID", ID: session.AccountID})
+
+	(*handler)(w, r, params)
+}
+
+func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	params["id"] = params["fk"]
+
+	related := params["related"]
+	key := interfaces.NewDirectoryKey(related)
+
+	var handler httptreemux.HandlerFunc
+
+	switch r.Method {
+	case "GET":
+		handler = *c.routeDir.Get(key.For("FindByID")).Handler
+	case "DELETE":
+		handler = *c.routeDir.Get(key.For("DeleteByID")).Handler
+	}
+
+	handler(w, r, params)
 }

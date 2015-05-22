@@ -114,6 +114,7 @@ func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account,
 		return nil, err
 	}
 
+	currentSession.Account = domain.Account{}
 	account.Sessions = []domain.Session{*currentSession}
 
 	return account, nil

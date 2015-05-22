@@ -15,7 +15,6 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
-	"github.com/julienschmidt/httprouter"
 )
 
 type AbstractSessionInter interface {
@@ -32,11 +31,12 @@ type AbstractSessionInter interface {
 type SessionCtrl struct {
 	interactor AbstractSessionInter
 	render     interfaces.AbstractRender
+	routeDir   *interfaces.RouteDirectory
 }
 
 func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender,
-	routeDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *SessionCtrl {
-	controller := &SessionCtrl{interactor: interactor, render: render}
+	routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *SessionCtrl {
+	controller := &SessionCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil && permissionDir != nil {
 		setSessionAccessOptions(routeDir, permissionDir, controller)
@@ -45,7 +45,7 @@ func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractR
 	return controller
 }
 
-func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	session := &domain.Session{}
 	var sessions []domain.Session
 
@@ -60,47 +60,43 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ httproute
 		}
 	}
 
+	lastRessource := interfaces.GetLastRessource(r)
+
 	if sessions == nil {
-		session.ScopeModel()
-
+		session.ScopeModel(lastRessource.ID)
 		session, err = c.interactor.CreateOne(session)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
-
-		c.render.JSON(w, http.StatusCreated, session)
 	} else {
 		for i := range sessions {
-			(&sessions[i]).ScopeModel()
+			(&sessions[i]).ScopeModel(lastRessource.ID)
 		}
-
 		sessions, err = c.interactor.Create(sessions)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
+	}
 
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	if sessions == nil {
+		c.render.JSON(w, http.StatusCreated, session)
+	} else {
 		c.render.JSON(w, http.StatusCreated, sessions)
 	}
 }
 
-func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 		return
 	}
+
+	filter = interfaces.FilterIfLastRessource(r, filter)
 
 	sessions, err := c.interactor.Find(filter)
 	if err != nil {
@@ -111,8 +107,8 @@ func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ httprouter.
 	c.render.JSON(w, http.StatusOK, sessions)
 }
 
-func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	id, err := strconv.Atoi(params.ByName("id"))
+func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return
@@ -133,7 +129,7 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ht
 	c.render.JSON(w, http.StatusOK, session)
 }
 
-func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	session := &domain.Session{}
 	var sessions []domain.Session
 
@@ -148,41 +144,43 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ httproute
 		}
 	}
 
-	if sessions == nil {
-		session, err = c.interactor.UpsertOne(session)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
+	lastRessource := interfaces.GetLastRessource(r)
 
+	if sessions == nil {
+		session.ScopeModel(lastRessource.ID)
+		session, err = c.interactor.UpsertOne(session)
+	} else {
+		for i := range sessions {
+			(&sessions[i]).ScopeModel(lastRessource.ID)
+		}
+		sessions, err = c.interactor.Upsert(sessions)
+	}
+
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	if sessions == nil {
 		c.render.JSON(w, http.StatusCreated, session)
 	} else {
-		sessions, err = c.interactor.Upsert(sessions)
-		if err != nil {
-			switch err.(type) {
-			case *internalerrors.ViolatedConstraint:
-				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
-			default:
-				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
-			}
-			return
-		}
-
 		c.render.JSON(w, http.StatusCreated, sessions)
 	}
 }
 
-func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
 		return
 	}
+
+	filter = interfaces.FilterIfLastRessource(r, filter)
 
 	err = c.interactor.DeleteAll(filter)
 	if err != nil {
@@ -193,8 +191,8 @@ func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ httpro
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
-func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	id, err := strconv.Atoi(params.ByName("id"))
+func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return

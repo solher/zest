@@ -21,21 +21,21 @@ var slice = typewriter.TemplateSlice{
 var routes = &typewriter.Template{
 	Name: "Access",
 	Text: `
-	func setAccessOptions(routesDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *{{.Type}}Ctrl) {
+	func setAccessOptions(routeDir interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *{{.Type}}Ctrl) {
 		key := interfaces.NewDirectoryKey(controller)
-		create := httprouter.Handle(controller.Create)
-		find := httprouter.Handle(controller.Find)
-		findByID := httprouter.Handle(controller.FindByID)
-		upsert := httprouter.Handle(controller.Upsert)
-		deleteAll := httprouter.Handle(controller.DeleteAll)
-		deleteByID := httprouter.Handle(controller.DeleteByID)
+		create := httptreemux.HandlerFunc(controller.Create)
+		find := httptreemux.HandlerFunc(controller.Find)
+		findByID := httptreemux.HandlerFunc(controller.FindByID)
+		upsert := httptreemux.HandlerFunc(controller.Upsert)
+		deleteAll := httptreemux.HandlerFunc(controller.DeleteAll)
+		deleteByID := httptreemux.HandlerFunc(controller.DeleteByID)
 
-  	routesDir[key.For("Create")] = interfaces.Route{Method: "POST", Path: "/{{.Name}}s", Handler: &create}
-  	routesDir[key.For("Find")] = interfaces.Route{Method: "GET", Path: "/{{.Name}}s", Handler: &find}
-  	routesDir[key.For("FindByID")] = interfaces.Route{Method: "GET", Path: "/{{.Name}}s/:id", Handler: &findByID}
-  	routesDir[key.For("Upsert")] = interfaces.Route{Method: "PUT", Path: "/{{.Name}}s", Handler: &upsert}
-  	routesDir[key.For("DeleteAll")] = interfaces.Route{Method: "DELETE", Path: "/{{.Name}}s", Handler: &deleteAll}
-  	routesDir[key.For("DeleteByID")] = interfaces.Route{Method: "DELETE", Path: "/{{.Name}}s/:id", Handler: &deleteByID}
+  	routeDir[key.For("Create")] = interfaces.Route{Method: "POST", Path: "/{{.Name}}s", Handler: &create}
+  	routeDir[key.For("Find")] = interfaces.Route{Method: "GET", Path: "/{{.Name}}s", Handler: &find}
+  	routeDir[key.For("FindByID")] = interfaces.Route{Method: "GET", Path: "/{{.Name}}s/:id", Handler: &findByID}
+  	routeDir[key.For("Upsert")] = interfaces.Route{Method: "PUT", Path: "/{{.Name}}s", Handler: &upsert}
+  	routeDir[key.For("DeleteAll")] = interfaces.Route{Method: "DELETE", Path: "/{{.Name}}s", Handler: &deleteAll}
+  	routeDir[key.For("DeleteByID")] = interfaces.Route{Method: "DELETE", Path: "/{{.Name}}s/:id", Handler: &deleteByID}
 
 		permissions := permissionDir["admin"]
 		permissions.GrantAll()

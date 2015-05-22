@@ -18,8 +18,9 @@ type Session struct {
 	DeletedAt time.Time `json:"deletedAt,omitempty"`
 }
 
-func (m *Session) ScopeModel() {
+func (m *Session) ScopeModel(accountID int) {
 	m.ID = 0
 	m.CreatedAt = time.Time{}
 	m.UpdatedAt = m.CreatedAt
+	m.AccountID = accountID
 }

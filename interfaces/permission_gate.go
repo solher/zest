@@ -7,22 +7,22 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
-	"github.com/julienschmidt/httprouter"
 )
 
 type PermissionGate struct {
-	next        *httprouter.Handle
-	routes      RouteDirectory
+	next        *httptreemux.HandlerFunc
+	routes      *RouteDirectory
 	permissions usecases.PermissionDirectory
 	render      AbstractRender
 }
 
-func NewPermissionGate(next *httprouter.Handle, routes RouteDirectory, permissions usecases.PermissionDirectory, render AbstractRender) *PermissionGate {
+func NewPermissionGate(next *httptreemux.HandlerFunc, routes *RouteDirectory, permissions usecases.PermissionDirectory, render AbstractRender) *PermissionGate {
 	return &PermissionGate{next: next, routes: routes, permissions: permissions, render: render}
 }
 
-func (c *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (c *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	sessionCtx := context.Get(r, "currentSession")
 	var role string
 

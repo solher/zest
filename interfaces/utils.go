@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Solher/auth-scaffold/apierrors"
-	"github.com/julienschmidt/httprouter"
+	"github.com/gorilla/context"
 )
 
 func GetQueryFilter(r *http.Request) (*Filter, error) {
@@ -28,7 +28,7 @@ func GetQueryFilter(r *http.Request) (*Filter, error) {
 	return filter, nil
 }
 
-func MockHTTPRequest(route Route, body, filter string, params httprouter.Params) string {
+func MockHTTPRequest(route Route, body, filter string, params map[string]string) string {
 	if route.Method == "" || route.Path == "" || route.Handler == nil {
 		panic("Non existing or incomplete route when mocking HTTP request.")
 	}
@@ -51,4 +51,38 @@ func GetErrorCode(res string) string {
 	_ = json.Unmarshal([]byte(res), apiError)
 
 	return apiError.ErrorCode
+}
+
+func GetLastRessource(r *http.Request) *Ressource {
+	lastRessourceCtx := context.Get(r, "lastRessource")
+	var lastRessource *Ressource
+	if lastRessourceCtx != nil {
+		lastRessource = lastRessourceCtx.(*Ressource)
+	} else {
+		lastRessource = &Ressource{}
+	}
+
+	return lastRessource
+}
+
+func FilterIfLastRessource(r *http.Request, filter *Filter) *Filter {
+	lastRessourceCtx := context.Get(r, "lastRessource")
+
+	if lastRessourceCtx != nil {
+		lastRessource := lastRessourceCtx.(*Ressource)
+
+		if filter == nil {
+			filter = &Filter{
+				Where: map[string]interface{}{lastRessource.IDKey: lastRessource.ID},
+			}
+		} else {
+			if filter.Where == nil {
+				filter.Where = map[string]interface{}{lastRessource.IDKey: lastRessource.ID}
+			} else {
+				filter.Where[lastRessource.IDKey] = lastRessource.ID
+			}
+		}
+	}
+
+	return filter
 }

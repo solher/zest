@@ -190,7 +190,7 @@ var controllerTest = &typewriter.Template{
 			Convey("Should be able to find {{.Name}} by id.", func() {
 				route := routes[key.For("FindByID")]
 
-				params := httprouter.Params{
+				params := map[string]string{
 					{
 						Key:   "id",
 						Value: "1",
@@ -262,7 +262,7 @@ var controllerTest = &typewriter.Template{
 			Convey("Should be able to delete {{.Name}} by id.", func() {
 				route := routes[key.For("DeleteByID")]
 
-				params := httprouter.Params{
+				params := map[string]string{
 					{
 						Key:   "id",
 						Value: "1",
