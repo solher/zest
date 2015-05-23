@@ -8,7 +8,6 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -33,12 +32,11 @@ type AccountCtrl struct {
 	routeDir   *interfaces.RouteDirectory
 }
 
-func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender,
-	routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *AccountCtrl {
+func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *AccountCtrl {
 	controller := &AccountCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
-	if routeDir != nil && permissionDir != nil {
-		setAccountAccessOptions(routeDir, permissionDir, controller)
+	if routeDir != nil {
+		setAccountAccessOptions(routeDir, controller)
 	}
 
 	return controller

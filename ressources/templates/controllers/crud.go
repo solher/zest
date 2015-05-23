@@ -44,12 +44,11 @@ var controller = &typewriter.Template{
 		routeDir   *interfaces.RouteDirectory
 	}
 
-	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.AbstractRender,
-		routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *{{.Type}}Ctrl {
+	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *{{.Type}}Ctrl {
 		controller := &{{.Type}}Ctrl{interactor: interactor, render: render, routeDir: routeDir}
 
-		if routeDir != nil && permissionDir != nil {
-			set{{.Type}}AccessOptions(routeDir, permissionDir, controller)
+		if routeDir != nil {
+			set{{.Type}}AccessOptions(routeDir, controller)
 		}
 
 		return controller

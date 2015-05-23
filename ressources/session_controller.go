@@ -14,7 +14,6 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AbstractSessionInter interface {
@@ -34,12 +33,11 @@ type SessionCtrl struct {
 	routeDir   *interfaces.RouteDirectory
 }
 
-func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender,
-	routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *SessionCtrl {
+func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *SessionCtrl {
 	controller := &SessionCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
-	if routeDir != nil && permissionDir != nil {
-		setSessionAccessOptions(routeDir, permissionDir, controller)
+	if routeDir != nil {
+		setSessionAccessOptions(routeDir, controller)
 	}
 
 	return controller

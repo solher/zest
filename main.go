@@ -8,7 +8,6 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/middlewares"
 	"github.com/Solher/auth-scaffold/ressources"
-	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 
@@ -87,20 +86,19 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 		panic("Could not connect to database.")
 	}
 
-	permissions := usecases.NewPermissionDirectory()
-	routes := interfaces.NewRouteDirectory(permissions, render)
+	routes := interfaces.NewRouteDirectory(render)
 
 	userRepository := ressources.NewUserRepo(store)
 	userInteractor := ressources.NewUserInter(userRepository)
-	ressources.NewUserCtrl(userInteractor, render, routes, permissions)
+	ressources.NewUserCtrl(userInteractor, render, routes)
 
 	sessionRepository := ressources.NewSessionRepo(store)
 	sessionInteractor := ressources.NewSessionInter(sessionRepository)
-	ressources.NewSessionCtrl(sessionInteractor, render, routes, permissions)
+	ressources.NewSessionCtrl(sessionInteractor, render, routes)
 
 	accountRepository := ressources.NewAccountRepo(store)
 	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository)
-	ressources.NewAccountCtrl(accountInteractor, render, routes, permissions)
+	ressources.NewAccountCtrl(accountInteractor, render, routes)
 
 	routes.Register(router)
 

@@ -6,11 +6,10 @@ package ressources
 
 import (
 	"github.com/Solher/auth-scaffold/interfaces"
-	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/dimfeld/httptreemux"
 )
 
-func setUserAccessOptions(routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *UserCtrl) {
+func setUserAccessOptions(routeDir *interfaces.RouteDirectory, controller *UserCtrl) {
 	key := interfaces.NewDirectoryKey("users")
 	create := httptreemux.HandlerFunc(controller.Create)
 	find := httptreemux.HandlerFunc(controller.Find)
@@ -25,10 +24,4 @@ func setUserAccessOptions(routeDir *interfaces.RouteDirectory, permissionDir use
 	routeDir.Add(key.For("Upsert"), &interfaces.Route{Method: "PUT", Path: "/users", Handler: &upsert, Visible: true}, true)
 	routeDir.Add(key.For("DeleteAll"), &interfaces.Route{Method: "DELETE", Path: "/users", Handler: &deleteAll, Visible: true}, true)
 	routeDir.Add(key.For("DeleteByID"), &interfaces.Route{Method: "DELETE", Path: "/users/:id", Handler: &deleteByID, Visible: true}, true)
-
-	permissions := permissionDir["admin"]
-	permissions.Add(&create).Add(&find).Add(&findByID).Add(&upsert).Add(&deleteAll).Add(&deleteByID)
-	permissions = permissionDir["authenticated"]
-	permissions.Add(&create).Add(&find).Add(&findByID).Add(&upsert).Add(&deleteAll).Add(&deleteByID)
-	permissions = permissionDir["guest"]
 }

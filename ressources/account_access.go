@@ -2,11 +2,10 @@ package ressources
 
 import (
 	"github.com/Solher/auth-scaffold/interfaces"
-	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/dimfeld/httptreemux"
 )
 
-func setAccountAccessOptions(routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory, controller *AccountCtrl) {
+func setAccountAccessOptions(routeDir *interfaces.RouteDirectory, controller *AccountCtrl) {
 	key := interfaces.NewDirectoryKey("accounts")
 	signin := httptreemux.HandlerFunc(controller.Signin)
 	signout := httptreemux.HandlerFunc(controller.Signout)
@@ -26,11 +25,4 @@ func setAccountAccessOptions(routeDir *interfaces.RouteDirectory, permissionDir 
 	routeDir.Add(key.For("UpsertRelated"), &interfaces.Route{Method: "PUT", Path: "/accounts/me/:related", Handler: &related, Visible: true}, false)
 	routeDir.Add(key.For("DeleteAllRelated"), &interfaces.Route{Method: "DELETE", Path: "/accounts/me/:related", Handler: &related, Visible: true}, false)
 	routeDir.Add(key.For("DeleteByIDRelated"), &interfaces.Route{Method: "DELETE", Path: "/accounts/me/:related/:fk", Handler: &relatedOne, Visible: true}, false)
-
-	permissions := permissionDir["admin"]
-	permissions.Add(&signin).Add(&signout).Add(&signup).Add(&current).Add(&related).Add(&relatedOne)
-	permissions = permissionDir["authenticated"]
-	permissions.Add(&signin).Add(&signout).Add(&signup).Add(&current).Add(&related).Add(&relatedOne)
-	permissions = permissionDir["guest"]
-	permissions.Add(&signin).Add(&signout).Add(&signup).Add(&current)
 }
