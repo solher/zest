@@ -11,7 +11,6 @@ type Account struct {
 	GormModel
 	Users    []User    `json:"users,omitempty"`
 	Sessions []Session `json:"sessions,omitempty"`
-	IsAdmin  bool      `json:"isAdmin,omitempty"`
 }
 
 func (m *Account) ScopeModel() {

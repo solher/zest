@@ -6,7 +6,7 @@ func init() {
 	ModelDirectory.Register(User{})
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
+//+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type User struct {
 	GormModel
 	AccountID int    `json:"accountId,omitempty" sql:"index"`

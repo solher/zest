@@ -14,6 +14,8 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/dimfeld/httptreemux"
+	"github.com/gorilla/context"
 )
 
 type AbstractUserInter interface {
@@ -203,4 +205,59 @@ func (c *UserCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map
 	}
 
 	c.render.JSON(w, http.StatusNoContent, nil)
+}
+
+func (c *UserCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	pk, err := strconv.Atoi(params["pk"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	related := params["related"]
+	key := interfaces.NewDirectoryKey(related)
+
+	var handler *httptreemux.HandlerFunc
+	switch r.Method {
+	case "POST":
+		handler = c.routeDir.Get(key.For("Create")).Handler
+	case "GET":
+		handler = c.routeDir.Get(key.For("Find")).Handler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("Upsert")).Handler
+	case "DELETE":
+		handler = c.routeDir.Get(key.For("DeleteAll")).Handler
+	}
+
+	if handler == nil {
+		c.render.JSON(w, http.StatusNotFound, nil)
+		return
+	}
+
+	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "userID", ID: pk})
+
+	(*handler)(w, r, params)
+}
+
+func (c *UserCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	params["id"] = params["fk"]
+
+	related := params["related"]
+	key := interfaces.NewDirectoryKey(related)
+
+	var handler httptreemux.HandlerFunc
+
+	switch r.Method {
+	case "GET":
+		handler = *c.routeDir.Get(key.For("FindByID")).Handler
+	case "DELETE":
+		handler = *c.routeDir.Get(key.For("DeleteByID")).Handler
+	}
+
+	if handler == nil {
+		c.render.JSON(w, http.StatusNotFound, nil)
+		return
+	}
+
+	handler(w, r, params)
 }

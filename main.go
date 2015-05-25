@@ -86,18 +86,19 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 		panic("Could not connect to database.")
 	}
 
-	routes := interfaces.NewRouteDirectory(render)
-
 	userRepository := ressources.NewUserRepo(store)
 	userInteractor := ressources.NewUserInter(userRepository)
-	ressources.NewUserCtrl(userInteractor, render, routes)
 
 	sessionRepository := ressources.NewSessionRepo(store)
 	sessionInteractor := ressources.NewSessionInter(sessionRepository)
-	ressources.NewSessionCtrl(sessionInteractor, render, routes)
 
 	accountRepository := ressources.NewAccountRepo(store)
 	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository)
+
+	routes := interfaces.NewRouteDirectory(accountInteractor, render)
+
+	ressources.NewUserCtrl(userInteractor, render, routes)
+	ressources.NewSessionCtrl(sessionInteractor, render, routes)
 	ressources.NewAccountCtrl(accountInteractor, render, routes)
 
 	routes.Register(router)

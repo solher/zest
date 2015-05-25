@@ -10,6 +10,17 @@ type GormModel struct {
 	ID        int       `json:"id,omitempty" gorm:"primary_key"`
 }
 
+type Related struct {
+	ModelName string
+	Next      *Related
+}
+
+func (r *Related) Add(modelName string) *Related {
+	r.Next = &Related{ModelName: modelName}
+
+	return r.Next
+}
+
 type modelDirectory struct {
 	Models []interface{}
 }

@@ -14,31 +14,32 @@ type (
 	}
 
 	DirectoryKey struct {
-		Controller, Handler string
+		Ressources, Method string
 	}
 
 	RouteDirectory struct {
-		routes map[DirectoryKey]Route
-		render AbstractRender
+		accountInter AbstractAccountInter
+		routes       map[DirectoryKey]Route
+		render       AbstractRender
 	}
 )
 
-func NewDirectoryKey(controller string) *DirectoryKey {
-	return &DirectoryKey{Controller: controller}
+func NewDirectoryKey(ressources string) *DirectoryKey {
+	return &DirectoryKey{Ressources: ressources}
 }
 
-func (k *DirectoryKey) For(handler string) *DirectoryKey {
-	k.Handler = handler
+func (k *DirectoryKey) For(method string) *DirectoryKey {
+	k.Method = method
 	return k
 }
 
-func NewRouteDirectory(render AbstractRender) *RouteDirectory {
-	return &RouteDirectory{routes: make(map[DirectoryKey]Route), render: render}
+func NewRouteDirectory(accountInter AbstractAccountInter, render AbstractRender) *RouteDirectory {
+	return &RouteDirectory{accountInter: accountInter, routes: make(map[DirectoryKey]Route), render: render}
 }
 
 func (routeDir *RouteDirectory) Add(key *DirectoryKey, route *Route, checkPermissions bool) {
 	if checkPermissions {
-		permissionGate := NewPermissionGate(route.Handler, routeDir, routeDir.render)
+		permissionGate := NewPermissionGate(routeDir.accountInter, route.Handler, routeDir, routeDir.render)
 		gatedHandler := httptreemux.HandlerFunc(permissionGate.Handler)
 		route.Handler = &gatedHandler
 	}

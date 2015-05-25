@@ -4,9 +4,13 @@ import "time"
 
 func init() {
 	ModelDirectory.Register(Session{})
+	SessionRelated = &Related{ModelName: "roleMapping"}
+	SessionRelated.Add("account")
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
+var SessionRelated *Related
+
+//+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Session struct {
 	GormModel
 	AccountID int       `json:"accountId,omitempty" sql:"index"`
