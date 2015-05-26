@@ -39,7 +39,7 @@ func NewAclCtrl(interactor AbstractAclInter, render interfaces.AbstractRender, r
 	controller := &AclCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
-		setAclAccessOptions(routeDir, controller)
+		setAclAccess(routeDir, controller)
 	}
 
 	return controller

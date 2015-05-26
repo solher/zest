@@ -89,6 +89,10 @@ func seedDatabase(store *infrastructure.GormStore) error {
 	}
 
 	acls := []domain.Acl{
+		{Ressource: "accounts", Method: "Signin"},
+		{Ressource: "accounts", Method: "Signup"},
+		{Ressource: "accounts", Method: "Signout"},
+		{Ressource: "accounts", Method: "Current"},
 		{Ressource: "users", Method: "Create"},
 		{Ressource: "users", Method: "Find"},
 		{Ressource: "users", Method: "FindByID"},
@@ -126,6 +130,10 @@ func seedDatabase(store *infrastructure.GormStore) error {
 	}
 
 	aclMappings := []domain.AclMapping{
+		{RoleID: 5, AclID: 1},
+		{RoleID: 5, AclID: 2},
+		{RoleID: 5, AclID: 3},
+		{RoleID: 5, AclID: 4},
 		{RoleID: 1, AclID: 1},
 		{RoleID: 1, AclID: 2},
 		{RoleID: 1, AclID: 3},
@@ -144,6 +152,10 @@ func seedDatabase(store *infrastructure.GormStore) error {
 		{RoleID: 1, AclID: 16},
 		{RoleID: 1, AclID: 17},
 		{RoleID: 1, AclID: 18},
+		{RoleID: 1, AclID: 19},
+		{RoleID: 1, AclID: 20},
+		{RoleID: 1, AclID: 21},
+		{RoleID: 1, AclID: 22},
 	}
 
 	aclMappingRepository := ressources.NewAclMappingRepo(store)

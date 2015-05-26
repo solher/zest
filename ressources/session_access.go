@@ -9,7 +9,7 @@ import (
 	"github.com/dimfeld/httptreemux"
 )
 
-func setSessionAccessOptions(routeDir *interfaces.RouteDirectory, controller *SessionCtrl) {
+func setSessionAccess(routeDir *interfaces.RouteDirectory, controller *SessionCtrl) {
 	key := interfaces.NewDirectoryKey("sessions")
 	create := httptreemux.HandlerFunc(controller.Create)
 	find := httptreemux.HandlerFunc(controller.Find)
@@ -20,17 +20,17 @@ func setSessionAccessOptions(routeDir *interfaces.RouteDirectory, controller *Se
 	related := httptreemux.HandlerFunc(controller.Related)
 	relatedOne := httptreemux.HandlerFunc(controller.RelatedOne)
 
-	routeDir.Add(key.For("Create"), &interfaces.Route{Method: "POST", Path: "/sessions", Handler: &create, Visible: true}, true)
-	routeDir.Add(key.For("Find"), &interfaces.Route{Method: "GET", Path: "/sessions", Handler: &find, Visible: true}, true)
-	routeDir.Add(key.For("FindByID"), &interfaces.Route{Method: "GET", Path: "/sessions/:id", Handler: &findByID, Visible: true}, true)
-	routeDir.Add(key.For("Upsert"), &interfaces.Route{Method: "PUT", Path: "/sessions", Handler: &upsert, Visible: true}, true)
-	routeDir.Add(key.For("DeleteAll"), &interfaces.Route{Method: "DELETE", Path: "/sessions", Handler: &deleteAll, Visible: true}, true)
-	routeDir.Add(key.For("DeleteByID"), &interfaces.Route{Method: "DELETE", Path: "/sessions/:id", Handler: &deleteByID, Visible: true}, true)
+	routeDir.Add(key.For("Create"), &interfaces.Route{Method: "POST", Path: "/sessions", Handler: &create, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("Find"), &interfaces.Route{Method: "GET", Path: "/sessions", Handler: &find, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("FindByID"), &interfaces.Route{Method: "GET", Path: "/sessions/:id", Handler: &findByID, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("Upsert"), &interfaces.Route{Method: "PUT", Path: "/sessions", Handler: &upsert, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("DeleteAll"), &interfaces.Route{Method: "DELETE", Path: "/sessions", Handler: &deleteAll, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("DeleteByID"), &interfaces.Route{Method: "DELETE", Path: "/sessions/:id", Handler: &deleteByID, Visible: true, CheckPermissions: true})
 
-	routeDir.Add(key.For("CreateRelated"), &interfaces.Route{Method: "POST", Path: "/sessions/:pk/:related", Handler: &related, Visible: true}, false)
-	routeDir.Add(key.For("FindRelated"), &interfaces.Route{Method: "GET", Path: "/sessions/:pk/:related", Handler: &related, Visible: true}, false)
-	routeDir.Add(key.For("FindByIDRelated"), &interfaces.Route{Method: "GET", Path: "/sessions/:pk/:related/:fk", Handler: &relatedOne, Visible: true}, false)
-	routeDir.Add(key.For("UpsertRelated"), &interfaces.Route{Method: "PUT", Path: "/sessions/:pk/:related", Handler: &related, Visible: true}, false)
-	routeDir.Add(key.For("DeleteAllRelated"), &interfaces.Route{Method: "DELETE", Path: "/sessions/:pk/:related", Handler: &related, Visible: true}, false)
-	routeDir.Add(key.For("DeleteByIDRelated"), &interfaces.Route{Method: "DELETE", Path: "/sessions/:pk/:related/:fk", Handler: &relatedOne, Visible: true}, false)
+	routeDir.Add(key.For("CreateRelated"), &interfaces.Route{Method: "POST", Path: "/sessions/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("FindRelated"), &interfaces.Route{Method: "GET", Path: "/sessions/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("FindByIDRelated"), &interfaces.Route{Method: "GET", Path: "/sessions/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("UpsertRelated"), &interfaces.Route{Method: "PUT", Path: "/sessions/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("DeleteAllRelated"), &interfaces.Route{Method: "DELETE", Path: "/sessions/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("DeleteByIDRelated"), &interfaces.Route{Method: "DELETE", Path: "/sessions/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
 }

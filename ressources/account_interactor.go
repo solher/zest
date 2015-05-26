@@ -148,20 +148,42 @@ func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Sessio
 func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) ([]string, error) {
 	var rows *sql.Rows
 	var err error
+	roleNames := []string{}
 
 	if accountID == 0 {
 		rows, err = i.repo.Raw(`
 			SELECT DISTINCT roles.name
 			FROM roles, acl_mappings, acls
-			LEFT JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
+			INNER JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
 			WHERE roles.name IN ('Guest', 'Anyone') AND acls.ressource = ? AND acls.method = ?
 			`, ressource, method)
 	} else {
 		rows, err = i.repo.Raw(`
 			SELECT DISTINCT roles.name
+			FROM roles, acl_mappings, acls
+			INNER JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
+			WHERE roles.name IN ('Authenticated', 'Anyone') AND acls.ressource = ? AND acls.method = ?
+			`, ressource, method)
+	}
+
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var roleName string
+		rows.Scan(&roleName)
+		roleNames = append(roleNames, roleName)
+	}
+
+	if len(roleNames) == 0 {
+		rows, err = i.repo.Raw(`
+			SELECT DISTINCT roles.name
 			FROM role_mappings, roles, acl_mappings, acls
-			LEFT JOIN role_mappings AS rm ON rm.role_id = roles.id
-			LEFT JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
+			INNER JOIN role_mappings AS rm ON rm.role_id = roles.id
+			INNER JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
 			WHERE role_mappings.account_id = ? AND acls.ressource = ? AND acls.method = ?
 			`, accountID, ressource, method)
 	}
@@ -171,8 +193,6 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 	if err != nil {
 		return nil, err
 	}
-
-	roleNames := []string{}
 
 	for rows.Next() {
 		var roleName string

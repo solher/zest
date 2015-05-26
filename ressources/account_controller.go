@@ -36,7 +36,7 @@ func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractR
 	controller := &AccountCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
-		setAccountAccessOptions(routeDir, controller)
+		setAccountAccess(routeDir, controller)
 	}
 
 	return controller

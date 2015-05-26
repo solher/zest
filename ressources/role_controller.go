@@ -39,7 +39,7 @@ func NewRoleCtrl(interactor AbstractRoleInter, render interfaces.AbstractRender,
 	controller := &RoleCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
-		setRoleAccessOptions(routeDir, controller)
+		setRoleAccess(routeDir, controller)
 	}
 
 	return controller

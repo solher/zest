@@ -6,7 +6,6 @@ import (
 	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/Solher/auth-scaffold/utils"
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -49,14 +48,6 @@ func (c *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.InsufficentPermissions)
 		return
 	}
-
-	utils.Dump(roleNames)
-
-	//
-	// if !c.permissions[role].IsGranted(c.next) {
-	// 	c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.InsufficentPermissions)
-	// 	return
-	// }
 
 	(*c.next)(w, r, params)
 }

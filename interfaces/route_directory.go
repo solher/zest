@@ -8,9 +8,9 @@ import (
 
 type (
 	Route struct {
-		Method, Path string
-		Handler      *httptreemux.HandlerFunc
-		Visible      bool
+		Method, Path              string
+		Handler                   *httptreemux.HandlerFunc
+		Visible, CheckPermissions bool
 	}
 
 	DirectoryKey struct {
@@ -37,13 +37,7 @@ func NewRouteDirectory(accountInter AbstractAccountInter, render AbstractRender)
 	return &RouteDirectory{accountInter: accountInter, routes: make(map[DirectoryKey]Route), render: render}
 }
 
-func (routeDir *RouteDirectory) Add(key *DirectoryKey, route *Route, checkPermissions bool) {
-	if checkPermissions {
-		permissionGate := NewPermissionGate(routeDir.accountInter, route.Handler, routeDir, routeDir.render)
-		gatedHandler := httptreemux.HandlerFunc(permissionGate.Handler)
-		route.Handler = &gatedHandler
-	}
-
+func (routeDir *RouteDirectory) Add(key *DirectoryKey, route *Route) {
 	routeDir.routes[*key] = *route
 }
 
@@ -72,8 +66,16 @@ func (routeDir *RouteDirectory) Register(router *httptreemux.TreeMux) {
 
 	for _, k := range keys {
 		route := routes[k]
+
 		if route.Visible {
-			router.Handle(route.Method, route.Path, *route.Handler)
+			handler := *route.Handler
+
+			if route.CheckPermissions {
+				permissionGate := NewPermissionGate(routeDir.accountInter, route.Handler, routeDir, routeDir.render)
+				handler = httptreemux.HandlerFunc(permissionGate.Handler)
+			}
+
+			router.Handle(route.Method, route.Path, handler)
 		}
 	}
 }
