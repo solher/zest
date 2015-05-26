@@ -9,7 +9,7 @@ import (
 type (
 	Route struct {
 		Method, Path              string
-		Handler                   *httptreemux.HandlerFunc
+		Handler, EffectiveHandler *httptreemux.HandlerFunc
 		Visible, CheckPermissions bool
 	}
 
@@ -74,6 +74,9 @@ func (routeDir *RouteDirectory) Register(router *httptreemux.TreeMux) {
 				permissionGate := NewPermissionGate(routeDir.accountInter, route.Handler, routeDir, routeDir.render)
 				handler = httptreemux.HandlerFunc(permissionGate.Handler)
 			}
+
+			route.EffectiveHandler = &handler
+			routes[k] = route
 
 			router.Handle(route.Method, route.Path, handler)
 		}

@@ -44,6 +44,7 @@ func main() {
 
 	app := negroni.New()
 	router := httptreemux.New()
+	router.RedirectBehavior = httptreemux.UseHandler
 	render := infrastructure.NewRender()
 	store := infrastructure.NewGormStore()
 

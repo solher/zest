@@ -171,13 +171,13 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 	var handler *httptreemux.HandlerFunc
 	switch r.Method {
 	case "POST":
-		handler = c.routeDir.Get(key.For("Create")).Handler
+		handler = c.routeDir.Get(key.For("Create")).EffectiveHandler
 	case "GET":
-		handler = c.routeDir.Get(key.For("Find")).Handler
+		handler = c.routeDir.Get(key.For("Find")).EffectiveHandler
 	case "PUT":
-		handler = c.routeDir.Get(key.For("Upsert")).Handler
+		handler = c.routeDir.Get(key.For("Upsert")).EffectiveHandler
 	case "DELETE":
-		handler = c.routeDir.Get(key.For("DeleteAll")).Handler
+		handler = c.routeDir.Get(key.For("DeleteAll")).EffectiveHandler
 	}
 
 	if handler == nil {
@@ -200,9 +200,9 @@ func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 
 	switch r.Method {
 	case "GET":
-		handler = *c.routeDir.Get(key.For("FindByID")).Handler
+		handler = *c.routeDir.Get(key.For("FindByID")).EffectiveHandler
 	case "DELETE":
-		handler = *c.routeDir.Get(key.For("DeleteByID")).Handler
+		handler = *c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}
 
 	handler(w, r, params)
