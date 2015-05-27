@@ -14,7 +14,7 @@ type (
 	}
 
 	DirectoryKey struct {
-		Ressources, Method string
+		Ressource, Method string
 	}
 
 	RouteDirectory struct {
@@ -25,7 +25,7 @@ type (
 )
 
 func NewDirectoryKey(ressources string) *DirectoryKey {
-	return &DirectoryKey{Ressources: ressources}
+	return &DirectoryKey{Ressource: ressources}
 }
 
 func (k *DirectoryKey) For(method string) *DirectoryKey {

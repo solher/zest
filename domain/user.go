@@ -3,7 +3,11 @@ package domain
 import "time"
 
 func init() {
-	ModelDirectory.Register(User{})
+	relations := []Relation{
+		{Related: "accounts", Fk: "accountId"},
+	}
+
+	ModelDirectory.Register(User{}, "users", relations)
 }
 
 //+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"

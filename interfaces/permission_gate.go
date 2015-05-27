@@ -38,7 +38,7 @@ func (c *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	roleNames, err := c.accountInter.GetGrantedRoles(accountID, dirKey.Ressources, dirKey.Method)
+	roleNames, err := c.accountInter.GetGrantedRoles(accountID, dirKey.Ressource, dirKey.Method)
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -47,6 +47,10 @@ func (c *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 	if len(roleNames) == 0 {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.InsufficentPermissions)
 		return
+	}
+
+	if len(roleNames) == 1 && roleNames[0] == "Owner" {
+		// ressource := dirKey.Ressource
 	}
 
 	(*c.next)(w, r, params)

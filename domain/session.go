@@ -3,12 +3,14 @@ package domain
 import "time"
 
 func init() {
-	ModelDirectory.Register(Session{})
-	SessionRelated = &Related{ModelName: "roleMapping"}
-	SessionRelated.Add("account")
+	relations := []Relation{
+		{Related: "accounts", Fk: "accountId"},
+	}
+
+	ModelDirectory.Register(Session{}, "sessions", relations)
 }
 
-var SessionRelated *Related
+var SessionRelated *Relation
 
 //+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Session struct {

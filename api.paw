@@ -274,7 +274,6 @@
         <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z113"></relationship>
     </object>
     <object type="LMREQUEST" id="z132">
-        <attribute name="body" type="string"></attribute>
         <attribute name="uuid" type="string">894048B7-18D6-4832-86FA-EE35F5BF824A</attribute>
         <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/accounts\\/me"]</attribute>
         <attribute name="storecookies" type="bool">1</attribute>

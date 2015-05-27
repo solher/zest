@@ -3,14 +3,21 @@ package domain
 import "time"
 
 func init() {
-	ModelDirectory.Register(Account{})
+	relations := []Relation{
+		{Related: "users"},
+		{Related: "sessions"},
+		{Related: "roleMappings"},
+	}
+
+	ModelDirectory.Register(Account{}, "accounts", relations)
 }
 
 //+gen repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type Account struct {
 	GormModel
-	Users    []User    `json:"users,omitempty"`
-	Sessions []Session `json:"sessions,omitempty"`
+	Users        []User        `json:"users,omitempty"`
+	Sessions     []Session     `json:"sessions,omitempty"`
+	RoleMappings []RoleMapping `json:"roleMappings,omitempty"`
 }
 
 func (m *Account) ScopeModel() {

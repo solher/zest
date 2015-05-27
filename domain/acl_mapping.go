@@ -3,12 +3,15 @@ package domain
 import "time"
 
 func init() {
-	ModelDirectory.Register(AclMapping{})
-	AclMappingRelated = &Related{ModelName: "role"}
-	AclMappingRelated.Add("roleMapping")
+	relations := []Relation{
+		{Related: "roles", Fk: "roleId"},
+		{Related: "acls", Fk: "aclId"},
+	}
+
+	ModelDirectory.Register(AclMapping{}, "aclMappings", relations)
 }
 
-var AclMappingRelated *Related
+var AclMappingRelated *Relation
 
 //+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type AclMapping struct {

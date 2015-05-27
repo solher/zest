@@ -3,11 +3,13 @@ package domain
 import "time"
 
 func init() {
-	ModelDirectory.Register(RoleMapping{})
-	SessionRelated = nil
-}
+	relations := []Relation{
+		{Related: "accounts", Fk: "accountId"},
+		{Related: "roles", Fk: "roleId"},
+	}
 
-var RoleMappingRelated *Related
+	ModelDirectory.Register(RoleMapping{}, "roleMappings", relations)
+}
 
 //+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
 type RoleMapping struct {
