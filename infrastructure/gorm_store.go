@@ -3,11 +3,13 @@ package infrastructure
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/utils"
 	"github.com/jinzhu/gorm"
@@ -25,6 +27,7 @@ func NewGormStore() *GormStore {
 
 func (st *GormStore) Connect(adapter, url string) error {
 	db, err := gorm.Open(adapter, url)
+	db.LogMode(true)
 	st.db = &db
 
 	return err
@@ -71,8 +74,37 @@ func (st *GormStore) ReinitTables(tables []interface{}) error {
 	return nil
 }
 
-func (st *GormStore) BuildQuery(filter *interfaces.Filter) (*gorm.DB, error) {
+func (st *GormStore) BuildQuery(filter *interfaces.Filter, ownerRelations []domain.Relation) (*gorm.DB, error) {
 	query := st.db
+
+	if ownerRelations != nil {
+		relationsMap := make(map[string][]domain.Relation)
+
+		for _, relation := range ownerRelations {
+			relationsMap[relation.Ressource] = append(relationsMap[relation.Ressource], relation)
+		}
+
+		for ressource := range relationsMap {
+			relations := relationsMap[ressource]
+			queryString := ""
+
+			for _, relation := range relations {
+				relation.Ressource = utils.ToDBName(relation.Ressource)
+				relation.Fk = utils.ToDBName(relation.Fk)
+				relation.Related = utils.ToDBName(relation.Related)
+
+				if queryString == "" {
+					queryString = fmt.Sprintf("INNER JOIN %s ON %s.%s = %s.id", relation.Ressource, relation.Ressource, relation.Fk, relation.Related)
+				} else {
+					queryString = fmt.Sprintf("%s AND %s.%s = %s.id", queryString, relation.Ressource, relation.Fk, relation.Related)
+				}
+
+				query = query.Table(relation.Related)
+			}
+
+			query = query.Joins(queryString)
+		}
+	}
 
 	if filter != nil {
 		gormFilter, err := processFilter(filter)

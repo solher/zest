@@ -21,12 +21,12 @@ import (
 type AbstractRoleMappingInter interface {
 	Create(rolemappings []domain.RoleMapping) ([]domain.RoleMapping, error)
 	CreateOne(rolemapping *domain.RoleMapping) (*domain.RoleMapping, error)
-	Find(filter *interfaces.Filter) ([]domain.RoleMapping, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.RoleMapping, error)
-	Upsert(rolemappings []domain.RoleMapping) ([]domain.RoleMapping, error)
-	UpsertOne(rolemapping *domain.RoleMapping) (*domain.RoleMapping, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
+	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
+	Upsert(rolemappings []domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
+	UpsertOne(rolemapping *domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
+	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
 
 type RoleMappingCtrl struct {
@@ -97,8 +97,10 @@ func (c *RoleMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[str
 	}
 
 	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
 
-	rolemappings, err := c.interactor.Find(filter)
+	rolemappings, err := c.interactor.Find(filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -120,7 +122,10 @@ func (c *RoleMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, param
 		return
 	}
 
-	rolemapping, err := c.interactor.FindByID(id, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
+
+	rolemapping, err := c.interactor.FindByID(id, filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
@@ -145,15 +150,17 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 	}
 
 	lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if rolemappings == nil {
 		rolemapping.ScopeModel(lastRessource.ID)
-		rolemapping, err = c.interactor.UpsertOne(rolemapping)
+		rolemapping, err = c.interactor.UpsertOne(rolemapping, filter, ownerRelations)
 	} else {
 		for i := range rolemappings {
 			(&rolemappings[i]).ScopeModel(lastRessource.ID)
 		}
-		rolemappings, err = c.interactor.Upsert(rolemappings)
+		rolemappings, err = c.interactor.Upsert(rolemappings, filter, ownerRelations)
 	}
 
 	if err != nil {
@@ -181,8 +188,10 @@ func (c *RoleMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ ma
 	}
 
 	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
 
-	err = c.interactor.DeleteAll(filter)
+	err = c.interactor.DeleteAll(filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -198,7 +207,10 @@ func (c *RoleMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, par
 		return
 	}
 
-	err = c.interactor.DeleteByID(id)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	err = c.interactor.DeleteByID(id, filter, ownerRelations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return

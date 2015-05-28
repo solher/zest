@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Solher/auth-scaffold/apierrors"
+	"github.com/Solher/auth-scaffold/domain"
 	"github.com/gorilla/context"
 )
 
@@ -51,6 +52,37 @@ func GetErrorCode(res string) string {
 	_ = json.Unmarshal([]byte(res), apiError)
 
 	return apiError.ErrorCode
+}
+
+func GetOwnerRelations(r *http.Request) []domain.Relation {
+	ownerRelationsCtx := context.Get(r, "ownerRelations")
+	var ownerRelations []domain.Relation
+	if ownerRelationsCtx != nil {
+		ownerRelations = ownerRelationsCtx.([]domain.Relation)
+	}
+
+	return ownerRelations
+}
+
+func FilterIfOwnerRelations(r *http.Request, filter *Filter) *Filter {
+	ownerRelationsCtx := context.Get(r, "ownerRelations")
+	if ownerRelationsCtx != nil {
+		currentSession := context.Get(r, "currentSession").(domain.Session)
+
+		if filter == nil {
+			filter = &Filter{
+				Where: map[string]interface{}{"accountId": currentSession.AccountID},
+			}
+		} else {
+			if filter.Where == nil {
+				filter.Where = map[string]interface{}{"accountId": currentSession.AccountID}
+			} else {
+				filter.Where["accountId"] = currentSession.AccountID
+			}
+		}
+	}
+
+	return filter
 }
 
 func GetLastRessource(r *http.Request) *Ressource {

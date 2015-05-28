@@ -59,8 +59,8 @@ func (r *AccountRepo) CreateOne(account *domain.Account) (*domain.Account, error
 	return account, nil
 }
 
-func (r *AccountRepo) Find(filter *interfaces.Filter) ([]domain.Account, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *AccountRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -75,15 +75,15 @@ func (r *AccountRepo) Find(filter *interfaces.Filter) ([]domain.Account, error) 
 	return accounts, nil
 }
 
-func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Account, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
 	account := domain.Account{}
 
-	err = query.First(&account, id).Error
+	err = query.Where("accounts.id = ?", id).First(&account).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -91,15 +91,22 @@ func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Accou
 	return &account, nil
 }
 
-func (r *AccountRepo) Upsert(accounts []domain.Account) ([]domain.Account, error) {
+func (r *AccountRepo) Upsert(accounts []domain.Account, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
 	for i, account := range accounts {
+		queryCopy := *query
+
 		if account.ID != 0 {
 			oldUser := domain.Account{}
 
-			err := db.First(&oldUser, account.ID).Updates(account).Error
+			err := queryCopy.Where("accounts.id = ?", account.ID).First(&oldUser).Updates(account).Error
 			if err != nil {
 				transaction.Rollback()
 
@@ -129,13 +136,18 @@ func (r *AccountRepo) Upsert(accounts []domain.Account) ([]domain.Account, error
 	return accounts, nil
 }
 
-func (r *AccountRepo) UpsertOne(account *domain.Account) (*domain.Account, error) {
+func (r *AccountRepo) UpsertOne(account *domain.Account, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
 	db := r.store.GetDB()
+
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
 
 	if account.ID != 0 {
 		oldUser := domain.Account{}
 
-		err := db.First(&oldUser, account.ID).Updates(account).Error
+		err := query.Where("accounts.id = ?", account.ID).First(&oldUser).Updates(account).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -157,8 +169,8 @@ func (r *AccountRepo) UpsertOne(account *domain.Account) (*domain.Account, error
 	return account, nil
 }
 
-func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
-	query, err := r.store.BuildQuery(filter)
+func (r *AccountRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -171,10 +183,13 @@ func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
 	return nil
 }
 
-func (r *AccountRepo) DeleteByID(id int) error {
-	db := r.store.GetDB()
+func (r *AccountRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
 
-	err := db.Delete(&domain.Account{GormModel: domain.GormModel{ID: id}}).Error
+	err = query.Delete(&domain.Account{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}

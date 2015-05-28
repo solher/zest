@@ -5,6 +5,8 @@
 package ressources
 
 import (
+	"database/sql"
+
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 )
@@ -12,12 +14,13 @@ import (
 type AbstractAclMappingRepo interface {
 	Create(aclmappings []domain.AclMapping) ([]domain.AclMapping, error)
 	CreateOne(aclmapping *domain.AclMapping) (*domain.AclMapping, error)
-	Find(filter *interfaces.Filter) ([]domain.AclMapping, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.AclMapping, error)
-	Upsert(aclmappings []domain.AclMapping) ([]domain.AclMapping, error)
-	UpsertOne(aclmapping *domain.AclMapping) (*domain.AclMapping, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error)
+	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
+	Upsert(aclmappings []domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error)
+	UpsertOne(aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
+	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
 type AclMappingInter struct {
@@ -38,32 +41,32 @@ func (i *AclMappingInter) CreateOne(aclmapping *domain.AclMapping) (*domain.AclM
 	return aclmapping, err
 }
 
-func (i *AclMappingInter) Find(filter *interfaces.Filter) ([]domain.AclMapping, error) {
-	aclmappings, err := i.repo.Find(filter)
+func (i *AclMappingInter) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
+	aclmappings, err := i.repo.Find(filter, ownerRelations)
 	return aclmappings, err
 }
 
-func (i *AclMappingInter) FindByID(id int, filter *interfaces.Filter) (*domain.AclMapping, error) {
-	aclmapping, err := i.repo.FindByID(id, filter)
+func (i *AclMappingInter) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+	aclmapping, err := i.repo.FindByID(id, filter, ownerRelations)
 	return aclmapping, err
 }
 
-func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping) ([]domain.AclMapping, error) {
-	aclmappings, err := i.repo.Upsert(aclmappings)
+func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
+	aclmappings, err := i.repo.Upsert(aclmappings, filter, ownerRelations)
 	return aclmappings, err
 }
 
-func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping) (*domain.AclMapping, error) {
-	aclmapping, err := i.repo.UpsertOne(aclmapping)
+func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+	aclmapping, err := i.repo.UpsertOne(aclmapping, filter, ownerRelations)
 	return aclmapping, err
 }
 
-func (i *AclMappingInter) DeleteAll(filter *interfaces.Filter) error {
-	err := i.repo.DeleteAll(filter)
+func (i *AclMappingInter) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteAll(filter, ownerRelations)
 	return err
 }
 
-func (i *AclMappingInter) DeleteByID(id int) error {
-	err := i.repo.DeleteByID(id)
+func (i *AclMappingInter) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	return err
 }

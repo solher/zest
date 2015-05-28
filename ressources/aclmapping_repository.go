@@ -5,6 +5,7 @@
 package ressources
 
 import (
+	"database/sql"
 	"strings"
 
 	"github.com/Solher/auth-scaffold/domain"
@@ -58,8 +59,8 @@ func (r *AclMappingRepo) CreateOne(aclmapping *domain.AclMapping) (*domain.AclMa
 	return aclmapping, nil
 }
 
-func (r *AclMappingRepo) Find(filter *interfaces.Filter) ([]domain.AclMapping, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *AclMappingRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -74,15 +75,15 @@ func (r *AclMappingRepo) Find(filter *interfaces.Filter) ([]domain.AclMapping, e
 	return aclmappings, nil
 }
 
-func (r *AclMappingRepo) FindByID(id int, filter *interfaces.Filter) (*domain.AclMapping, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *AclMappingRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
 	aclmapping := domain.AclMapping{}
 
-	err = query.First(&aclmapping, id).Error
+	err = query.Where("aclmappings.id = ?", id).First(&aclmapping).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -90,15 +91,22 @@ func (r *AclMappingRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Ac
 	return &aclmapping, nil
 }
 
-func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping) ([]domain.AclMapping, error) {
+func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
 	for i, aclmapping := range aclmappings {
+		queryCopy := *query
+
 		if aclmapping.ID != 0 {
 			oldUser := domain.AclMapping{}
 
-			err := db.First(&oldUser, aclmapping.ID).Updates(aclmapping).Error
+			err := queryCopy.Where("aclmappings.id = ?", aclmapping.ID).First(&oldUser).Updates(aclmapping).Error
 			if err != nil {
 				transaction.Rollback()
 
@@ -128,13 +136,18 @@ func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping) ([]domain.AclMa
 	return aclmappings, nil
 }
 
-func (r *AclMappingRepo) UpsertOne(aclmapping *domain.AclMapping) (*domain.AclMapping, error) {
+func (r *AclMappingRepo) UpsertOne(aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 	db := r.store.GetDB()
+
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
 
 	if aclmapping.ID != 0 {
 		oldUser := domain.AclMapping{}
 
-		err := db.First(&oldUser, aclmapping.ID).Updates(aclmapping).Error
+		err := query.Where("aclmappings.id = ?", aclmapping.ID).First(&oldUser).Updates(aclmapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -156,8 +169,8 @@ func (r *AclMappingRepo) UpsertOne(aclmapping *domain.AclMapping) (*domain.AclMa
 	return aclmapping, nil
 }
 
-func (r *AclMappingRepo) DeleteAll(filter *interfaces.Filter) error {
-	query, err := r.store.BuildQuery(filter)
+func (r *AclMappingRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -170,13 +183,31 @@ func (r *AclMappingRepo) DeleteAll(filter *interfaces.Filter) error {
 	return nil
 }
 
-func (r *AclMappingRepo) DeleteByID(id int) error {
-	db := r.store.GetDB()
+func (r *AclMappingRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
 
-	err := db.Delete(&domain.AclMapping{GormModel: domain.GormModel{ID: id}}).Error
+	err = query.Delete(&domain.AclMapping{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
 	return nil
+}
+
+func (r *AclMappingRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
+	db := r.store.GetDB()
+
+	rows, err := db.Raw(query, values...).Rows()
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		} else {
+			return nil, internalerrors.DatabaseError
+		}
+	}
+
+	return rows, nil
 }

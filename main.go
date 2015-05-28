@@ -11,7 +11,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 
-	_ "github.com/clipperhouse/typewriter" // Forced to permit vendoring.
+	_ "github.com/clipperhouse/typewriter" // Forced to allow vendoring.
 )
 
 var Environment, Port, DatabaseURL string

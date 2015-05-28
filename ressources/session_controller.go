@@ -21,12 +21,12 @@ import (
 type AbstractSessionInter interface {
 	Create(sessions []domain.Session) ([]domain.Session, error)
 	CreateOne(session *domain.Session) (*domain.Session, error)
-	Find(filter *interfaces.Filter) ([]domain.Session, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.Session, error)
-	Upsert(sessions []domain.Session) ([]domain.Session, error)
-	UpsertOne(session *domain.Session) (*domain.Session, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
+	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	Upsert(sessions []domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
+	UpsertOne(session *domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
 
 type SessionCtrl struct {
@@ -97,8 +97,10 @@ func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 	}
 
 	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
 
-	sessions, err := c.interactor.Find(filter)
+	sessions, err := c.interactor.Find(filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -120,7 +122,10 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 		return
 	}
 
-	session, err := c.interactor.FindByID(id, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
+
+	session, err := c.interactor.FindByID(id, filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
@@ -145,15 +150,17 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 
 	lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if sessions == nil {
 		session.ScopeModel(lastRessource.ID)
-		session, err = c.interactor.UpsertOne(session)
+		session, err = c.interactor.UpsertOne(session, filter, ownerRelations)
 	} else {
 		for i := range sessions {
 			(&sessions[i]).ScopeModel(lastRessource.ID)
 		}
-		sessions, err = c.interactor.Upsert(sessions)
+		sessions, err = c.interactor.Upsert(sessions, filter, ownerRelations)
 	}
 
 	if err != nil {
@@ -181,8 +188,10 @@ func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 	}
 
 	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
 
-	err = c.interactor.DeleteAll(filter)
+	err = c.interactor.DeleteAll(filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -198,7 +207,10 @@ func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	err = c.interactor.DeleteByID(id)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	err = c.interactor.DeleteByID(id, filter, ownerRelations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return

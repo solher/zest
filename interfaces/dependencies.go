@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Solher/auth-scaffold/apierrors"
+	"github.com/Solher/auth-scaffold/domain"
 	"github.com/jinzhu/gorm"
 )
 
@@ -14,7 +15,7 @@ type (
 		GetDB() *gorm.DB
 		MigrateTables(tables []interface{}) error
 		ReinitTables(tables []interface{}) error
-		BuildQuery(filter *Filter) (*gorm.DB, error)
+		BuildQuery(filter *Filter, ownerRelations []domain.Relation) (*gorm.DB, error)
 	}
 
 	AbstractAccountInter interface {

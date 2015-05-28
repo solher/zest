@@ -14,12 +14,12 @@ import (
 type AbstractAccountRepo interface {
 	Create(accounts []domain.Account) ([]domain.Account, error)
 	CreateOne(account *domain.Account) (*domain.Account, error)
-	Find(filter *interfaces.Filter) ([]domain.Account, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.Account, error)
-	Upsert(accounts []domain.Account) ([]domain.Account, error)
-	UpsertOne(account *domain.Account) (*domain.Account, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
+	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
+	Upsert(accounts []domain.Account, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
+	UpsertOne(account *domain.Account, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
+	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -39,7 +39,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		Where: map[string]interface{}{"email": credentials.Email},
 	}
 
-	users, err := i.userRepo.Find(filter)
+	users, err := i.userRepo.Find(filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 }
 
 func (i *AccountInter) Signout(currentSession *domain.Session) error {
-	err := i.sessionRepo.DeleteByID(currentSession.ID)
+	err := i.sessionRepo.DeleteByID(currentSession.ID, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account,
 		Include: []interface{}{"users"},
 	}
 
-	account, err := i.repo.FindByID(currentSession.AccountID, filter)
+	account, err := i.repo.FindByID(currentSession.AccountID, filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -124,12 +124,11 @@ func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account,
 
 func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Session, error) {
 	filter := &interfaces.Filter{
-		Limit:   1,
-		Where:   map[string]interface{}{"authToken": authToken},
-		Include: []interface{}{"account"},
+		Limit: 1,
+		Where: map[string]interface{}{"authToken": authToken},
 	}
 
-	sessions, err := i.sessionRepo.Find(filter)
+	sessions, err := i.sessionRepo.Find(filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -153,16 +152,16 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 	if accountID == 0 {
 		rows, err = i.repo.Raw(`
 			SELECT DISTINCT roles.name
-			FROM roles, acl_mappings, acls
-			INNER JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
+			FROM roles, acls
+			INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
 			WHERE roles.name IN ('Guest', 'Anyone') AND acls.ressource = ? AND acls.method = ?
 			`, ressource, method)
 	} else {
 		rows, err = i.repo.Raw(`
 			SELECT DISTINCT roles.name
-			FROM roles, acl_mappings, acls
-			INNER JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
-			WHERE roles.name IN ('Authenticated', 'Anyone') AND acls.ressource = ? AND acls.method = ?
+			FROM roles, acls
+			INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
+			WHERE roles.name IN ('Authenticated', 'Owner', 'Anyone') AND acls.ressource = ? AND acls.method = ?
 			`, ressource, method)
 	}
 
@@ -181,9 +180,9 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 	if len(roleNames) == 0 {
 		rows, err = i.repo.Raw(`
 			SELECT DISTINCT roles.name
-			FROM role_mappings, roles, acl_mappings, acls
-			INNER JOIN role_mappings AS rm ON rm.role_id = roles.id
-			INNER JOIN acl_mappings AS am ON am.role_id = roles.id AND am.acl_id = acls.id
+			FROM roles, acls
+			INNER JOIN role_mappings ON role_mappings.role_id = roles.id
+			INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
 			WHERE role_mappings.account_id = ? AND acls.ressource = ? AND acls.method = ?
 			`, accountID, ressource, method)
 	}

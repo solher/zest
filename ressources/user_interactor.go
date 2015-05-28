@@ -13,12 +13,12 @@ import (
 type AbstractUserRepo interface {
 	Create(users []domain.User) ([]domain.User, error)
 	CreateOne(user *domain.User) (*domain.User, error)
-	Find(filter *interfaces.Filter) ([]domain.User, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.User, error)
-	Upsert(users []domain.User) ([]domain.User, error)
-	UpsertOne(user *domain.User) (*domain.User, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
+	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error)
+	Upsert(users []domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
+	UpsertOne(user *domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error)
+	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
 
 type UserInter struct {
@@ -59,17 +59,17 @@ func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
 	return user, err
 }
 
-func (i *UserInter) Find(filter *interfaces.Filter) ([]domain.User, error) {
-	users, err := i.repo.Find(filter)
+func (i *UserInter) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+	users, err := i.repo.Find(filter, ownerRelations)
 	return users, err
 }
 
-func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*domain.User, error) {
-	user, err := i.repo.FindByID(id, filter)
+func (i *UserInter) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+	user, err := i.repo.FindByID(id, filter, ownerRelations)
 	return user, err
 }
 
-func (i *UserInter) Upsert(users []domain.User) ([]domain.User, error) {
+func (i *UserInter) Upsert(users []domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
 	for i := range users {
 		if users[i].Password != "" {
 			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
@@ -81,11 +81,11 @@ func (i *UserInter) Upsert(users []domain.User) ([]domain.User, error) {
 		}
 	}
 
-	users, err := i.repo.Upsert(users)
+	users, err := i.repo.Upsert(users, filter, ownerRelations)
 	return users, err
 }
 
-func (i *UserInter) UpsertOne(user *domain.User) (*domain.User, error) {
+func (i *UserInter) UpsertOne(user *domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 	if user.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
 		if err != nil {
@@ -95,16 +95,16 @@ func (i *UserInter) UpsertOne(user *domain.User) (*domain.User, error) {
 		user.Password = string(hashedPassword)
 	}
 
-	user, err := i.repo.UpsertOne(user)
+	user, err := i.repo.UpsertOne(user, filter, ownerRelations)
 	return user, err
 }
 
-func (i *UserInter) DeleteAll(filter *interfaces.Filter) error {
-	err := i.repo.DeleteAll(filter)
+func (i *UserInter) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteAll(filter, ownerRelations)
 	return err
 }
 
-func (i *UserInter) DeleteByID(id int) error {
-	err := i.repo.DeleteByID(id)
+func (i *UserInter) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	return err
 }

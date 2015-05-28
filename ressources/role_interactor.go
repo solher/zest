@@ -5,6 +5,8 @@
 package ressources
 
 import (
+	"database/sql"
+
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 )
@@ -12,12 +14,13 @@ import (
 type AbstractRoleRepo interface {
 	Create(roles []domain.Role) ([]domain.Role, error)
 	CreateOne(role *domain.Role) (*domain.Role, error)
-	Find(filter *interfaces.Filter) ([]domain.Role, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.Role, error)
-	Upsert(roles []domain.Role) ([]domain.Role, error)
-	UpsertOne(role *domain.Role) (*domain.Role, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
+	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	Upsert(roles []domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
+	UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
 type RoleInter struct {
@@ -38,32 +41,32 @@ func (i *RoleInter) CreateOne(role *domain.Role) (*domain.Role, error) {
 	return role, err
 }
 
-func (i *RoleInter) Find(filter *interfaces.Filter) ([]domain.Role, error) {
-	roles, err := i.repo.Find(filter)
+func (i *RoleInter) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
+	roles, err := i.repo.Find(filter, ownerRelations)
 	return roles, err
 }
 
-func (i *RoleInter) FindByID(id int, filter *interfaces.Filter) (*domain.Role, error) {
-	role, err := i.repo.FindByID(id, filter)
+func (i *RoleInter) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
+	role, err := i.repo.FindByID(id, filter, ownerRelations)
 	return role, err
 }
 
-func (i *RoleInter) Upsert(roles []domain.Role) ([]domain.Role, error) {
-	roles, err := i.repo.Upsert(roles)
+func (i *RoleInter) Upsert(roles []domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
+	roles, err := i.repo.Upsert(roles, filter, ownerRelations)
 	return roles, err
 }
 
-func (i *RoleInter) UpsertOne(role *domain.Role) (*domain.Role, error) {
-	role, err := i.repo.UpsertOne(role)
+func (i *RoleInter) UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
+	role, err := i.repo.UpsertOne(role, filter, ownerRelations)
 	return role, err
 }
 
-func (i *RoleInter) DeleteAll(filter *interfaces.Filter) error {
-	err := i.repo.DeleteAll(filter)
+func (i *RoleInter) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteAll(filter, ownerRelations)
 	return err
 }
 
-func (i *RoleInter) DeleteByID(id int) error {
-	err := i.repo.DeleteByID(id)
+func (i *RoleInter) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	return err
 }

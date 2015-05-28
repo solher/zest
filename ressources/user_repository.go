@@ -5,6 +5,7 @@
 package ressources
 
 import (
+	"database/sql"
 	"strings"
 
 	"github.com/Solher/auth-scaffold/domain"
@@ -58,8 +59,8 @@ func (r *UserRepo) CreateOne(user *domain.User) (*domain.User, error) {
 	return user, nil
 }
 
-func (r *UserRepo) Find(filter *interfaces.Filter) ([]domain.User, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *UserRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -74,15 +75,15 @@ func (r *UserRepo) Find(filter *interfaces.Filter) ([]domain.User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) FindByID(id int, filter *interfaces.Filter) (*domain.User, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *UserRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
 	user := domain.User{}
 
-	err = query.First(&user, id).Error
+	err = query.Where("users.id = ?", id).First(&user).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -90,15 +91,22 @@ func (r *UserRepo) FindByID(id int, filter *interfaces.Filter) (*domain.User, er
 	return &user, nil
 }
 
-func (r *UserRepo) Upsert(users []domain.User) ([]domain.User, error) {
+func (r *UserRepo) Upsert(users []domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
 	for i, user := range users {
+		queryCopy := *query
+
 		if user.ID != 0 {
 			oldUser := domain.User{}
 
-			err := db.First(&oldUser, user.ID).Updates(user).Error
+			err := queryCopy.Where("users.id = ?", user.ID).First(&oldUser).Updates(user).Error
 			if err != nil {
 				transaction.Rollback()
 
@@ -128,13 +136,18 @@ func (r *UserRepo) Upsert(users []domain.User) ([]domain.User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) UpsertOne(user *domain.User) (*domain.User, error) {
+func (r *UserRepo) UpsertOne(user *domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 	db := r.store.GetDB()
+
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
 
 	if user.ID != 0 {
 		oldUser := domain.User{}
 
-		err := db.First(&oldUser, user.ID).Updates(user).Error
+		err := query.Where("users.id = ?", user.ID).First(&oldUser).Updates(user).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -156,8 +169,8 @@ func (r *UserRepo) UpsertOne(user *domain.User) (*domain.User, error) {
 	return user, nil
 }
 
-func (r *UserRepo) DeleteAll(filter *interfaces.Filter) error {
-	query, err := r.store.BuildQuery(filter)
+func (r *UserRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -170,13 +183,31 @@ func (r *UserRepo) DeleteAll(filter *interfaces.Filter) error {
 	return nil
 }
 
-func (r *UserRepo) DeleteByID(id int) error {
-	db := r.store.GetDB()
+func (r *UserRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
 
-	err := db.Delete(&domain.User{GormModel: domain.GormModel{ID: id}}).Error
+	err = query.Delete(&domain.User{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
 	return nil
+}
+
+func (r *UserRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
+	db := r.store.GetDB()
+
+	rows, err := db.Raw(query, values...).Rows()
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		} else {
+			return nil, internalerrors.DatabaseError
+		}
+	}
+
+	return rows, nil
 }

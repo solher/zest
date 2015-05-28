@@ -10,7 +10,7 @@ func init() {
 	ModelDirectory.Register(User{}, "users", relations)
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID"
+//+gen access controller:"Create,Find,FindByID,Upsert,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,DeleteAll,DeleteByID,Raw"
 type User struct {
 	GormModel
 	AccountID int    `json:"accountId,omitempty" sql:"index"`
@@ -21,7 +21,7 @@ type User struct {
 }
 
 func (m *User) ScopeModel(accountID int) {
-	m.ID = 0
+	// m.ID = 0
 	m.CreatedAt = time.Time{}
 	m.UpdatedAt = m.CreatedAt
 

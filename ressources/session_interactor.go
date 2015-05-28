@@ -5,6 +5,8 @@
 package ressources
 
 import (
+	"database/sql"
+
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 )
@@ -12,12 +14,13 @@ import (
 type AbstractSessionRepo interface {
 	Create(sessions []domain.Session) ([]domain.Session, error)
 	CreateOne(session *domain.Session) (*domain.Session, error)
-	Find(filter *interfaces.Filter) ([]domain.Session, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.Session, error)
-	Upsert(sessions []domain.Session) ([]domain.Session, error)
-	UpsertOne(session *domain.Session) (*domain.Session, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
+	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	Upsert(sessions []domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
+	UpsertOne(session *domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
 type SessionInter struct {
@@ -38,32 +41,32 @@ func (i *SessionInter) CreateOne(session *domain.Session) (*domain.Session, erro
 	return session, err
 }
 
-func (i *SessionInter) Find(filter *interfaces.Filter) ([]domain.Session, error) {
-	sessions, err := i.repo.Find(filter)
+func (i *SessionInter) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
+	sessions, err := i.repo.Find(filter, ownerRelations)
 	return sessions, err
 }
 
-func (i *SessionInter) FindByID(id int, filter *interfaces.Filter) (*domain.Session, error) {
-	session, err := i.repo.FindByID(id, filter)
+func (i *SessionInter) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+	session, err := i.repo.FindByID(id, filter, ownerRelations)
 	return session, err
 }
 
-func (i *SessionInter) Upsert(sessions []domain.Session) ([]domain.Session, error) {
-	sessions, err := i.repo.Upsert(sessions)
+func (i *SessionInter) Upsert(sessions []domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
+	sessions, err := i.repo.Upsert(sessions, filter, ownerRelations)
 	return sessions, err
 }
 
-func (i *SessionInter) UpsertOne(session *domain.Session) (*domain.Session, error) {
-	session, err := i.repo.UpsertOne(session)
+func (i *SessionInter) UpsertOne(session *domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+	session, err := i.repo.UpsertOne(session, filter, ownerRelations)
 	return session, err
 }
 
-func (i *SessionInter) DeleteAll(filter *interfaces.Filter) error {
-	err := i.repo.DeleteAll(filter)
+func (i *SessionInter) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteAll(filter, ownerRelations)
 	return err
 }
 
-func (i *SessionInter) DeleteByID(id int) error {
-	err := i.repo.DeleteByID(id)
+func (i *SessionInter) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	return err
 }

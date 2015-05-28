@@ -50,7 +50,8 @@ func (c *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 	}
 
 	if len(roleNames) == 1 && roleNames[0] == "Owner" {
-		// ressource := dirKey.Ressource
+		relations := domain.ModelDirectory.FindPathToOwner(dirKey.Ressource)
+		context.Set(r, "ownerRelations", relations)
 	}
 
 	(*c.next)(w, r, params)

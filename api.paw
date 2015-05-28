@@ -172,7 +172,7 @@
     </object>
     <object type="LMREQUEST" id="z117">
         <attribute name="uuid" type="string">2995B6A3-E072-4E26-911D-8A9336215C0E</attribute>
-        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/6"]</attribute>
+        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/1"]</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
@@ -266,7 +266,7 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">PUT</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">["[\\n{\\n  \\"firstName\\": \\"Pascal\\",\\n  \\"lastName\\": \\"Vincent\\"\\n},\\n{\\n  \\"id\\": 2,\\n  \\"firstName\\": \\"Fabienne\\"\\n}\\n]"]</attribute>
+        <attribute name="body" type="string">["[\\n{\\n  \\"id\\": 2,\\n  \\"firstName\\": \\"Fabienne\\"\\n}\\n]"]</attribute>
         <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Upsert</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z120"></relationship>
@@ -323,7 +323,7 @@
     </object>
     <object type="LMREQUEST" id="z138">
         <attribute name="uuid" type="string">8E0B4731-CCF8-43C1-8688-5198657B126F</attribute>
-        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/2"]</attribute>
+        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/1"]</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>

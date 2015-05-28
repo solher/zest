@@ -32,12 +32,12 @@ var controller = &typewriter.Template{
 	type Abstract{{.Type}}Inter interface {
 		Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
 		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
-		Find(filter *interfaces.Filter) ([]domain.{{.Type}}, error)
-		FindByID(id int, filter *interfaces.Filter) (*domain.{{.Type}}, error)
-		Upsert({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
-		UpsertOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
-		DeleteAll(filter *interfaces.Filter) error
-		DeleteByID(id int) error
+		Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
+		FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		Upsert({{.Name}}s []domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
+		UpsertOne({{.Name}} *domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
+		DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	}
 
 	type {{.Type}}Ctrl struct {
@@ -116,8 +116,10 @@ var find = &typewriter.Template{
 		}
 
 		filter = interfaces.FilterIfLastRessource(r, filter)
+		filter = interfaces.FilterIfOwnerRelations(r, filter)
+		relations := interfaces.GetOwnerRelations(r)
 
-		{{.Name}}s, err := c.interactor.Find(filter)
+		{{.Name}}s, err := c.interactor.Find(filter, relations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
@@ -143,7 +145,10 @@ var findByID = &typewriter.Template{
 			return
 		}
 
-		{{.Name}}, err := c.interactor.FindByID(id, filter)
+		filter = interfaces.FilterIfOwnerRelations(r, filter)
+		relations := interfaces.GetOwnerRelations(r)
+
+		{{.Name}}, err := c.interactor.FindByID(id, filter, relations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 			return
@@ -172,15 +177,17 @@ var upsert = &typewriter.Template{
 		}
 
 		lastRessource := interfaces.GetLastRessource(r)
+		filter := interfaces.FilterIfOwnerRelations(r, nil)
+		ownerRelations := interfaces.GetOwnerRelations(r)
 
 		if {{.Name}}s == nil {
 			{{.Name}}.ScopeModel(lastRessource.ID)
-			{{.Name}}, err = c.interactor.UpsertOne({{.Name}})
+			{{.Name}}, err = c.interactor.UpsertOne({{.Name}}, filter, ownerRelations)
 		} else {
 			for i := range {{.Name}}s {
 				(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
 			}
-			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s)
+			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s, filter, ownerRelations)
 		}
 
 		if err != nil {
@@ -212,8 +219,10 @@ var deleteAll = &typewriter.Template{
 		}
 
 		filter = interfaces.FilterIfLastRessource(r, filter)
+		filter = interfaces.FilterIfOwnerRelations(r, filter)
+		relations := interfaces.GetOwnerRelations(r)
 
-		err = c.interactor.DeleteAll(filter)
+		err = c.interactor.DeleteAll(filter, relations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
@@ -233,7 +242,10 @@ var deleteByID = &typewriter.Template{
 			return
 		}
 
-		err = c.interactor.DeleteByID(id)
+		filter := interfaces.FilterIfOwnerRelations(r, nil)
+		ownerRelations := interfaces.GetOwnerRelations(r)
+
+		err = c.interactor.DeleteByID(id, filter, ownerRelations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 			return
