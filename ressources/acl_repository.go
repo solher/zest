@@ -32,9 +32,9 @@ func (r *AclRepo) Create(acls []domain.Acl) ([]domain.Acl, error) {
 
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		acls[i] = acl
@@ -51,9 +51,9 @@ func (r *AclRepo) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return acl, nil
@@ -112,9 +112,9 @@ func (r *AclRepo) Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRela
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		} else {
 			err := db.Create(&acl).Error
@@ -123,9 +123,9 @@ func (r *AclRepo) Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRela
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		}
 
@@ -151,18 +151,18 @@ func (r *AclRepo) UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRel
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	} else {
 		err := db.Create(&acl).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	}
 
@@ -183,9 +183,9 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return acl, nil
@@ -226,9 +226,9 @@ func (r *AclRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rows, nil

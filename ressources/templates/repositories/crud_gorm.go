@@ -54,9 +54,9 @@ var create = &typewriter.Template{
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
   		}
 
       {{.Name}}s[i] = {{.Name}}
@@ -77,9 +77,9 @@ var createOne = &typewriter.Template{
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		return {{.Name}}, nil
@@ -150,9 +150,9 @@ var upsert = &typewriter.Template{
 
 					if strings.Contains(err.Error(), "constraint") {
 						return nil, internalerrors.NewViolatedConstraint(err.Error())
-					} else {
-						return nil, internalerrors.DatabaseError
 					}
+
+					return nil, internalerrors.DatabaseError
 				}
 			} else {
 				err := db.Create(&{{.Name}}).Error
@@ -161,9 +161,9 @@ var upsert = &typewriter.Template{
 
 					if strings.Contains(err.Error(), "constraint") {
 						return nil, internalerrors.NewViolatedConstraint(err.Error())
-					} else {
-						return nil, internalerrors.DatabaseError
 					}
+
+					return nil, internalerrors.DatabaseError
 				}
 			}
 
@@ -193,18 +193,18 @@ var upsertOne = &typewriter.Template{
 			if err != nil {
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		} else {
 			err := db.Create(&{{.Name}}).Error
 			if err != nil {
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		}
 
@@ -228,9 +228,9 @@ var updateByID = &typewriter.Template{
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		return {{.Name}}, nil
@@ -283,9 +283,9 @@ func (r *{{.Type}}Repo) Raw(query string, values ...interface{}) (*sql.Rows, err
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rows, nil

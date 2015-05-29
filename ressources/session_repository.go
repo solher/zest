@@ -15,10 +15,11 @@ import (
 
 type SessionRepo struct {
 	store interfaces.AbstractGormStore
+	cache interfaces.AbstractLRUCacheStore
 }
 
-func NewSessionRepo(store interfaces.AbstractGormStore) *SessionRepo {
-	return &SessionRepo{store: store}
+func NewSessionRepo(store interfaces.AbstractGormStore, cache interfaces.AbstractLRUCacheStore) *SessionRepo {
+	return &SessionRepo{store: store, cache: cache}
 }
 
 func (r *SessionRepo) Create(sessions []domain.Session) ([]domain.Session, error) {
@@ -32,9 +33,9 @@ func (r *SessionRepo) Create(sessions []domain.Session) ([]domain.Session, error
 
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		sessions[i] = session
@@ -51,9 +52,9 @@ func (r *SessionRepo) CreateOne(session *domain.Session) (*domain.Session, error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return session, nil
@@ -106,15 +107,27 @@ func (r *SessionRepo) Upsert(sessions []domain.Session, filter *interfaces.Filte
 		if session.ID != 0 {
 			oldUser := domain.Session{}
 
+			authToken := session.AuthToken
+
 			err := queryCopy.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(session).Error
 			if err != nil {
 				transaction.Rollback()
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
+			}
+
+			err = r.cache.Remove(authToken)
+			if err != nil {
+				return nil, internalerrors.DatabaseError
+			}
+
+			err = r.cache.Add(session.AuthToken, session)
+			if err != nil {
+				return nil, internalerrors.DatabaseError
 			}
 		} else {
 			err := db.Create(&session).Error
@@ -123,9 +136,9 @@ func (r *SessionRepo) Upsert(sessions []domain.Session, filter *interfaces.Filte
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		}
 
@@ -147,22 +160,34 @@ func (r *SessionRepo) UpsertOne(session *domain.Session, filter *interfaces.Filt
 	if session.ID != 0 {
 		oldUser := domain.Session{}
 
+		authToken := session.AuthToken
+
 		err := query.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(session).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.cache.Remove(authToken)
+		if err != nil {
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.cache.Add(session.AuthToken, session)
+		if err != nil {
+			return nil, internalerrors.DatabaseError
 		}
 	} else {
 		err := db.Create(&session).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	}
 
@@ -179,13 +204,25 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 
 	oldUser := domain.Session{}
 
+	authToken := session.AuthToken
+
 	err = query.Where("sessions.id = ?", id).First(&oldUser).Updates(session).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
+	}
+
+	err = r.cache.Remove(authToken)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
+	err = r.cache.Add(session.AuthToken, session)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
 	}
 
 	return session, nil
@@ -198,6 +235,11 @@ func (r *SessionRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []doma
 	}
 
 	err = query.Delete(domain.Session{}).Error
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
+	err = r.cache.Purge()
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -216,6 +258,11 @@ func (r *SessionRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelatio
 		return internalerrors.DatabaseError
 	}
 
+	err = r.cache.Purge()
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
 	return nil
 }
 
@@ -226,9 +273,14 @@ func (r *SessionRepo) Raw(query string, values ...interface{}) (*sql.Rows, error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
+	}
+
+	err = r.cache.Purge()
+	if err != nil {
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rows, nil

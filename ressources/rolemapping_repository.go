@@ -32,9 +32,9 @@ func (r *RoleMappingRepo) Create(rolemappings []domain.RoleMapping) ([]domain.Ro
 
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		rolemappings[i] = rolemapping
@@ -51,9 +51,9 @@ func (r *RoleMappingRepo) CreateOne(rolemapping *domain.RoleMapping) (*domain.Ro
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rolemapping, nil
@@ -112,9 +112,9 @@ func (r *RoleMappingRepo) Upsert(rolemappings []domain.RoleMapping, filter *inte
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		} else {
 			err := db.Create(&rolemapping).Error
@@ -123,9 +123,9 @@ func (r *RoleMappingRepo) Upsert(rolemappings []domain.RoleMapping, filter *inte
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		}
 
@@ -151,18 +151,18 @@ func (r *RoleMappingRepo) UpsertOne(rolemapping *domain.RoleMapping, filter *int
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	} else {
 		err := db.Create(&rolemapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	}
 
@@ -183,9 +183,9 @@ func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rolemapping, nil
@@ -226,9 +226,9 @@ func (r *RoleMappingRepo) Raw(query string, values ...interface{}) (*sql.Rows, e
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rows, nil

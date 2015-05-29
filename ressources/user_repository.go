@@ -32,9 +32,9 @@ func (r *UserRepo) Create(users []domain.User) ([]domain.User, error) {
 
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		users[i] = user
@@ -51,9 +51,9 @@ func (r *UserRepo) CreateOne(user *domain.User) (*domain.User, error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return user, nil
@@ -112,9 +112,9 @@ func (r *UserRepo) Upsert(users []domain.User, filter *interfaces.Filter, ownerR
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		} else {
 			err := db.Create(&user).Error
@@ -123,9 +123,9 @@ func (r *UserRepo) Upsert(users []domain.User, filter *interfaces.Filter, ownerR
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		}
 
@@ -151,18 +151,18 @@ func (r *UserRepo) UpsertOne(user *domain.User, filter *interfaces.Filter, owner
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	} else {
 		err := db.Create(&user).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	}
 
@@ -183,9 +183,9 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return user, nil
@@ -226,9 +226,9 @@ func (r *UserRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rows, nil

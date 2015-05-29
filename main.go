@@ -47,8 +47,9 @@ func main() {
 	router.RedirectBehavior = httptreemux.UseHandler
 	render := infrastructure.NewRender()
 	store := infrastructure.NewGormStore()
+	sessionCache := infrastructure.NewLRUCacheStore(1024)
 
-	initApp(app, router, render, store)
+	initApp(app, router, render, store, sessionCache)
 	defer closeApp(store)
 
 	app.Run(Port)
@@ -81,7 +82,9 @@ func connectDB(store *infrastructure.GormStore) error {
 	return err
 }
 
-func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render, store *infrastructure.GormStore) {
+func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render,
+	store *infrastructure.GormStore, sessionCache *infrastructure.LRUCacheStore) {
+
 	err := connectDB(store)
 	if err != nil {
 		panic("Could not connect to database.")
@@ -90,11 +93,11 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	userRepository := ressources.NewUserRepo(store)
 	userInteractor := ressources.NewUserInter(userRepository)
 
-	sessionRepository := ressources.NewSessionRepo(store)
+	sessionRepository := ressources.NewSessionRepo(store, sessionCache)
 	sessionInteractor := ressources.NewSessionInter(sessionRepository)
 
 	accountRepository := ressources.NewAccountRepo(store)
-	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository)
+	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository, sessionCache)
 
 	routes := interfaces.NewRouteDirectory(accountInteractor, render)
 
@@ -106,7 +109,7 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 
 	app.Use(negroni.NewLogger())
 	app.Use(negroni.NewRecovery())
-	app.Use(middlewares.NewSessions(accountRepository, userRepository, sessionRepository))
+	app.Use(middlewares.NewSessions(accountInteractor))
 
 	app.UseHandler(router)
 }

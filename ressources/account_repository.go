@@ -32,9 +32,9 @@ func (r *AccountRepo) Create(accounts []domain.Account) ([]domain.Account, error
 
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		accounts[i] = account
@@ -51,9 +51,9 @@ func (r *AccountRepo) CreateOne(account *domain.Account) (*domain.Account, error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return account, nil
@@ -112,9 +112,9 @@ func (r *AccountRepo) Upsert(accounts []domain.Account, filter *interfaces.Filte
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		} else {
 			err := db.Create(&account).Error
@@ -123,9 +123,9 @@ func (r *AccountRepo) Upsert(accounts []domain.Account, filter *interfaces.Filte
 
 				if strings.Contains(err.Error(), "constraint") {
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
 				}
+
+				return nil, internalerrors.DatabaseError
 			}
 		}
 
@@ -151,18 +151,18 @@ func (r *AccountRepo) UpsertOne(account *domain.Account, filter *interfaces.Filt
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	} else {
 		err := db.Create(&account).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 	}
 
@@ -204,9 +204,9 @@ func (r *AccountRepo) Raw(query string, values ...interface{}) (*sql.Rows, error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rows, nil

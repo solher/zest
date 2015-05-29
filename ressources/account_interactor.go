@@ -24,13 +24,16 @@ type AbstractAccountRepo interface {
 }
 
 type AccountInter struct {
-	repo        AbstractAccountRepo
-	userRepo    AbstractUserRepo
-	sessionRepo AbstractSessionRepo
+	repo         AbstractAccountRepo
+	userRepo     AbstractUserRepo
+	sessionRepo  AbstractSessionRepo
+	sessionCache interfaces.AbstractLRUCacheStore
 }
 
-func NewAccountInter(repo AbstractAccountRepo, userRepo AbstractUserRepo, sessionRepo AbstractSessionRepo) *AccountInter {
-	return &AccountInter{repo: repo, userRepo: userRepo, sessionRepo: sessionRepo}
+func NewAccountInter(repo AbstractAccountRepo, userRepo AbstractUserRepo,
+	sessionRepo AbstractSessionRepo, sessionCache interfaces.AbstractLRUCacheStore) *AccountInter {
+
+	return &AccountInter{repo: repo, userRepo: userRepo, sessionRepo: sessionRepo, sessionCache: sessionCache}
 }
 
 func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error) {
@@ -76,11 +79,23 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		return nil, err
 	}
 
+	err = i.sessionCache.Add(session.AuthToken, *session)
+	if err != nil {
+		return nil, err
+	}
+
 	return session, nil
 }
 
 func (i *AccountInter) Signout(currentSession *domain.Session) error {
+	authToken := currentSession.AuthToken
+
 	err := i.sessionRepo.DeleteByID(currentSession.ID, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	err = i.sessionCache.Remove(authToken)
 	if err != nil {
 		return err
 	}
@@ -123,22 +138,35 @@ func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account,
 }
 
 func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Session, error) {
-	filter := &interfaces.Filter{
-		Limit: 1,
-		Where: map[string]interface{}{"authToken": authToken},
-	}
+	sessionCache, _ := i.sessionCache.Get(authToken)
+	var session *domain.Session
 
-	sessions, err := i.sessionRepo.Find(filter, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sessions) == 1 {
-		session := sessions[0]
-
-		if session.ValidTo.After(time.Now()) {
-			return &session, nil
+	if sessionCache != nil {
+		sessionTmp := sessionCache.(domain.Session)
+		session = &sessionTmp
+	} else {
+		filter := &interfaces.Filter{
+			Limit: 1,
+			Where: map[string]interface{}{"authToken": authToken},
 		}
+
+		sessions, err := i.sessionRepo.Find(filter, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(sessions) == 1 {
+			session = &sessions[0]
+
+			err = i.sessionCache.Add(session.AuthToken, *session)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if session != nil && session.ValidTo.After(time.Now()) {
+		return session, nil
 	}
 
 	return nil, nil
