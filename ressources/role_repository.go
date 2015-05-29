@@ -169,6 +169,28 @@ func (r *RoleRepo) UpsertOne(role *domain.Role, filter *interfaces.Filter, owner
 	return role, nil
 }
 
+func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
+
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
+	oldUser := domain.Role{}
+
+	err = query.Where("roles.id = ?", id).First(&oldUser).Updates(role).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		} else {
+			return nil, internalerrors.DatabaseError
+		}
+	}
+
+	return role, nil
+}
+
 func (r *RoleRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {

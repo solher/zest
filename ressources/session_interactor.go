@@ -18,6 +18,7 @@ type AbstractSessionRepo interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
 	Upsert(sessions []domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
 	UpsertOne(session *domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	UpdateByID(id int, session *domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
@@ -58,6 +59,13 @@ func (i *SessionInter) Upsert(sessions []domain.Session, filter *interfaces.Filt
 
 func (i *SessionInter) UpsertOne(session *domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 	session, err := i.repo.UpsertOne(session, filter, ownerRelations)
+	return session, err
+}
+
+func (i *SessionInter) UpdateByID(id int, session *domain.Session,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+
+	session, err := i.repo.UpdateByID(id, session, filter, ownerRelations)
 	return session, err
 }
 

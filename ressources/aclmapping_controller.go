@@ -25,6 +25,7 @@ type AbstractAclMappingInter interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
 	Upsert(aclmappings []domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error)
 	UpsertOne(aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
+	UpdateByID(id int, aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
@@ -178,6 +179,41 @@ func (c *AclMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[st
 	} else {
 		c.render.JSON(w, http.StatusCreated, aclmappings)
 	}
+}
+
+func (c *AclMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	aclmapping := &domain.AclMapping{}
+
+	err = json.NewDecoder(r.Body).Decode(aclmapping)
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+		return
+	}
+
+	lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	aclmapping.ScopeModel(lastRessource.ID)
+	aclmapping, err = c.interactor.UpdateByID(id, aclmapping, filter, ownerRelations)
+
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	c.render.JSON(w, http.StatusCreated, aclmapping)
 }
 
 func (c *AclMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {

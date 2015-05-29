@@ -18,6 +18,7 @@ type AbstractRoleRepo interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
 	Upsert(roles []domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
 	UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	UpdateByID(id int, role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
@@ -58,6 +59,13 @@ func (i *RoleInter) Upsert(roles []domain.Role, filter *interfaces.Filter, owner
 
 func (i *RoleInter) UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 	role, err := i.repo.UpsertOne(role, filter, ownerRelations)
+	return role, err
+}
+
+func (i *RoleInter) UpdateByID(id int, role *domain.Role,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
+
+	role, err := i.repo.UpdateByID(id, role, filter, ownerRelations)
 	return role, err
 }
 

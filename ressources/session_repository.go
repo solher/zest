@@ -169,6 +169,28 @@ func (r *SessionRepo) UpsertOne(session *domain.Session, filter *interfaces.Filt
 	return session, nil
 }
 
+func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
+	oldUser := domain.Session{}
+
+	err = query.Where("sessions.id = ?", id).First(&oldUser).Updates(session).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		} else {
+			return nil, internalerrors.DatabaseError
+		}
+	}
+
+	return session, nil
+}
+
 func (r *SessionRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {

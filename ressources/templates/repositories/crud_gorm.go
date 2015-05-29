@@ -22,6 +22,7 @@ var slice = typewriter.TemplateSlice{
 	findByID,
 	upsert,
 	upsertOne,
+	updateByID,
 	deleteAll,
 	deleteByID,
 	raw,
@@ -204,6 +205,31 @@ var upsertOne = &typewriter.Template{
 				} else {
 					return nil, internalerrors.DatabaseError
 				}
+			}
+		}
+
+		return {{.Name}}, nil
+	}
+`}
+var updateByID = &typewriter.Template{
+	Name: "UpdateByID",
+	Text: `
+	func (r *{{.Type}}Repo) UpdateByID(id int, {{.Name}} *domain.{{.Type}},
+		filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
+
+		query, err := r.store.BuildQuery(filter, ownerRelations)
+		if err != nil {
+			return nil, internalerrors.DatabaseError
+		}
+
+		oldUser := domain.{{.Type}}{}
+
+		err = query.Where("{{.Name}}s.id = ?", id).First(&oldUser).Updates({{.Name}}).Error
+		if err != nil {
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
+			} else {
+				return nil, internalerrors.DatabaseError
 			}
 		}
 

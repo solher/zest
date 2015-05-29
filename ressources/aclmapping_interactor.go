@@ -18,6 +18,7 @@ type AbstractAclMappingRepo interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
 	Upsert(aclmappings []domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error)
 	UpsertOne(aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
+	UpdateByID(id int, aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
@@ -58,6 +59,13 @@ func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping, filter *interf
 
 func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 	aclmapping, err := i.repo.UpsertOne(aclmapping, filter, ownerRelations)
+	return aclmapping, err
+}
+
+func (i *AclMappingInter) UpdateByID(id int, aclmapping *domain.AclMapping,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+
+	aclmapping, err := i.repo.UpdateByID(id, aclmapping, filter, ownerRelations)
 	return aclmapping, err
 }
 

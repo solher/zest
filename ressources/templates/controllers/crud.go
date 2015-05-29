@@ -20,6 +20,7 @@ var slice = typewriter.TemplateSlice{
 	find,
 	findByID,
 	upsert,
+	updateByID,
 	deleteAll,
 	deleteByID,
 	related,
@@ -36,6 +37,7 @@ var controller = &typewriter.Template{
 		FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
 		Upsert({{.Name}}s []domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
 		UpsertOne({{.Name}} *domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		UpdateByID(id int, {{.Name}} *domain.{{.Type}},	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) 
 		DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 		DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	}
@@ -205,6 +207,45 @@ var upsert = &typewriter.Template{
 		} else {
 			c.render.JSON(w, http.StatusCreated, {{.Name}}s)
 		}
+	}
+`}
+
+var updateByID = &typewriter.Template{
+	Name: "UpdateByID",
+	Text: `
+	func (c *{{.Type}}Ctrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		id, err := strconv.Atoi(params["id"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
+
+		{{.Name}} := &domain.{{.Type}}{}
+
+		err = json.NewDecoder(r.Body).Decode({{.Name}})
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+			return
+		}
+
+		lastRessource := interfaces.GetLastRessource(r)
+		filter := interfaces.FilterIfOwnerRelations(r, nil)
+		ownerRelations := interfaces.GetOwnerRelations(r)
+
+		{{.Name}}.ScopeModel(lastRessource.ID)
+		{{.Name}}, err = c.interactor.UpdateByID(id, {{.Name}}, filter, ownerRelations)
+
+		if err != nil {
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
+			return
+		}
+
+		c.render.JSON(w, http.StatusCreated, {{.Name}})
 	}
 `}
 

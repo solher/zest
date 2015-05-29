@@ -22,6 +22,7 @@ var slice = typewriter.TemplateSlice{
 	findByID,
 	upsert,
 	upsertOne,
+	updateByID,
 	deleteAll,
 	deleteByID,
 }
@@ -36,6 +37,7 @@ var interactor = &typewriter.Template{
 		FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
 		Upsert({{.Name}}s []domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
 		UpsertOne({{.Name}} *domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		UpdateByID(id int, {{.Name}} *domain.{{.Type}},	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) 
 		DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 		DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 		Raw(query string, values ...interface{}) (*sql.Rows, error)
@@ -100,6 +102,17 @@ var upsertOne = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) UpsertOne({{.Name}} *domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 		{{.Name}}, err := i.repo.UpsertOne({{.Name}}, filter, ownerRelations)
+		return {{.Name}}, err
+	}
+`}
+
+var updateByID = &typewriter.Template{
+	Name: "UpdateByID",
+	Text: `
+	func (i *{{.Type}}Inter) UpdateByID(id int, {{.Name}} *domain.{{.Type}},
+		filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
+
+		{{.Name}}, err := i.repo.UpdateByID(id, {{.Name}}, filter, ownerRelations)
 		return {{.Name}}, err
 	}
 `}

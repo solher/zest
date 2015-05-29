@@ -25,6 +25,7 @@ type AbstractRoleMappingInter interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
 	Upsert(rolemappings []domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
 	UpsertOne(rolemapping *domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
+	UpdateByID(id int, rolemapping *domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
@@ -178,6 +179,41 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 	} else {
 		c.render.JSON(w, http.StatusCreated, rolemappings)
 	}
+}
+
+func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	rolemapping := &domain.RoleMapping{}
+
+	err = json.NewDecoder(r.Body).Decode(rolemapping)
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+		return
+	}
+
+	lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	rolemapping.ScopeModel(lastRessource.ID)
+	rolemapping, err = c.interactor.UpdateByID(id, rolemapping, filter, ownerRelations)
+
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	c.render.JSON(w, http.StatusCreated, rolemapping)
 }
 
 func (c *RoleMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {

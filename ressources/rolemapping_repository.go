@@ -169,6 +169,28 @@ func (r *RoleMappingRepo) UpsertOne(rolemapping *domain.RoleMapping, filter *int
 	return rolemapping, nil
 }
 
+func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
+	oldUser := domain.RoleMapping{}
+
+	err = query.Where("rolemappings.id = ?", id).First(&oldUser).Updates(rolemapping).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		} else {
+			return nil, internalerrors.DatabaseError
+		}
+	}
+
+	return rolemapping, nil
+}
+
 func (r *RoleMappingRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {

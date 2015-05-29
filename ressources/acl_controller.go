@@ -25,6 +25,7 @@ type AbstractAclInter interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
 	Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
 	UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
+	UpdateByID(id int, acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
@@ -178,6 +179,41 @@ func (c *AclCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]st
 	} else {
 		c.render.JSON(w, http.StatusCreated, acls)
 	}
+}
+
+func (c *AclCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	acl := &domain.Acl{}
+
+	err = json.NewDecoder(r.Body).Decode(acl)
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+		return
+	}
+
+	lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	acl.ScopeModel(lastRessource.ID)
+	acl, err = c.interactor.UpdateByID(id, acl, filter, ownerRelations)
+
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	c.render.JSON(w, http.StatusCreated, acl)
 }
 
 func (c *AclCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {

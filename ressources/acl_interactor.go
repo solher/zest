@@ -18,6 +18,7 @@ type AbstractAclRepo interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
 	Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
 	UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
+	UpdateByID(id int, acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
@@ -58,6 +59,13 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRel
 
 func (i *AclInter) UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 	acl, err := i.repo.UpsertOne(acl, filter, ownerRelations)
+	return acl, err
+}
+
+func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+
+	acl, err := i.repo.UpdateByID(id, acl, filter, ownerRelations)
 	return acl, err
 }
 

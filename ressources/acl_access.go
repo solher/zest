@@ -15,6 +15,7 @@ func setAclAccess(routeDir *interfaces.RouteDirectory, controller *AclCtrl) {
 	find := httptreemux.HandlerFunc(controller.Find)
 	findByID := httptreemux.HandlerFunc(controller.FindByID)
 	upsert := httptreemux.HandlerFunc(controller.Upsert)
+	updateByID := httptreemux.HandlerFunc(controller.UpdateByID)
 	deleteAll := httptreemux.HandlerFunc(controller.DeleteAll)
 	deleteByID := httptreemux.HandlerFunc(controller.DeleteByID)
 	related := httptreemux.HandlerFunc(controller.Related)
@@ -24,6 +25,7 @@ func setAclAccess(routeDir *interfaces.RouteDirectory, controller *AclCtrl) {
 	routeDir.Add(key.For("Find"), &interfaces.Route{Method: "GET", Path: "/acls", Handler: &find, Visible: true, CheckPermissions: true})
 	routeDir.Add(key.For("FindByID"), &interfaces.Route{Method: "GET", Path: "/acls/:id", Handler: &findByID, Visible: true, CheckPermissions: true})
 	routeDir.Add(key.For("Upsert"), &interfaces.Route{Method: "PUT", Path: "/acls", Handler: &upsert, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("UpdateByID"), &interfaces.Route{Method: "PUT", Path: "/acls/:id", Handler: &updateByID, Visible: true, CheckPermissions: true})
 	routeDir.Add(key.For("DeleteAll"), &interfaces.Route{Method: "DELETE", Path: "/acls", Handler: &deleteAll, Visible: true, CheckPermissions: true})
 	routeDir.Add(key.For("DeleteByID"), &interfaces.Route{Method: "DELETE", Path: "/acls/:id", Handler: &deleteByID, Visible: true, CheckPermissions: true})
 
@@ -31,6 +33,7 @@ func setAclAccess(routeDir *interfaces.RouteDirectory, controller *AclCtrl) {
 	routeDir.Add(key.For("FindRelated"), &interfaces.Route{Method: "GET", Path: "/acls/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("FindByIDRelated"), &interfaces.Route{Method: "GET", Path: "/acls/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("UpsertRelated"), &interfaces.Route{Method: "PUT", Path: "/acls/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("UpsertRelated"), &interfaces.Route{Method: "PUT", Path: "/acls/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("DeleteAllRelated"), &interfaces.Route{Method: "DELETE", Path: "/acls/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("DeleteByIDRelated"), &interfaces.Route{Method: "DELETE", Path: "/acls/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
 }

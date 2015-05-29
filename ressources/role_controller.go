@@ -25,6 +25,7 @@ type AbstractRoleInter interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
 	Upsert(roles []domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
 	UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	UpdateByID(id int, role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
@@ -178,6 +179,41 @@ func (c *RoleCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]s
 	} else {
 		c.render.JSON(w, http.StatusCreated, roles)
 	}
+}
+
+func (c *RoleCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	role := &domain.Role{}
+
+	err = json.NewDecoder(r.Body).Decode(role)
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+		return
+	}
+
+	lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	role.ScopeModel(lastRessource.ID)
+	role, err = c.interactor.UpdateByID(id, role, filter, ownerRelations)
+
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	c.render.JSON(w, http.StatusCreated, role)
 }
 
 func (c *RoleCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {

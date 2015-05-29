@@ -17,6 +17,7 @@ type AbstractUserRepo interface {
 	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error)
 	Upsert(users []domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
 	UpsertOne(user *domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error)
+	UpdateByID(id int, session *domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error)
 	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
 }
@@ -96,6 +97,22 @@ func (i *UserInter) UpsertOne(user *domain.User, filter *interfaces.Filter, owne
 	}
 
 	user, err := i.repo.UpsertOne(user, filter, ownerRelations)
+	return user, err
+}
+
+func (i *UserInter) UpdateByID(id int, user *domain.User,
+	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+		if err != nil {
+			return nil, err
+		}
+
+		user.Password = string(hashedPassword)
+	}
+
+	user, err := i.repo.UpdateByID(id, user, filter, ownerRelations)
 	return user, err
 }
 
