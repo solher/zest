@@ -120,11 +120,7 @@ func (r *SessionRepo) Upsert(sessions []domain.Session, filter *interfaces.Filte
 				return nil, internalerrors.DatabaseError
 			}
 
-			err = r.cache.Remove(authToken)
-			if err != nil {
-				return nil, internalerrors.DatabaseError
-			}
-
+			r.cache.Remove(authToken)
 			err = r.cache.Add(session.AuthToken, session)
 			if err != nil {
 				return nil, internalerrors.DatabaseError
@@ -171,11 +167,7 @@ func (r *SessionRepo) UpsertOne(session *domain.Session, filter *interfaces.Filt
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.cache.Remove(authToken)
-		if err != nil {
-			return nil, internalerrors.DatabaseError
-		}
-
+		r.cache.Remove(authToken)
 		err = r.cache.Add(session.AuthToken, session)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
@@ -215,11 +207,7 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.cache.Remove(authToken)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
+	r.cache.Remove(authToken)
 	err = r.cache.Add(session.AuthToken, session)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
