@@ -27,7 +27,7 @@ type (
 		JSON(w http.ResponseWriter, status int, object interface{})
 	}
 
-	AbstractLRUCacheStore interface {
+	AbstractCacheStore interface {
 		Add(key interface{}, value interface{}) error
 		Remove(key interface{}) error
 		Get(key interface{}) (interface{}, error)

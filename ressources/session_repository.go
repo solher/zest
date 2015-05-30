@@ -15,10 +15,10 @@ import (
 
 type SessionRepo struct {
 	store interfaces.AbstractGormStore
-	cache interfaces.AbstractLRUCacheStore
+	cache interfaces.AbstractCacheStore
 }
 
-func NewSessionRepo(store interfaces.AbstractGormStore, cache interfaces.AbstractLRUCacheStore) *SessionRepo {
+func NewSessionRepo(store interfaces.AbstractGormStore, cache interfaces.AbstractCacheStore) *SessionRepo {
 	return &SessionRepo{store: store, cache: cache}
 }
 

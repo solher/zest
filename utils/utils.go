@@ -92,6 +92,15 @@ func QuickHashPassword(password string) string {
 	return string(hashedPassword)
 }
 
+func ContainsStr(list []string, elem string) bool {
+	for _, str := range list {
+		if str == elem {
+			return true
+		}
+	}
+	return false
+}
+
 func Dump(obj interface{}) {
 	fmt.Println("Dump:", obj)
 }

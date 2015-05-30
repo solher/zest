@@ -48,8 +48,10 @@ func main() {
 	render := infrastructure.NewRender()
 	store := infrastructure.NewGormStore()
 	sessionCache := infrastructure.NewLRUCacheStore(1024)
+	roleCache := infrastructure.NewCacheStore()
+	aclCache := infrastructure.NewCacheStore()
 
-	initApp(app, router, render, store, sessionCache)
+	initApp(app, router, render, store, sessionCache, roleCache, aclCache)
 	defer closeApp(store)
 
 	app.Run(Port)
@@ -70,20 +72,8 @@ func handleOsArgs() bool {
 	return false
 }
 
-func connectDB(store *infrastructure.GormStore) error {
-	var err error
-
-	if DatabaseURL != "" {
-		err = store.Connect("postgres", DatabaseURL)
-	} else {
-		err = store.Connect("sqlite3", "database.db")
-	}
-
-	return err
-}
-
 func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render,
-	store *infrastructure.GormStore, sessionCache *infrastructure.LRUCacheStore) {
+	store *infrastructure.GormStore, sessionCache *infrastructure.LRUCacheStore, roleCache, aclCache *infrastructure.CacheStore) {
 
 	err := connectDB(store)
 	if err != nil {
@@ -91,19 +81,31 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	}
 
 	userRepository := ressources.NewUserRepo(store)
-	userInteractor := ressources.NewUserInter(userRepository)
-
 	sessionRepository := ressources.NewSessionRepo(store, sessionCache)
-	sessionInteractor := ressources.NewSessionInter(sessionRepository)
-
 	accountRepository := ressources.NewAccountRepo(store)
-	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository, sessionCache)
+	roleMappingRepository := ressources.NewRoleMappingRepo(store)
+	roleRepository := ressources.NewRoleRepo(store)
+	aclMappingRepository := ressources.NewAclMappingRepo(store)
+	aclRepository := ressources.NewAclRepo(store)
 
+	userInteractor := ressources.NewUserInter(userRepository)
+	sessionInteractor := ressources.NewSessionInter(sessionRepository)
+	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository, sessionCache, roleCache, aclCache)
+	roleMappingInteractor := ressources.NewRoleMappingInter(roleMappingRepository)
+	roleInteractor := ressources.NewRoleInter(roleRepository)
+	aclMappingInteractor := ressources.NewAclMappingInter(aclMappingRepository)
+	aclInteractor := ressources.NewAclInter(aclRepository)
+
+	interfaces.RefreshPermissionCache(accountRepository, aclRepository, roleCache, aclCache)
 	routes := interfaces.NewRouteDirectory(accountInteractor, render)
 
 	ressources.NewUserCtrl(userInteractor, render, routes)
 	ressources.NewSessionCtrl(sessionInteractor, render, routes)
 	ressources.NewAccountCtrl(accountInteractor, render, routes)
+	ressources.NewRoleMappingCtrl(roleMappingInteractor, render, routes)
+	ressources.NewRoleCtrl(roleInteractor, render, routes)
+	ressources.NewAclMappingCtrl(aclMappingInteractor, render, routes)
+	ressources.NewAclCtrl(aclInteractor, render, routes)
 
 	routes.Register(router)
 
@@ -116,4 +118,16 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 
 func closeApp(store *infrastructure.GormStore) {
 	store.Close()
+}
+
+func connectDB(store *infrastructure.GormStore) error {
+	var err error
+
+	if DatabaseURL != "" {
+		err = store.Connect("postgres", DatabaseURL)
+	} else {
+		err = store.Connect("sqlite3", "database.db")
+	}
+
+	return err
 }

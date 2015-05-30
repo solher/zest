@@ -71,13 +71,13 @@ func FilterIfOwnerRelations(r *http.Request, filter *Filter) *Filter {
 
 		if filter == nil {
 			filter = &Filter{
-				Where: map[string]interface{}{"accountId": currentSession.AccountID},
+				where: map[string]interface{}{"accountId": currentSession.AccountID},
 			}
 		} else {
-			if filter.Where == nil {
-				filter.Where = map[string]interface{}{"accountId": currentSession.AccountID}
+			if filter.where == nil {
+				filter.where = map[string]interface{}{"accountId": currentSession.AccountID}
 			} else {
-				filter.Where["accountId"] = currentSession.AccountID
+				filter.where["accountId"] = currentSession.AccountID
 			}
 		}
 	}
@@ -105,13 +105,13 @@ func FilterIfLastRessource(r *http.Request, filter *Filter) *Filter {
 
 		if filter == nil {
 			filter = &Filter{
-				Where: map[string]interface{}{lastRessource.IDKey: lastRessource.ID},
+				where: map[string]interface{}{lastRessource.IDKey: lastRessource.ID},
 			}
 		} else {
-			if filter.Where == nil {
-				filter.Where = map[string]interface{}{lastRessource.IDKey: lastRessource.ID}
+			if filter.where == nil {
+				filter.where = map[string]interface{}{lastRessource.IDKey: lastRessource.ID}
 			} else {
-				filter.Where[lastRessource.IDKey] = lastRessource.ID
+				filter.where[lastRessource.IDKey] = lastRessource.ID
 			}
 		}
 	}

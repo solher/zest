@@ -74,7 +74,7 @@ func (st *GormStore) ReinitTables(tables []interface{}) error {
 	return nil
 }
 
-func (st *GormStore) BuildQuery(filter *interfaces.Filter, ownerRelations []domain.Relation) (*gorm.DB, error) {
+func (st *GormStore) BuildQuery(filter interfaces.AbstractFilter, ownerRelations []domain.Relation) (*gorm.DB, error) {
 	query := st.db
 
 	if ownerRelations != nil {
@@ -161,26 +161,26 @@ const (
 	nlikeSql = " NOT LIKE "
 )
 
-func processFilter(filter *interfaces.Filter) (*interfaces.GormFilter, error) {
-	fields := filter.Fields
+func processFilter(filter interfaces.AbstractFilter) (*interfaces.GormFilter, error) {
+	fields := filter.Fields()
 	dbNamedFields := make([]string, len(fields))
 
 	for i, field := range fields {
 		dbNamedFields[i] = utils.ToDBName(field)
 	}
 
-	if filter.Order != "" {
-		order := strings.ToLower(filter.Order)
+	if filter.Order() != "" {
+		order := strings.ToLower(filter.Order())
 		matched, err := regexp.MatchString("\\A\\w+ (asc|desc)\\z", order)
 		if err != nil || !matched {
 			return nil, errors.New("invalid order filter")
 		}
 
-		split := strings.Split(filter.Order, " ")
-		filter.Order = utils.ToDBName(split[0]) + " " + split[1]
+		split := strings.Split(filter.Order(), " ")
+		filter.SetOrder(utils.ToDBName(split[0]) + " " + split[1])
 	}
 
-	processedFilter := &interfaces.GormFilter{Fields: dbNamedFields, Limit: filter.Limit, Offset: filter.Offset, Order: filter.Order}
+	processedFilter := &interfaces.GormFilter{Fields: dbNamedFields, Limit: filter.Limit(), Offset: filter.Offset(), Order: filter.Order()}
 
 	buffer := &bytes.Buffer{}
 	err := processCondition(buffer, "", andSql, "", filter.Where)
@@ -189,7 +189,7 @@ func processFilter(filter *interfaces.Filter) (*interfaces.GormFilter, error) {
 	}
 	processedFilter.Where = buffer.String()
 
-	gormIncludes, err := processInclude(filter.Include)
+	gormIncludes, err := processInclude(filter.Include())
 	if err != nil {
 		return nil, err
 	}
@@ -445,7 +445,7 @@ func processNestedInclude(include interface{}, processedIncludes []interfaces.Go
 			case "relation":
 				switch strValue := value.(type) {
 				case string:
-					processedInclude.Relation = parentModel + strings.Title(strings.ToLower(strValue))
+					processedInclude.Relation = parentModel + strings.Title(strValue)
 				}
 
 			case "where":
@@ -470,7 +470,7 @@ func processNestedInclude(include interface{}, processedIncludes []interfaces.Go
 		processedIncludes = append(processedIncludes, processedInclude)
 
 	case string:
-		relation := parentModel + strings.Title(strings.ToLower(include.(string)))
+		relation := parentModel + strings.Title(include.(string))
 		processedInclude := interfaces.GormInclude{Relation: relation}
 		processedIncludes = append(processedIncludes, processedInclude)
 	}
