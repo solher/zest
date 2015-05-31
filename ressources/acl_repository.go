@@ -11,6 +11,7 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AclRepo struct {
@@ -59,7 +60,7 @@ func (r *AclRepo) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
 	return acl, nil
 }
 
-func (r *AclRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
+func (r *AclRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -75,7 +76,7 @@ func (r *AclRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relati
 	return acls, nil
 }
 
-func (r *AclRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+func (r *AclRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -91,7 +92,7 @@ func (r *AclRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []d
 	return &acl, nil
 }
 
-func (r *AclRepo) Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
+func (r *AclRepo) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -136,7 +137,7 @@ func (r *AclRepo) Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRela
 	return acls, nil
 }
 
-func (r *AclRepo) UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+func (r *AclRepo) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 	db := r.store.GetDB()
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
@@ -170,7 +171,7 @@ func (r *AclRepo) UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRel
 }
 
 func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
@@ -191,7 +192,7 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 	return acl, nil
 }
 
-func (r *AclRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *AclRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
@@ -205,7 +206,7 @@ func (r *AclRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.R
 	return nil
 }
 
-func (r *AclRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *AclRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError

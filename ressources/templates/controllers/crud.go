@@ -33,13 +33,13 @@ var controller = &typewriter.Template{
 	type Abstract{{.Type}}Inter interface {
 		Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
 		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
-		Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
-		FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
-		Upsert({{.Name}}s []domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
-		UpsertOne({{.Name}} *domain.{{.Type}}, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
-		UpdateByID(id int, {{.Name}} *domain.{{.Type}},	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) 
-		DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
-		DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+		Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
+		FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		Upsert({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
+		UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		UpdateByID(id int, {{.Name}} *domain.{{.Type}},	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+		DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 	}
 
 	type {{.Type}}Ctrl struct {

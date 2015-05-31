@@ -81,7 +81,7 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	}
 
 	userRepository := ressources.NewUserRepo(store)
-	sessionRepository := ressources.NewSessionRepo(store, sessionCache)
+	sessionRepository := ressources.NewSessionRepo(store)
 	accountRepository := ressources.NewAccountRepo(store)
 	roleMappingRepository := ressources.NewRoleMappingRepo(store)
 	roleRepository := ressources.NewRoleRepo(store)
@@ -96,7 +96,7 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	aclMappingInteractor := ressources.NewAclMappingInter(aclMappingRepository)
 	aclInteractor := ressources.NewAclInter(aclRepository)
 
-	interfaces.RefreshPermissionCache(accountRepository, aclRepository, roleCache, aclCache)
+	// interfaces.RefreshPermissionCache(accountRepository, aclRepository, roleCache, aclCache)
 	routes := interfaces.NewRouteDirectory(accountInteractor, render)
 
 	ressources.NewUserCtrl(userInteractor, render, routes)

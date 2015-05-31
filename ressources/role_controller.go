@@ -14,6 +14,8 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
+
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -21,13 +23,13 @@ import (
 type AbstractRoleInter interface {
 	Create(roles []domain.Role) ([]domain.Role, error)
 	CreateOne(role *domain.Role) (*domain.Role, error)
-	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
-	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	Upsert(roles []domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
-	UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	UpdateByID(id int, role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
+	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	Upsert(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
+	UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	UpdateByID(id int, role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 }
 
 type RoleCtrl struct {

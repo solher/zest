@@ -11,6 +11,7 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type RoleMappingRepo struct {
@@ -59,7 +60,7 @@ func (r *RoleMappingRepo) CreateOne(rolemapping *domain.RoleMapping) (*domain.Ro
 	return rolemapping, nil
 }
 
-func (r *RoleMappingRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
+func (r *RoleMappingRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -75,7 +76,7 @@ func (r *RoleMappingRepo) Find(filter *interfaces.Filter, ownerRelations []domai
 	return rolemappings, nil
 }
 
-func (r *RoleMappingRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+func (r *RoleMappingRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -91,7 +92,7 @@ func (r *RoleMappingRepo) FindByID(id int, filter *interfaces.Filter, ownerRelat
 	return &rolemapping, nil
 }
 
-func (r *RoleMappingRepo) Upsert(rolemappings []domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
+func (r *RoleMappingRepo) Upsert(rolemappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -136,7 +137,7 @@ func (r *RoleMappingRepo) Upsert(rolemappings []domain.RoleMapping, filter *inte
 	return rolemappings, nil
 }
 
-func (r *RoleMappingRepo) UpsertOne(rolemapping *domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+func (r *RoleMappingRepo) UpsertOne(rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 	db := r.store.GetDB()
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
@@ -170,7 +171,7 @@ func (r *RoleMappingRepo) UpsertOne(rolemapping *domain.RoleMapping, filter *int
 }
 
 func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
@@ -191,7 +192,7 @@ func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,
 	return rolemapping, nil
 }
 
-func (r *RoleMappingRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *RoleMappingRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
@@ -205,7 +206,7 @@ func (r *RoleMappingRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []
 	return nil
 }
 
-func (r *RoleMappingRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *RoleMappingRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError

@@ -8,19 +8,19 @@ import (
 	"database/sql"
 
 	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AbstractRoleMappingRepo interface {
 	Create(rolemappings []domain.RoleMapping) ([]domain.RoleMapping, error)
 	CreateOne(rolemapping *domain.RoleMapping) (*domain.RoleMapping, error)
-	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
-	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	Upsert(rolemappings []domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
-	UpsertOne(rolemapping *domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	UpdateByID(id int, rolemapping *domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
+	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
+	Upsert(rolemappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
+	UpsertOne(rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
+	UpdateByID(id int, rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
+	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -42,39 +42,39 @@ func (i *RoleMappingInter) CreateOne(rolemapping *domain.RoleMapping) (*domain.R
 	return rolemapping, err
 }
 
-func (i *RoleMappingInter) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
+func (i *RoleMappingInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
 	rolemappings, err := i.repo.Find(filter, ownerRelations)
 	return rolemappings, err
 }
 
-func (i *RoleMappingInter) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+func (i *RoleMappingInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 	rolemapping, err := i.repo.FindByID(id, filter, ownerRelations)
 	return rolemapping, err
 }
 
-func (i *RoleMappingInter) Upsert(rolemappings []domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
+func (i *RoleMappingInter) Upsert(rolemappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
 	rolemappings, err := i.repo.Upsert(rolemappings, filter, ownerRelations)
 	return rolemappings, err
 }
 
-func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 	rolemapping, err := i.repo.UpsertOne(rolemapping, filter, ownerRelations)
 	return rolemapping, err
 }
 
 func (i *RoleMappingInter) UpdateByID(id int, rolemapping *domain.RoleMapping,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 
 	rolemapping, err := i.repo.UpdateByID(id, rolemapping, filter, ownerRelations)
 	return rolemapping, err
 }
 
-func (i *RoleMappingInter) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (i *RoleMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteAll(filter, ownerRelations)
 	return err
 }
 
-func (i *RoleMappingInter) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (i *RoleMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	return err
 }

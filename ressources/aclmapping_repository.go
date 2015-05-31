@@ -11,6 +11,7 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AclMappingRepo struct {
@@ -59,7 +60,7 @@ func (r *AclMappingRepo) CreateOne(aclmapping *domain.AclMapping) (*domain.AclMa
 	return aclmapping, nil
 }
 
-func (r *AclMappingRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
+func (r *AclMappingRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -75,7 +76,7 @@ func (r *AclMappingRepo) Find(filter *interfaces.Filter, ownerRelations []domain
 	return aclmappings, nil
 }
 
-func (r *AclMappingRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+func (r *AclMappingRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -91,7 +92,7 @@ func (r *AclMappingRepo) FindByID(id int, filter *interfaces.Filter, ownerRelati
 	return &aclmapping, nil
 }
 
-func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
+func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -136,7 +137,7 @@ func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping, filter *interfa
 	return aclmappings, nil
 }
 
-func (r *AclMappingRepo) UpsertOne(aclmapping *domain.AclMapping, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+func (r *AclMappingRepo) UpsertOne(aclmapping *domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 	db := r.store.GetDB()
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
@@ -170,7 +171,7 @@ func (r *AclMappingRepo) UpsertOne(aclmapping *domain.AclMapping, filter *interf
 }
 
 func (r *AclMappingRepo) UpdateByID(id int, aclmapping *domain.AclMapping,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
@@ -191,7 +192,7 @@ func (r *AclMappingRepo) UpdateByID(id int, aclmapping *domain.AclMapping,
 	return aclmapping, nil
 }
 
-func (r *AclMappingRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *AclMappingRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
@@ -205,7 +206,7 @@ func (r *AclMappingRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []d
 	return nil
 }
 
-func (r *AclMappingRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *AclMappingRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError

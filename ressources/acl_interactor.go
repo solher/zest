@@ -8,19 +8,19 @@ import (
 	"database/sql"
 
 	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AbstractAclRepo interface {
 	Create(acls []domain.Acl) ([]domain.Acl, error)
 	CreateOne(acl *domain.Acl) (*domain.Acl, error)
-	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
-	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
-	Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
-	UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
-	UpdateByID(id int, acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
-	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
+	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
+	Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
+	UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
+	UpdateByID(id int, acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
+	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -42,39 +42,39 @@ func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
 	return acl, err
 }
 
-func (i *AclInter) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
+func (i *AclInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
 	acls, err := i.repo.Find(filter, ownerRelations)
 	return acls, err
 }
 
-func (i *AclInter) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+func (i *AclInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 	acl, err := i.repo.FindByID(id, filter, ownerRelations)
 	return acl, err
 }
 
-func (i *AclInter) Upsert(acls []domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
+func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
 	acls, err := i.repo.Upsert(acls, filter, ownerRelations)
 	return acls, err
 }
 
-func (i *AclInter) UpsertOne(acl *domain.Acl, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 	acl, err := i.repo.UpsertOne(acl, filter, ownerRelations)
 	return acl, err
 }
 
 func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 
 	acl, err := i.repo.UpdateByID(id, acl, filter, ownerRelations)
 	return acl, err
 }
 
-func (i *AclInter) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteAll(filter, ownerRelations)
 	return err
 }
 
-func (i *AclInter) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	return err
 }

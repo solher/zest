@@ -11,6 +11,7 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type UserRepo struct {
@@ -59,7 +60,7 @@ func (r *UserRepo) CreateOne(user *domain.User) (*domain.User, error) {
 	return user, nil
 }
 
-func (r *UserRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+func (r *UserRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -75,7 +76,7 @@ func (r *UserRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relat
 	return users, nil
 }
 
-func (r *UserRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+func (r *UserRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -91,7 +92,7 @@ func (r *UserRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []
 	return &user, nil
 }
 
-func (r *UserRepo) Upsert(users []domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+func (r *UserRepo) Upsert(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -136,7 +137,7 @@ func (r *UserRepo) Upsert(users []domain.User, filter *interfaces.Filter, ownerR
 	return users, nil
 }
 
-func (r *UserRepo) UpsertOne(user *domain.User, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+func (r *UserRepo) UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 	db := r.store.GetDB()
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
@@ -170,7 +171,7 @@ func (r *UserRepo) UpsertOne(user *domain.User, filter *interfaces.Filter, owner
 }
 
 func (r *UserRepo) UpdateByID(id int, user *domain.User,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
@@ -191,7 +192,7 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 	return user, nil
 }
 
-func (r *UserRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *UserRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
@@ -205,7 +206,7 @@ func (r *UserRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.
 	return nil
 }
 
-func (r *UserRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *UserRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError

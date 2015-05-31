@@ -11,15 +11,15 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type SessionRepo struct {
 	store interfaces.AbstractGormStore
-	cache interfaces.AbstractCacheStore
 }
 
-func NewSessionRepo(store interfaces.AbstractGormStore, cache interfaces.AbstractCacheStore) *SessionRepo {
-	return &SessionRepo{store: store, cache: cache}
+func NewSessionRepo(store interfaces.AbstractGormStore) *SessionRepo {
+	return &SessionRepo{store: store}
 }
 
 func (r *SessionRepo) Create(sessions []domain.Session) ([]domain.Session, error) {
@@ -60,7 +60,7 @@ func (r *SessionRepo) CreateOne(session *domain.Session) (*domain.Session, error
 	return session, nil
 }
 
-func (r *SessionRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
+func (r *SessionRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -76,7 +76,7 @@ func (r *SessionRepo) Find(filter *interfaces.Filter, ownerRelations []domain.Re
 	return sessions, nil
 }
 
-func (r *SessionRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+func (r *SessionRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
@@ -92,7 +92,7 @@ func (r *SessionRepo) FindByID(id int, filter *interfaces.Filter, ownerRelations
 	return &session, nil
 }
 
-func (r *SessionRepo) Upsert(sessions []domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
+func (r *SessionRepo) Upsert(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -107,8 +107,6 @@ func (r *SessionRepo) Upsert(sessions []domain.Session, filter *interfaces.Filte
 		if session.ID != 0 {
 			oldUser := domain.Session{}
 
-			authToken := session.AuthToken
-
 			err := queryCopy.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(session).Error
 			if err != nil {
 				transaction.Rollback()
@@ -117,12 +115,6 @@ func (r *SessionRepo) Upsert(sessions []domain.Session, filter *interfaces.Filte
 					return nil, internalerrors.NewViolatedConstraint(err.Error())
 				}
 
-				return nil, internalerrors.DatabaseError
-			}
-
-			r.cache.Remove(authToken)
-			err = r.cache.Add(session.AuthToken, session)
-			if err != nil {
 				return nil, internalerrors.DatabaseError
 			}
 		} else {
@@ -145,7 +137,7 @@ func (r *SessionRepo) Upsert(sessions []domain.Session, filter *interfaces.Filte
 	return sessions, nil
 }
 
-func (r *SessionRepo) UpsertOne(session *domain.Session, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+func (r *SessionRepo) UpsertOne(session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 	db := r.store.GetDB()
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
@@ -156,20 +148,12 @@ func (r *SessionRepo) UpsertOne(session *domain.Session, filter *interfaces.Filt
 	if session.ID != 0 {
 		oldUser := domain.Session{}
 
-		authToken := session.AuthToken
-
 		err := query.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(session).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
 
-			return nil, internalerrors.DatabaseError
-		}
-
-		r.cache.Remove(authToken)
-		err = r.cache.Add(session.AuthToken, session)
-		if err != nil {
 			return nil, internalerrors.DatabaseError
 		}
 	} else {
@@ -187,7 +171,7 @@ func (r *SessionRepo) UpsertOne(session *domain.Session, filter *interfaces.Filt
 }
 
 func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
@@ -195,8 +179,6 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 	}
 
 	oldUser := domain.Session{}
-
-	authToken := session.AuthToken
 
 	err = query.Where("sessions.id = ?", id).First(&oldUser).Updates(session).Error
 	if err != nil {
@@ -207,16 +189,10 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 		return nil, internalerrors.DatabaseError
 	}
 
-	r.cache.Remove(authToken)
-	err = r.cache.Add(session.AuthToken, session)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
 	return session, nil
 }
 
-func (r *SessionRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *SessionRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
@@ -227,26 +203,16 @@ func (r *SessionRepo) DeleteAll(filter *interfaces.Filter, ownerRelations []doma
 		return internalerrors.DatabaseError
 	}
 
-	err = r.cache.Purge()
-	if err != nil {
-		return internalerrors.DatabaseError
-	}
-
 	return nil
 }
 
-func (r *SessionRepo) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (r *SessionRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
 	err = query.Delete(&domain.Session{GormModel: domain.GormModel{ID: id}}).Error
-	if err != nil {
-		return internalerrors.DatabaseError
-	}
-
-	err = r.cache.Purge()
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -263,11 +229,6 @@ func (r *SessionRepo) Raw(query string, values ...interface{}) (*sql.Rows, error
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
 		}
 
-		return nil, internalerrors.DatabaseError
-	}
-
-	err = r.cache.Purge()
-	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 

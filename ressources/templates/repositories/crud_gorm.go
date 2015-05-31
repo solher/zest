@@ -89,7 +89,7 @@ var createOne = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (r *{{.Type}}Repo) Find(filter interfaces.AbstractFilter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter, ownerRelations)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
@@ -109,7 +109,7 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (r *{{.Type}}Repo) FindByID(id int, filter interfaces.AbstractFilter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
+	func (r *{{.Type}}Repo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 		query, err := r.store.BuildQuery(filter, ownerRelations)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
@@ -129,7 +129,7 @@ var findByID = &typewriter.Template{
 var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
-	func (r *{{.Type}}Repo) Upsert({{.Name}}s []domain.{{.Type}}, filter interfaces.AbstractFilter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Upsert({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
 		db := r.store.GetDB()
 		transaction := db.Begin()
 
@@ -178,7 +178,7 @@ var upsert = &typewriter.Template{
 var upsertOne = &typewriter.Template{
 	Name: "UpsertOne",
 	Text: `
-	func (r *{{.Type}}Repo) UpsertOne({{.Name}} *domain.{{.Type}}, filter interfaces.AbstractFilter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
+	func (r *{{.Type}}Repo) UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 		db := r.store.GetDB()
 
 		query, err := r.store.BuildQuery(filter, ownerRelations)
@@ -215,7 +215,7 @@ var updateByID = &typewriter.Template{
 	Name: "UpdateByID",
 	Text: `
 	func (r *{{.Type}}Repo) UpdateByID(id int, {{.Name}} *domain.{{.Type}},
-		filter interfaces.AbstractFilter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
+		filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 
 		query, err := r.store.BuildQuery(filter, ownerRelations)
 		if err != nil {
@@ -240,7 +240,7 @@ var updateByID = &typewriter.Template{
 var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
-	func (r *{{.Type}}Repo) DeleteAll(filter interfaces.AbstractFilter, ownerRelations []domain.Relation) error {
+	func (r *{{.Type}}Repo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 		query, err := r.store.BuildQuery(filter, ownerRelations)
 		if err != nil {
 			return internalerrors.DatabaseError
@@ -258,7 +258,7 @@ var deleteAll = &typewriter.Template{
 var deleteByID = &typewriter.Template{
 	Name: "DeleteByID",
 	Text: `
-	func (r *{{.Type}}Repo) DeleteByID(id int, filter interfaces.AbstractFilter, ownerRelations []domain.Relation) error {
+	func (r *{{.Type}}Repo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 		query, err := r.store.BuildQuery(filter, ownerRelations)
 		if err != nil {
 			return internalerrors.DatabaseError

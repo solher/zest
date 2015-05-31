@@ -8,19 +8,19 @@ import (
 	"database/sql"
 
 	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AbstractRoleRepo interface {
 	Create(roles []domain.Role) ([]domain.Role, error)
 	CreateOne(role *domain.Role) (*domain.Role, error)
-	Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
-	FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	Upsert(roles []domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
-	UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	UpdateByID(id int, role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error
+	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
+	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	Upsert(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
+	UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	UpdateByID(id int, role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -42,39 +42,39 @@ func (i *RoleInter) CreateOne(role *domain.Role) (*domain.Role, error) {
 	return role, err
 }
 
-func (i *RoleInter) Find(filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
+func (i *RoleInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
 	roles, err := i.repo.Find(filter, ownerRelations)
 	return roles, err
 }
 
-func (i *RoleInter) FindByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
+func (i *RoleInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 	role, err := i.repo.FindByID(id, filter, ownerRelations)
 	return role, err
 }
 
-func (i *RoleInter) Upsert(roles []domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
+func (i *RoleInter) Upsert(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
 	roles, err := i.repo.Upsert(roles, filter, ownerRelations)
 	return roles, err
 }
 
-func (i *RoleInter) UpsertOne(role *domain.Role, filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
+func (i *RoleInter) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 	role, err := i.repo.UpsertOne(role, filter, ownerRelations)
 	return role, err
 }
 
 func (i *RoleInter) UpdateByID(id int, role *domain.Role,
-	filter *interfaces.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 
 	role, err := i.repo.UpdateByID(id, role, filter, ownerRelations)
 	return role, err
 }
 
-func (i *RoleInter) DeleteAll(filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (i *RoleInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteAll(filter, ownerRelations)
 	return err
 }
 
-func (i *RoleInter) DeleteByID(id int, filter *interfaces.Filter, ownerRelations []domain.Relation) error {
+func (i *RoleInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	return err
 }
