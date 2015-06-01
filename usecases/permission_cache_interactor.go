@@ -1,16 +1,12 @@
 package usecases
 
-import "github.com/Solher/auth-scaffold/domain"
+import (
+	"github.com/Solher/auth-scaffold/domain"
+	"github.com/Solher/auth-scaffold/utils"
+)
 
 type AclCacheKey struct {
 	Ressource, Method string
-}
-
-type AbstractCacheStore interface {
-	Add(key interface{}, value interface{}) error
-	Remove(key interface{}) error
-	Get(key interface{}) (interface{}, error)
-	Purge() error
 }
 
 type AbstractAccountRepo interface {
@@ -36,8 +32,38 @@ func NewPermissionCacheInter(accountRepo AbstractAccountRepo, aclRepo AbstractAc
 		roleCache: roleCache, aclCache: aclCache}
 }
 
-func (i *PermissionCacheInter) Refresh() error {
+func (i *PermissionCacheInter) GetPermissionRoles(accountID int, ressource, method string) ([]string, error) {
+	roleNames := []string{}
 
+	cachedAccountRoles, err := i.roleCache.Get(accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	cachedAclRoles, err := i.aclCache.Get(AclCacheKey{Ressource: ressource, Method: method})
+	if err != nil {
+		return nil, err
+	}
+
+	accountRoles := cachedAccountRoles.([]string)
+	aclRoles := cachedAclRoles.([]string)
+
+	if accountID == 0 {
+		accountRoles = append(accountRoles, "Guest", "Anyone")
+	} else {
+		accountRoles = append(accountRoles, "Authenticated", "Owner", "Anyone")
+	}
+
+	for _, role := range accountRoles {
+		if utils.ContainsStr(aclRoles, role) {
+			roleNames = append(roleNames, role)
+		}
+	}
+
+	return roleNames, nil
+}
+
+func (i *PermissionCacheInter) Refresh() error {
 	filter := &Filter{
 		Include: []interface{}{
 			map[string]interface{}{

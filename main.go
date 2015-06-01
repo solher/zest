@@ -8,6 +8,7 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/middlewares"
 	"github.com/Solher/auth-scaffold/ressources"
+	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 
@@ -73,7 +74,7 @@ func handleOsArgs() bool {
 }
 
 func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render,
-	store *infrastructure.GormStore, sessionCache *infrastructure.LRUCacheStore, roleCache, aclCache *infrastructure.CacheStore) {
+	store *infrastructure.GormStore, lruCacheStore *infrastructure.LRUCacheStore, roleCacheStore, aclCacheStore *infrastructure.CacheStore) {
 
 	err := connectDB(store)
 	if err != nil {
@@ -88,15 +89,19 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	aclMappingRepository := ressources.NewAclMappingRepo(store)
 	aclRepository := ressources.NewAclRepo(store)
 
+	sessionCacheInter := usecases.NewSessionCacheInter(sessionRepository, lruCacheStore)
+	permissionCacheInter := usecases.NewPermissionCacheInter(accountRepository, aclRepository, roleCacheStore, aclCacheStore)
+	sessionCacheInter.Refresh()
+	permissionCacheInter.Refresh()
+
 	userInteractor := ressources.NewUserInter(userRepository)
 	sessionInteractor := ressources.NewSessionInter(sessionRepository)
-	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository, sessionCache, roleCache, aclCache)
+	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository, sessionCacheInter, permissionCacheInter)
 	roleMappingInteractor := ressources.NewRoleMappingInter(roleMappingRepository)
 	roleInteractor := ressources.NewRoleInter(roleRepository)
 	aclMappingInteractor := ressources.NewAclMappingInter(aclMappingRepository)
 	aclInteractor := ressources.NewAclInter(aclRepository)
 
-	// interfaces.RefreshPermissionCache(accountRepository, aclRepository, roleCache, aclCache)
 	routes := interfaces.NewRouteDirectory(accountInteractor, render)
 
 	ressources.NewUserCtrl(userInteractor, render, routes)

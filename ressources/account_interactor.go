@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/usecases"
 
 	"github.com/Solher/auth-scaffold/internalerrors"
@@ -26,17 +25,18 @@ type AbstractAccountRepo interface {
 }
 
 type AccountInter struct {
-	repo                              AbstractAccountRepo
-	userRepo                          AbstractUserRepo
-	sessionRepo                       AbstractSessionRepo
-	sessionCache, roleCache, aclCache interfaces.AbstractCacheStore
+	repo                 AbstractAccountRepo
+	userRepo             AbstractUserRepo
+	sessionRepo          AbstractSessionRepo
+	sessionCacheInter    *usecases.SessionCacheInter
+	permissionCacheInter *usecases.PermissionCacheInter
 }
 
-func NewAccountInter(repo AbstractAccountRepo, userRepo AbstractUserRepo,
-	sessionRepo AbstractSessionRepo, sessionCache, roleCache, aclCache interfaces.AbstractCacheStore) *AccountInter {
+func NewAccountInter(repo AbstractAccountRepo, userRepo AbstractUserRepo, sessionRepo AbstractSessionRepo,
+	sessionCacheInter *usecases.SessionCacheInter, permissionCacheInter *usecases.PermissionCacheInter) *AccountInter {
 
 	return &AccountInter{repo: repo, userRepo: userRepo, sessionRepo: sessionRepo,
-		sessionCache: sessionCache, roleCache: roleCache, aclCache: aclCache}
+		sessionCacheInter: sessionCacheInter, permissionCacheInter: permissionCacheInter}
 }
 
 func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error) {
@@ -82,7 +82,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		return nil, err
 	}
 
-	err = i.sessionCache.Add(session.AuthToken, *session)
+	err = i.sessionCacheInter.Add(session.AuthToken, *session)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (i *AccountInter) Signout(currentSession *domain.Session) error {
 		return err
 	}
 
-	err = i.sessionCache.Remove(authToken)
+	err = i.sessionCacheInter.Remove(authToken)
 	if err != nil {
 		return err
 	}
@@ -141,13 +141,9 @@ func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account,
 }
 
 func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Session, error) {
-	sessionCache, _ := i.sessionCache.Get(authToken)
-	var session *domain.Session
+	session, err := i.sessionCacheInter.Get(authToken)
 
-	if sessionCache != nil {
-		sessionTmp := sessionCache.(domain.Session)
-		session = &sessionTmp
-	} else {
+	if err != nil {
 		filter := &usecases.Filter{
 			Limit: 1,
 			Where: map[string]interface{}{"authToken": authToken},
@@ -159,17 +155,17 @@ func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Sessio
 		}
 
 		if len(sessions) == 1 {
-			session = &sessions[0]
+			session = sessions[0]
 
-			err = i.sessionCache.Add(session.AuthToken, *session)
+			err = i.sessionCacheInter.Add(session.AuthToken, session)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	if session != nil && session.ValidTo.After(time.Now()) {
-		return session, nil
+	if session.ValidTo.After(time.Now()) {
+		return &session, nil
 	}
 
 	return nil, nil
@@ -177,28 +173,10 @@ func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Sessio
 
 func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) ([]string, error) {
 	var rows *sql.Rows
-	var err error
-	roleNames := []string{}
 
-	rolesCache, _ := i.roleCache.Get(accountID)
-	aclCache, _ := i.aclCache.Get(usecases.AclCacheKey{Ressource: ressource, Method: method})
+	roleNames, err := i.permissionCacheInter.GetPermissionRoles(accountID, ressource, method)
 
-	if rolesCache != nil && aclCache != nil {
-		accountRoles := rolesCache.([]string)
-		aclRoles := aclCache.([]string)
-
-		if accountID == 0 {
-			accountRoles = append(accountRoles, "Guest", "Anyone")
-		} else {
-			accountRoles = append(accountRoles, "Authenticated", "Owner", "Anyone")
-		}
-
-		for _, role := range accountRoles {
-			if utils.ContainsStr(aclRoles, role) {
-				roleNames = append(roleNames, role)
-			}
-		}
-	} else {
+	if err != nil {
 		if accountID == 0 {
 			rows, err = i.repo.Raw(`
 				SELECT DISTINCT roles.name

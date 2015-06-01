@@ -7,7 +7,8 @@ import (
 )
 
 type LRUCacheStore struct {
-	cache *lru.Cache
+	cache   *lru.Cache
+	maxSize int
 }
 
 func NewLRUCacheStore(size int) *LRUCacheStore {
@@ -16,7 +17,7 @@ func NewLRUCacheStore(size int) *LRUCacheStore {
 		panic("LRUCacheStore creation error: " + err.Error())
 	}
 
-	return &LRUCacheStore{cache: cache}
+	return &LRUCacheStore{cache: cache, maxSize: size}
 }
 
 func (c *LRUCacheStore) Add(key interface{}, value interface{}) error {
@@ -45,4 +46,8 @@ func (c *LRUCacheStore) Purge() error {
 	c.cache.Purge()
 
 	return nil
+}
+
+func (c *LRUCacheStore) MaxSize() int {
+	return c.maxSize
 }

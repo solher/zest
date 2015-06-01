@@ -446,7 +446,7 @@ func processNestedInclude(include interface{}, processedIncludes []interfaces.Go
 			case "relation":
 				switch strValue := value.(type) {
 				case string:
-					processedInclude.Relation = parentModel + strings.Title(strings.ToLower(strValue))
+					processedInclude.Relation = parentModel + strings.Title(strValue)
 				}
 
 			case "where":
@@ -471,7 +471,7 @@ func processNestedInclude(include interface{}, processedIncludes []interfaces.Go
 		processedIncludes = append(processedIncludes, processedInclude)
 
 	case string:
-		relation := parentModel + strings.Title(strings.ToLower(include.(string)))
+		relation := parentModel + strings.Title(include.(string))
 		processedInclude := interfaces.GormInclude{Relation: relation}
 		processedIncludes = append(processedIncludes, processedInclude)
 	}

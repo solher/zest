@@ -38,3 +38,7 @@ func (c *CacheStore) Purge() error {
 
 	return nil
 }
+
+func (c *CacheStore) MaxSize() int {
+	return 0
+}
