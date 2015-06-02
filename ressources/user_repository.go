@@ -92,7 +92,7 @@ func (r *UserRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []do
 	return &user, nil
 }
 
-func (r *UserRepo) Upsert(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+func (r *UserRepo) Update(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -103,71 +103,22 @@ func (r *UserRepo) Upsert(users []domain.User, filter *usecases.Filter, ownerRel
 
 	for i, user := range users {
 		queryCopy := *query
+		oldUser := domain.User{}
 
-		if user.ID != 0 {
-			oldUser := domain.User{}
+		err := queryCopy.Where("users.id = ?", user.ID).First(&oldUser).Updates(users[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-			err := queryCopy.Where("users.id = ?", user.ID).First(&oldUser).Updates(user).Error
-			if err != nil {
-				transaction.Rollback()
-
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&user).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		users[i] = user
 	}
 
 	transaction.Commit()
 	return users, nil
-}
-
-func (r *UserRepo) UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
-	db := r.store.GetDB()
-
-	query, err := r.store.BuildQuery(filter, ownerRelations)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
-	if user.ID != 0 {
-		oldUser := domain.User{}
-
-		err := query.Where("users.id = ?", user.ID).First(&oldUser).Updates(user).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	} else {
-		err := db.Create(&user).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	}
-
-	return user, nil
 }
 
 func (r *UserRepo) UpdateByID(id int, user *domain.User,

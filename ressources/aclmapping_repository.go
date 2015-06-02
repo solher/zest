@@ -92,7 +92,7 @@ func (r *AclMappingRepo) FindByID(id int, filter *usecases.Filter, ownerRelation
 	return &aclmapping, nil
 }
 
-func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
+func (r *AclMappingRepo) Update(aclmappings []domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -103,71 +103,22 @@ func (r *AclMappingRepo) Upsert(aclmappings []domain.AclMapping, filter *usecase
 
 	for i, aclmapping := range aclmappings {
 		queryCopy := *query
+		oldUser := domain.AclMapping{}
 
-		if aclmapping.ID != 0 {
-			oldUser := domain.AclMapping{}
+		err := queryCopy.Where("aclmappings.id = ?", aclmapping.ID).First(&oldUser).Updates(aclmappings[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-			err := queryCopy.Where("aclmappings.id = ?", aclmapping.ID).First(&oldUser).Updates(aclmapping).Error
-			if err != nil {
-				transaction.Rollback()
-
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&aclmapping).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		aclmappings[i] = aclmapping
 	}
 
 	transaction.Commit()
 	return aclmappings, nil
-}
-
-func (r *AclMappingRepo) UpsertOne(aclmapping *domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
-	db := r.store.GetDB()
-
-	query, err := r.store.BuildQuery(filter, ownerRelations)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
-	if aclmapping.ID != 0 {
-		oldUser := domain.AclMapping{}
-
-		err := query.Where("aclmappings.id = ?", aclmapping.ID).First(&oldUser).Updates(aclmapping).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	} else {
-		err := db.Create(&aclmapping).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	}
-
-	return aclmapping, nil
 }
 
 func (r *AclMappingRepo) UpdateByID(id int, aclmapping *domain.AclMapping,

@@ -16,8 +16,7 @@ type AbstractRoleRepo interface {
 	CreateOne(role *domain.Role) (*domain.Role, error)
 	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
 	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	Upsert(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
-	UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
+	Update(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
 	UpdateByID(id int, role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
 	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
@@ -33,48 +32,123 @@ func NewRoleInter(repo AbstractRoleRepo) *RoleInter {
 }
 
 func (i *RoleInter) Create(roles []domain.Role) ([]domain.Role, error) {
-	roles, err := i.repo.Create(roles)
-	return roles, err
+	var err error
+
+	for i := range roles {
+		err = (&roles[i]).BeforeCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	roles, err = i.repo.Create(roles)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range roles {
+		err = (&roles[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return roles, nil
 }
 
 func (i *RoleInter) CreateOne(role *domain.Role) (*domain.Role, error) {
 	role, err := i.repo.CreateOne(role)
-	return role, err
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
 }
 
 func (i *RoleInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
 	roles, err := i.repo.Find(filter, ownerRelations)
-	return roles, err
+	if err != nil {
+		return nil, err
+	}
+
+	return roles, nil
 }
 
 func (i *RoleInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 	role, err := i.repo.FindByID(id, filter, ownerRelations)
-	return role, err
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
 }
 
 func (i *RoleInter) Upsert(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
-	roles, err := i.repo.Upsert(roles, filter, ownerRelations)
-	return roles, err
+	rolesToUpdate := []domain.Role{}
+	rolesToCreate := []domain.Role{}
+
+	for _, role := range roles {
+		if role.ID != 0 {
+			rolesToUpdate = append(rolesToUpdate, role)
+		} else {
+			rolesToCreate = append(rolesToCreate, role)
+		}
+	}
+
+	rolesToUpdate, err := i.repo.Update(rolesToUpdate, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	rolesToCreate, err = i.repo.Create(rolesToCreate)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(rolesToUpdate, rolesToCreate...), nil
 }
 
 func (i *RoleInter) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
-	role, err := i.repo.UpsertOne(role, filter, ownerRelations)
-	return role, err
+	var err error
+
+	if role.ID != 0 {
+		role, err = i.repo.UpdateByID(role.ID, role, filter, ownerRelations)
+	} else {
+		role, err = i.repo.CreateOne(role)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
 }
 
 func (i *RoleInter) UpdateByID(id int, role *domain.Role,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 
 	role, err := i.repo.UpdateByID(id, role, filter, ownerRelations)
-	return role, err
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
 }
 
 func (i *RoleInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteAll(filter, ownerRelations)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (i *RoleInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteByID(id, filter, ownerRelations)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

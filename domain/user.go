@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 func init() {
 	relations := []Relation{
@@ -10,7 +14,7 @@ func init() {
 	ModelDirectory.Register(User{}, "users", relations)
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID,Raw"
+//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
 type User struct {
 	GormModel
 	AccountID int    `json:"accountId,omitempty" sql:"index"`
@@ -20,12 +24,65 @@ type User struct {
 	Email     string `json:"email,omitempty" sql:"unique"`
 }
 
-func (m *User) ScopeModel(accountID int) {
-	// m.ID = 0
+func scopeUser(m *User) error {
+	m.ID = 0
 	m.CreatedAt = time.Time{}
 	m.UpdatedAt = m.CreatedAt
 
-	if accountID != 0 {
-		m.AccountID = accountID
+	if m.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(m.Password), 0)
+		if err != nil {
+			return err
+		}
+
+		m.Password = string(hashedPassword)
 	}
+
+	return nil
+}
+
+func (m *User) ValidateCreate() error {
+	return nil
+}
+
+func (m *User) ValidateUpdate() error {
+	return nil
+}
+
+func (m *User) ValidateDelete() error {
+	return nil
+}
+
+func (m *User) BeforeCreate() error {
+	err := scopeUser(m)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *User) AfterCreate() error {
+	return nil
+}
+
+func (m *User) BeforeUpdate() error {
+	err := scopeUser(m)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *User) AfterUpdate() error {
+	return nil
+}
+
+func (m *User) BeforeDelete() error {
+	return nil
+}
+
+func (m *User) AfterDelete() error {
+	return nil
 }

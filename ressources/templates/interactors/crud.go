@@ -35,8 +35,7 @@ var interactor = &typewriter.Template{
 		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
 		Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
 		FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
-		Upsert({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
-		UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		Update({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
 		UpdateByID(id int, {{.Name}} *domain.{{.Type}},	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
 		DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
 		DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
@@ -56,8 +55,28 @@ var create = &typewriter.Template{
 	Name: "Create",
 	Text: `
 	func (i *{{.Type}}Inter) Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error) {
-		{{.Name}}s, err := i.repo.Create({{.Name}}s)
-		return {{.Name}}s, err
+		var err error
+
+		for i := range {{.Name}}s {
+			err = (&{{.Name}}s[i]).BeforeCreate()
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		{{.Name}}s, err = i.repo.Create({{.Name}}s)
+		if err != nil {
+			return nil, err
+		}
+
+		for i := range {{.Name}}s {
+			err = (&{{.Name}}s[i]).AfterCreate()
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return {{.Name}}s, nil
 	}
 `}
 
@@ -66,7 +85,11 @@ var createOne = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
 		{{.Name}}, err := i.repo.CreateOne({{.Name}})
-		return {{.Name}}, err
+		if err != nil {
+			return nil, err
+		}
+
+		return {{.Name}}, nil
 	}
 `}
 
@@ -75,7 +98,11 @@ var find = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
 		{{.Name}}s, err := i.repo.Find(filter, ownerRelations)
-		return {{.Name}}s, err
+		if err != nil {
+			return nil, err
+		}
+
+		return {{.Name}}s, nil
 	}
 `}
 
@@ -84,7 +111,11 @@ var findByID = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 		{{.Name}}, err := i.repo.FindByID(id, filter, ownerRelations)
-		return {{.Name}}, err
+		if err != nil {
+			return nil, err
+		}
+
+		return {{.Name}}, nil
 	}
 `}
 
@@ -92,8 +123,28 @@ var upsert = &typewriter.Template{
 	Name: "Upsert",
 	Text: `
 	func (i *{{.Type}}Inter) Upsert({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
-		{{.Name}}s, err := i.repo.Upsert({{.Name}}s, filter, ownerRelations)
-		return {{.Name}}s, err
+		{{.Name}}sToUpdate := []domain.{{.Type}}{}
+		{{.Name}}sToCreate := []domain.{{.Type}}{}
+
+		for _, {{.Name}} := range {{.Name}}s {
+			if {{.Name}}.ID != 0 {
+				{{.Name}}sToUpdate = append({{.Name}}sToUpdate, {{.Name}})
+			} else {
+				{{.Name}}sToCreate = append({{.Name}}sToCreate, {{.Name}})
+			}
+		}
+
+		{{.Name}}sToUpdate, err := i.repo.Update({{.Name}}sToUpdate, filter, ownerRelations)
+		if err != nil {
+			return nil, err
+		}
+
+		{{.Name}}sToCreate, err = i.repo.Create({{.Name}}sToCreate)
+		if err != nil {
+			return nil, err
+		}
+
+		return append({{.Name}}sToUpdate, {{.Name}}sToCreate...), nil
 	}
 `}
 
@@ -101,8 +152,19 @@ var upsertOne = &typewriter.Template{
 	Name: "UpsertOne",
 	Text: `
 	func (i *{{.Type}}Inter) UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
-		{{.Name}}, err := i.repo.UpsertOne({{.Name}}, filter, ownerRelations)
-		return {{.Name}}, err
+		var err error
+
+		if {{.Name}}.ID != 0 {
+			{{.Name}}, err = i.repo.UpdateByID({{.Name}}.ID, {{.Name}}, filter, ownerRelations)
+		} else {
+			{{.Name}}, err = i.repo.CreateOne({{.Name}})
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		return {{.Name}}, nil
 	}
 `}
 
@@ -113,7 +175,11 @@ var updateByID = &typewriter.Template{
 		filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 
 		{{.Name}}, err := i.repo.UpdateByID(id, {{.Name}}, filter, ownerRelations)
-		return {{.Name}}, err
+		if err != nil {
+			return nil, err
+		}
+
+		return {{.Name}}, nil
 	}
 `}
 
@@ -122,7 +188,11 @@ var deleteAll = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 		err := i.repo.DeleteAll(filter, ownerRelations)
-		return err
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 `}
 
@@ -131,6 +201,10 @@ var deleteByID = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 		err := i.repo.DeleteByID(id, filter, ownerRelations)
-		return err
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 `}

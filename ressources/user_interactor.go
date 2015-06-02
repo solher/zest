@@ -5,9 +5,10 @@
 package ressources
 
 import (
+	"database/sql"
+
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/usecases"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AbstractUserRepo interface {
@@ -15,11 +16,11 @@ type AbstractUserRepo interface {
 	CreateOne(user *domain.User) (*domain.User, error)
 	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
 	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
-	Upsert(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
-	UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
-	UpdateByID(id int, session *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
+	Update(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
+	UpdateByID(id int, user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
 	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
 type UserInter struct {
@@ -31,97 +32,123 @@ func NewUserInter(repo AbstractUserRepo) *UserInter {
 }
 
 func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
+	var err error
+
 	for i := range users {
-		if users[i].Password != "" {
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
-			if err != nil {
-				return nil, err
-			}
-
-			users[i].Password = string(hashedPassword)
-		}
-	}
-
-	users, err := i.repo.Create(users)
-	return users, err
-}
-
-func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
-	if user.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+		err = (&users[i]).BeforeCreate()
 		if err != nil {
 			return nil, err
 		}
-
-		user.Password = string(hashedPassword)
 	}
 
+	users, err = i.repo.Create(users)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range users {
+		err = (&users[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return users, nil
+}
+
+func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
 	user, err := i.repo.CreateOne(user)
-	return user, err
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (i *UserInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
 	users, err := i.repo.Find(filter, ownerRelations)
-	return users, err
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (i *UserInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 	user, err := i.repo.FindByID(id, filter, ownerRelations)
-	return user, err
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
-	for i := range users {
-		if users[i].Password != "" {
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
-			if err != nil {
-				return nil, err
-			}
+	usersToUpdate := []domain.User{}
+	usersToCreate := []domain.User{}
 
-			users[i].Password = string(hashedPassword)
+	for _, user := range users {
+		if user.ID != 0 {
+			usersToUpdate = append(usersToUpdate, user)
+		} else {
+			usersToCreate = append(usersToCreate, user)
 		}
 	}
 
-	users, err := i.repo.Upsert(users, filter, ownerRelations)
-	return users, err
+	usersToUpdate, err := i.repo.Update(usersToUpdate, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	usersToCreate, err = i.repo.Create(usersToCreate)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(usersToUpdate, usersToCreate...), nil
 }
 
 func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
-	if user.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
-		if err != nil {
-			return nil, err
-		}
+	var err error
 
-		user.Password = string(hashedPassword)
+	if user.ID != 0 {
+		user, err = i.repo.UpdateByID(user.ID, user, filter, ownerRelations)
+	} else {
+		user, err = i.repo.CreateOne(user)
 	}
 
-	user, err := i.repo.UpsertOne(user, filter, ownerRelations)
-	return user, err
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (i *UserInter) UpdateByID(id int, user *domain.User,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 
-	if user.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
-		if err != nil {
-			return nil, err
-		}
-
-		user.Password = string(hashedPassword)
+	user, err := i.repo.UpdateByID(id, user, filter, ownerRelations)
+	if err != nil {
+		return nil, err
 	}
 
-	user, err := i.repo.UpdateByID(id, user, filter, ownerRelations)
-	return user, err
+	return user, nil
 }
 
 func (i *UserInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteAll(filter, ownerRelations)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (i *UserInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteByID(id, filter, ownerRelations)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

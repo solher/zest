@@ -92,7 +92,7 @@ func (r *RoleRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []do
 	return &role, nil
 }
 
-func (r *RoleRepo) Upsert(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
+func (r *RoleRepo) Update(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -103,71 +103,22 @@ func (r *RoleRepo) Upsert(roles []domain.Role, filter *usecases.Filter, ownerRel
 
 	for i, role := range roles {
 		queryCopy := *query
+		oldUser := domain.Role{}
 
-		if role.ID != 0 {
-			oldUser := domain.Role{}
+		err := queryCopy.Where("roles.id = ?", role.ID).First(&oldUser).Updates(roles[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-			err := queryCopy.Where("roles.id = ?", role.ID).First(&oldUser).Updates(role).Error
-			if err != nil {
-				transaction.Rollback()
-
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&role).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		roles[i] = role
 	}
 
 	transaction.Commit()
 	return roles, nil
-}
-
-func (r *RoleRepo) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
-	db := r.store.GetDB()
-
-	query, err := r.store.BuildQuery(filter, ownerRelations)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
-	if role.ID != 0 {
-		oldUser := domain.Role{}
-
-		err := query.Where("roles.id = ?", role.ID).First(&oldUser).Updates(role).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	} else {
-		err := db.Create(&role).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	}
-
-	return role, nil
 }
 
 func (r *RoleRepo) UpdateByID(id int, role *domain.Role,

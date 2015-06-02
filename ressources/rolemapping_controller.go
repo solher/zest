@@ -15,7 +15,6 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
-
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -63,15 +62,15 @@ func (c *RoleMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[s
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 
 	if rolemappings == nil {
-		rolemapping.ScopeModel(lastRessource.ID)
+		// rolemapping.ScopeModel(lastRessource.ID)
 		rolemapping, err = c.interactor.CreateOne(rolemapping)
 	} else {
-		for i := range rolemappings {
-			(&rolemappings[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range rolemappings {
+		// 	(&rolemappings[i]).ScopeModel(lastRessource.ID)
+		// }
 		rolemappings, err = c.interactor.Create(rolemappings)
 	}
 
@@ -152,17 +151,17 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if rolemappings == nil {
-		rolemapping.ScopeModel(lastRessource.ID)
+		// rolemapping.ScopeModel(lastRessource.ID)
 		rolemapping, err = c.interactor.UpsertOne(rolemapping, filter, ownerRelations)
 	} else {
-		for i := range rolemappings {
-			(&rolemappings[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range rolemappings {
+		// 	(&rolemappings[i]).ScopeModel(lastRessource.ID)
+		// }
 		rolemappings, err = c.interactor.Upsert(rolemappings, filter, ownerRelations)
 	}
 
@@ -198,11 +197,11 @@ func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, par
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
-	rolemapping.ScopeModel(lastRessource.ID)
+	// rolemapping.ScopeModel(lastRessource.ID)
 	rolemapping, err = c.interactor.UpdateByID(id, rolemapping, filter, ownerRelations)
 
 	if err != nil {

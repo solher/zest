@@ -92,7 +92,7 @@ func (r *SessionRepo) FindByID(id int, filter *usecases.Filter, ownerRelations [
 	return &session, nil
 }
 
-func (r *SessionRepo) Upsert(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
+func (r *SessionRepo) Update(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -103,71 +103,22 @@ func (r *SessionRepo) Upsert(sessions []domain.Session, filter *usecases.Filter,
 
 	for i, session := range sessions {
 		queryCopy := *query
+		oldUser := domain.Session{}
 
-		if session.ID != 0 {
-			oldUser := domain.Session{}
+		err := queryCopy.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(sessions[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-			err := queryCopy.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(session).Error
-			if err != nil {
-				transaction.Rollback()
-
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&session).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		sessions[i] = session
 	}
 
 	transaction.Commit()
 	return sessions, nil
-}
-
-func (r *SessionRepo) UpsertOne(session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
-	db := r.store.GetDB()
-
-	query, err := r.store.BuildQuery(filter, ownerRelations)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
-	if session.ID != 0 {
-		oldUser := domain.Session{}
-
-		err := query.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(session).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	} else {
-		err := db.Create(&session).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	}
-
-	return session, nil
 }
 
 func (r *SessionRepo) UpdateByID(id int, session *domain.Session,

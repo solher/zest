@@ -20,8 +20,7 @@ var slice = typewriter.TemplateSlice{
 	createOne,
 	find,
 	findByID,
-	upsert,
-	upsertOne,
+	update,
 	updateByID,
 	deleteAll,
 	deleteByID,
@@ -126,10 +125,10 @@ var findByID = &typewriter.Template{
 	}
 `}
 
-var upsert = &typewriter.Template{
-	Name: "Upsert",
+var update = &typewriter.Template{
+	Name: "Update",
 	Text: `
-	func (r *{{.Type}}Repo) Upsert({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Update({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
 		db := r.store.GetDB()
 		transaction := db.Begin()
 
@@ -140,75 +139,22 @@ var upsert = &typewriter.Template{
 
 		for i, {{.Name}} := range {{.Name}}s {
 			queryCopy := *query
+			oldUser := domain.{{.Type}}{}
 
-			if {{.Name}}.ID != 0 {
-				oldUser := domain.{{.Type}}{}
+			err := queryCopy.Where("{{.Name}}s.id = ?", {{.Name}}.ID).First(&oldUser).Updates({{.Name}}s[i]).Error
+			if err != nil {
+				transaction.Rollback()
 
-				err := queryCopy.Where("{{.Name}}s.id = ?", {{.Name}}.ID).First(&oldUser).Updates({{.Name}}).Error
-				if err != nil {
-					transaction.Rollback()
-
-					if strings.Contains(err.Error(), "constraint") {
-						return nil, internalerrors.NewViolatedConstraint(err.Error())
-					}
-
-					return nil, internalerrors.DatabaseError
+				if strings.Contains(err.Error(), "constraint") {
+					return nil, internalerrors.NewViolatedConstraint(err.Error())
 				}
-			} else {
-				err := db.Create(&{{.Name}}).Error
-				if err != nil {
-					transaction.Rollback()
 
-					if strings.Contains(err.Error(), "constraint") {
-						return nil, internalerrors.NewViolatedConstraint(err.Error())
-					}
-
-					return nil, internalerrors.DatabaseError
-				}
+				return nil, internalerrors.DatabaseError
 			}
-
-			{{.Name}}s[i] = {{.Name}}
 		}
 
 		transaction.Commit()
 		return {{.Name}}s, nil
-	}
-`}
-
-var upsertOne = &typewriter.Template{
-	Name: "UpsertOne",
-	Text: `
-	func (r *{{.Type}}Repo) UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
-		db := r.store.GetDB()
-
-		query, err := r.store.BuildQuery(filter, ownerRelations)
-		if err != nil {
-			return nil, internalerrors.DatabaseError
-		}
-
-		if {{.Name}}.ID != 0 {
-			oldUser := domain.{{.Type}}{}
-
-			err := query.Where("{{.Name}}s.id = ?", {{.Name}}.ID).First(&oldUser).Updates({{.Name}}).Error
-			if err != nil {
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
-		} else {
-			err := db.Create(&{{.Name}}).Error
-			if err != nil {
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
-		}
-
-		return {{.Name}}, nil
 	}
 `}
 var updateByID = &typewriter.Template{

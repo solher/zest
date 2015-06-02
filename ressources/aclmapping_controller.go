@@ -15,7 +15,6 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
-
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -63,15 +62,15 @@ func (c *AclMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[st
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 
 	if aclmappings == nil {
-		aclmapping.ScopeModel(lastRessource.ID)
+		// aclmapping.ScopeModel(lastRessource.ID)
 		aclmapping, err = c.interactor.CreateOne(aclmapping)
 	} else {
-		for i := range aclmappings {
-			(&aclmappings[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range aclmappings {
+		// 	(&aclmappings[i]).ScopeModel(lastRessource.ID)
+		// }
 		aclmappings, err = c.interactor.Create(aclmappings)
 	}
 
@@ -152,17 +151,17 @@ func (c *AclMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[st
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if aclmappings == nil {
-		aclmapping.ScopeModel(lastRessource.ID)
+		// aclmapping.ScopeModel(lastRessource.ID)
 		aclmapping, err = c.interactor.UpsertOne(aclmapping, filter, ownerRelations)
 	} else {
-		for i := range aclmappings {
-			(&aclmappings[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range aclmappings {
+		// 	(&aclmappings[i]).ScopeModel(lastRessource.ID)
+		// }
 		aclmappings, err = c.interactor.Upsert(aclmappings, filter, ownerRelations)
 	}
 
@@ -198,11 +197,11 @@ func (c *AclMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, para
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
-	aclmapping.ScopeModel(lastRessource.ID)
+	// aclmapping.ScopeModel(lastRessource.ID)
 	aclmapping, err = c.interactor.UpdateByID(id, aclmapping, filter, ownerRelations)
 
 	if err != nil {

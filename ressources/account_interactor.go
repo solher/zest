@@ -17,8 +17,8 @@ type AbstractAccountRepo interface {
 	CreateOne(account *domain.Account) (*domain.Account, error)
 	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
 	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
-	Upsert(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
-	UpsertOne(account *domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
+	Update(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
+	UpdateByID(id int, account *domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
 	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)

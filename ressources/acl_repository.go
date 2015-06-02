@@ -92,7 +92,7 @@ func (r *AclRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []dom
 	return &acl, nil
 }
 
-func (r *AclRepo) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
+func (r *AclRepo) Update(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -103,71 +103,22 @@ func (r *AclRepo) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelati
 
 	for i, acl := range acls {
 		queryCopy := *query
+		oldUser := domain.Acl{}
 
-		if acl.ID != 0 {
-			oldUser := domain.Acl{}
+		err := queryCopy.Where("acls.id = ?", acl.ID).First(&oldUser).Updates(acls[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-			err := queryCopy.Where("acls.id = ?", acl.ID).First(&oldUser).Updates(acl).Error
-			if err != nil {
-				transaction.Rollback()
-
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&acl).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		acls[i] = acl
 	}
 
 	transaction.Commit()
 	return acls, nil
-}
-
-func (r *AclRepo) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
-	db := r.store.GetDB()
-
-	query, err := r.store.BuildQuery(filter, ownerRelations)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
-	if acl.ID != 0 {
-		oldUser := domain.Acl{}
-
-		err := query.Where("acls.id = ?", acl.ID).First(&oldUser).Updates(acl).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	} else {
-		err := db.Create(&acl).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	}
-
-	return acl, nil
 }
 
 func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,

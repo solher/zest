@@ -11,9 +11,7 @@ func init() {
 	ModelDirectory.Register(AclMapping{}, "aclMappings", relations)
 }
 
-var AclMappingRelated *Relation
-
-//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
+//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
 type AclMapping struct {
 	GormModel
 	RoleID int  `json:"roleId,omitempty" sql:"index"`
@@ -22,12 +20,46 @@ type AclMapping struct {
 	Acl    Acl  `json:"acl,omitempty"`
 }
 
-func (m *AclMapping) ScopeModel(roleID int) {
+func scopeAclMapping(m *AclMapping) {
 	m.ID = 0
 	m.CreatedAt = time.Time{}
 	m.UpdatedAt = m.CreatedAt
+}
 
-	if roleID != 0 {
-		m.RoleID = roleID
-	}
+func (m *AclMapping) ValidateCreate() error {
+	return nil
+}
+
+func (m *AclMapping) ValidateUpdate() error {
+	return nil
+}
+
+func (m *AclMapping) ValidateDelete() error {
+	return nil
+}
+
+func (m *AclMapping) BeforeCreate() error {
+	scopeAclMapping(m)
+	return nil
+}
+
+func (m *AclMapping) AfterCreate() error {
+	return nil
+}
+
+func (m *AclMapping) BeforeUpdate() error {
+	scopeAclMapping(m)
+	return nil
+}
+
+func (m *AclMapping) AfterUpdate() error {
+	return nil
+}
+
+func (m *AclMapping) BeforeDelete() error {
+	return nil
+}
+
+func (m *AclMapping) AfterDelete() error {
+	return nil
 }

@@ -77,15 +77,15 @@ var create = &typewriter.Template{
 			}
 		}
 
-		lastRessource := interfaces.GetLastRessource(r)
+		// lastRessource := interfaces.GetLastRessource(r)
 
 		if {{.Name}}s == nil {
-			{{.Name}}.ScopeModel(lastRessource.ID)
+			// {{.Name}}.ScopeModel(lastRessource.ID)
 			{{.Name}}, err = c.interactor.CreateOne({{.Name}})
 		} else {
-			for i := range {{.Name}}s {
-				(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
-			}
+			// for i := range {{.Name}}s {
+			// 	(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
+			// }
 			{{.Name}}s, err = c.interactor.Create({{.Name}}s)
 		}
 
@@ -178,17 +178,17 @@ var upsert = &typewriter.Template{
 			}
 		}
 
-		lastRessource := interfaces.GetLastRessource(r)
+		// lastRessource := interfaces.GetLastRessource(r)
 		filter := interfaces.FilterIfOwnerRelations(r, nil)
 		ownerRelations := interfaces.GetOwnerRelations(r)
 
 		if {{.Name}}s == nil {
-			{{.Name}}.ScopeModel(lastRessource.ID)
+			// {{.Name}}.ScopeModel(lastRessource.ID)
 			{{.Name}}, err = c.interactor.UpsertOne({{.Name}}, filter, ownerRelations)
 		} else {
-			for i := range {{.Name}}s {
-				(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
-			}
+			// for i := range {{.Name}}s {
+			// 	(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
+			// }
 			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s, filter, ownerRelations)
 		}
 
@@ -228,11 +228,11 @@ var updateByID = &typewriter.Template{
 			return
 		}
 
-		lastRessource := interfaces.GetLastRessource(r)
+		// lastRessource := interfaces.GetLastRessource(r)
 		filter := interfaces.FilterIfOwnerRelations(r, nil)
 		ownerRelations := interfaces.GetOwnerRelations(r)
 
-		{{.Name}}.ScopeModel(lastRessource.ID)
+		// {{.Name}}.ScopeModel(lastRessource.ID)
 		{{.Name}}, err = c.interactor.UpdateByID(id, {{.Name}}, filter, ownerRelations)
 
 		if err != nil {

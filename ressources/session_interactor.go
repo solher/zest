@@ -16,8 +16,7 @@ type AbstractSessionRepo interface {
 	CreateOne(session *domain.Session) (*domain.Session, error)
 	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
 	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
-	Upsert(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
-	UpsertOne(session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	Update(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
 	UpdateByID(id int, session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
 	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
 	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
@@ -33,48 +32,123 @@ func NewSessionInter(repo AbstractSessionRepo) *SessionInter {
 }
 
 func (i *SessionInter) Create(sessions []domain.Session) ([]domain.Session, error) {
-	sessions, err := i.repo.Create(sessions)
-	return sessions, err
+	var err error
+
+	for i := range sessions {
+		err = (&sessions[i]).BeforeCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	sessions, err = i.repo.Create(sessions)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range sessions {
+		err = (&sessions[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return sessions, nil
 }
 
 func (i *SessionInter) CreateOne(session *domain.Session) (*domain.Session, error) {
 	session, err := i.repo.CreateOne(session)
-	return session, err
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
 }
 
 func (i *SessionInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
 	sessions, err := i.repo.Find(filter, ownerRelations)
-	return sessions, err
+	if err != nil {
+		return nil, err
+	}
+
+	return sessions, nil
 }
 
 func (i *SessionInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 	session, err := i.repo.FindByID(id, filter, ownerRelations)
-	return session, err
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
 }
 
 func (i *SessionInter) Upsert(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
-	sessions, err := i.repo.Upsert(sessions, filter, ownerRelations)
-	return sessions, err
+	sessionsToUpdate := []domain.Session{}
+	sessionsToCreate := []domain.Session{}
+
+	for _, session := range sessions {
+		if session.ID != 0 {
+			sessionsToUpdate = append(sessionsToUpdate, session)
+		} else {
+			sessionsToCreate = append(sessionsToCreate, session)
+		}
+	}
+
+	sessionsToUpdate, err := i.repo.Update(sessionsToUpdate, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionsToCreate, err = i.repo.Create(sessionsToCreate)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(sessionsToUpdate, sessionsToCreate...), nil
 }
 
 func (i *SessionInter) UpsertOne(session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
-	session, err := i.repo.UpsertOne(session, filter, ownerRelations)
-	return session, err
+	var err error
+
+	if session.ID != 0 {
+		session, err = i.repo.UpdateByID(session.ID, session, filter, ownerRelations)
+	} else {
+		session, err = i.repo.CreateOne(session)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
 }
 
 func (i *SessionInter) UpdateByID(id int, session *domain.Session,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 
 	session, err := i.repo.UpdateByID(id, session, filter, ownerRelations)
-	return session, err
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
 }
 
 func (i *SessionInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteAll(filter, ownerRelations)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (i *SessionInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
 	err := i.repo.DeleteByID(id, filter, ownerRelations)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

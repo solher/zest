@@ -92,7 +92,7 @@ func (r *AccountRepo) FindByID(id int, filter *usecases.Filter, ownerRelations [
 	return &account, nil
 }
 
-func (r *AccountRepo) Upsert(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
+func (r *AccountRepo) Update(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -103,68 +103,41 @@ func (r *AccountRepo) Upsert(accounts []domain.Account, filter *usecases.Filter,
 
 	for i, account := range accounts {
 		queryCopy := *query
+		oldUser := domain.Account{}
 
-		if account.ID != 0 {
-			oldUser := domain.Account{}
+		err := queryCopy.Where("accounts.id = ?", account.ID).First(&oldUser).Updates(accounts[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-			err := queryCopy.Where("accounts.id = ?", account.ID).First(&oldUser).Updates(account).Error
-			if err != nil {
-				transaction.Rollback()
-
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&account).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		accounts[i] = account
 	}
 
 	transaction.Commit()
 	return accounts, nil
 }
 
-func (r *AccountRepo) UpsertOne(account *domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
-	db := r.store.GetDB()
+func (r *AccountRepo) UpdateByID(id int, account *domain.Account,
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
 
 	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	if account.ID != 0 {
-		oldUser := domain.Account{}
+	oldUser := domain.Account{}
 
-		err := query.Where("accounts.id = ?", account.ID).First(&oldUser).Updates(account).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
+	err = query.Where("accounts.id = ?", id).First(&oldUser).Updates(account).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
 		}
-	} else {
-		err := db.Create(&account).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
 
-			return nil, internalerrors.DatabaseError
-		}
+		return nil, internalerrors.DatabaseError
 	}
 
 	return account, nil

@@ -15,7 +15,6 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
-
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -63,15 +62,15 @@ func (c *RoleCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]s
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 
 	if roles == nil {
-		role.ScopeModel(lastRessource.ID)
+		// role.ScopeModel(lastRessource.ID)
 		role, err = c.interactor.CreateOne(role)
 	} else {
-		for i := range roles {
-			(&roles[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range roles {
+		// 	(&roles[i]).ScopeModel(lastRessource.ID)
+		// }
 		roles, err = c.interactor.Create(roles)
 	}
 
@@ -152,17 +151,17 @@ func (c *RoleCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]s
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if roles == nil {
-		role.ScopeModel(lastRessource.ID)
+		// role.ScopeModel(lastRessource.ID)
 		role, err = c.interactor.UpsertOne(role, filter, ownerRelations)
 	} else {
-		for i := range roles {
-			(&roles[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range roles {
+		// 	(&roles[i]).ScopeModel(lastRessource.ID)
+		// }
 		roles, err = c.interactor.Upsert(roles, filter, ownerRelations)
 	}
 
@@ -198,11 +197,11 @@ func (c *RoleCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
-	role.ScopeModel(lastRessource.ID)
+	// role.ScopeModel(lastRessource.ID)
 	role, err = c.interactor.UpdateByID(id, role, filter, ownerRelations)
 
 	if err != nil {

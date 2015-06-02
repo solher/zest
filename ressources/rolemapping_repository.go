@@ -92,7 +92,7 @@ func (r *RoleMappingRepo) FindByID(id int, filter *usecases.Filter, ownerRelatio
 	return &rolemapping, nil
 }
 
-func (r *RoleMappingRepo) Upsert(rolemappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
+func (r *RoleMappingRepo) Update(rolemappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -103,71 +103,22 @@ func (r *RoleMappingRepo) Upsert(rolemappings []domain.RoleMapping, filter *usec
 
 	for i, rolemapping := range rolemappings {
 		queryCopy := *query
+		oldUser := domain.RoleMapping{}
 
-		if rolemapping.ID != 0 {
-			oldUser := domain.RoleMapping{}
+		err := queryCopy.Where("rolemappings.id = ?", rolemapping.ID).First(&oldUser).Updates(rolemappings[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-			err := queryCopy.Where("rolemappings.id = ?", rolemapping.ID).First(&oldUser).Updates(rolemapping).Error
-			if err != nil {
-				transaction.Rollback()
-
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&rolemapping).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				}
-
-				return nil, internalerrors.DatabaseError
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		rolemappings[i] = rolemapping
 	}
 
 	transaction.Commit()
 	return rolemappings, nil
-}
-
-func (r *RoleMappingRepo) UpsertOne(rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
-	db := r.store.GetDB()
-
-	query, err := r.store.BuildQuery(filter, ownerRelations)
-	if err != nil {
-		return nil, internalerrors.DatabaseError
-	}
-
-	if rolemapping.ID != 0 {
-		oldUser := domain.RoleMapping{}
-
-		err := query.Where("rolemappings.id = ?", rolemapping.ID).First(&oldUser).Updates(rolemapping).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	} else {
-		err := db.Create(&rolemapping).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			}
-
-			return nil, internalerrors.DatabaseError
-		}
-	}
-
-	return rolemapping, nil
 }
 
 func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,

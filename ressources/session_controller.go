@@ -15,7 +15,6 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
-
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -63,15 +62,15 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 
 	if sessions == nil {
-		session.ScopeModel(lastRessource.ID)
+		// session.ScopeModel(lastRessource.ID)
 		session, err = c.interactor.CreateOne(session)
 	} else {
-		for i := range sessions {
-			(&sessions[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range sessions {
+		// 	(&sessions[i]).ScopeModel(lastRessource.ID)
+		// }
 		sessions, err = c.interactor.Create(sessions)
 	}
 
@@ -152,17 +151,17 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if sessions == nil {
-		session.ScopeModel(lastRessource.ID)
+		// session.ScopeModel(lastRessource.ID)
 		session, err = c.interactor.UpsertOne(session, filter, ownerRelations)
 	} else {
-		for i := range sessions {
-			(&sessions[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range sessions {
+		// 	(&sessions[i]).ScopeModel(lastRessource.ID)
+		// }
 		sessions, err = c.interactor.Upsert(sessions, filter, ownerRelations)
 	}
 
@@ -198,11 +197,11 @@ func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
-	session.ScopeModel(lastRessource.ID)
+	// session.ScopeModel(lastRessource.ID)
 	session, err = c.interactor.UpdateByID(id, session, filter, ownerRelations)
 
 	if err != nil {
