@@ -25,7 +25,7 @@ func (m *Account) ScopeModel() error {
 	return nil
 }
 
-func (m *Account) BeforeRender() error {
+func (m *Account) BeforeRender() {
 	users := m.Users
 	sessions := m.Sessions
 	roleMappings := m.RoleMappings
@@ -41,6 +41,4 @@ func (m *Account) BeforeRender() error {
 	for i := range roleMappings {
 		(&roleMappings[i]).BeforeRender()
 	}
-
-	return nil
 }

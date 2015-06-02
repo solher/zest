@@ -23,12 +23,10 @@ func (m *Acl) ScopeModel() error {
 	return nil
 }
 
-func (m *Acl) BeforeRender() error {
+func (m *Acl) BeforeRender() {
 	aclMappings := m.AclMappings
 
 	for i := range aclMappings {
 		(&aclMappings[i]).BeforeRender()
 	}
-
-	return nil
 }

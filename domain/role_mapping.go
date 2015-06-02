@@ -31,8 +31,7 @@ func (m *RoleMapping) ScopeModel() error {
 	return nil
 }
 
-func (m *RoleMapping) BeforeRender() error {
+func (m *RoleMapping) BeforeRender() {
 	m.Role.BeforeRender()
 	m.Account.BeforeRender()
-	return nil
 }

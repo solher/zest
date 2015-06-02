@@ -41,8 +41,7 @@ func (m *User) ScopeModel() error {
 	return nil
 }
 
-func (m *User) BeforeRender() error {
+func (m *User) BeforeRender() {
 	m.Password = ""
 	m.Account.BeforeRender()
-	return nil
 }

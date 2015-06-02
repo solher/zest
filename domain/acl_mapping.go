@@ -31,8 +31,7 @@ func (m *AclMapping) ScopeModel() error {
 	return nil
 }
 
-func (m *AclMapping) BeforeRender() error {
+func (m *AclMapping) BeforeRender() {
 	m.Role.BeforeRender()
 	m.Acl.BeforeRender()
-	return nil
 }

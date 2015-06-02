@@ -34,7 +34,6 @@ func (m *Session) ScopeModel() error {
 	return nil
 }
 
-func (m *Session) BeforeRender() error {
+func (m *Session) BeforeRender() {
 	m.Account.BeforeRender()
-	return nil
 }

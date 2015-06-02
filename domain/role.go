@@ -24,7 +24,7 @@ func (m *Role) ScopeModel() error {
 	return nil
 }
 
-func (m *Role) BeforeRender() error {
+func (m *Role) BeforeRender() {
 	roleMappings := m.RoleMappings
 	aclMappings := m.AclMappings
 
@@ -35,6 +35,4 @@ func (m *Role) BeforeRender() error {
 	for i := range aclMappings {
 		(&aclMappings[i]).BeforeRender()
 	}
-
-	return nil
 }
