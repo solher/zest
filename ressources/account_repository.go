@@ -180,7 +180,7 @@ func (r *AccountRepo) Raw(query string, values ...interface{}) (*sql.Rows, error
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
 		}
 
-		return nil, err
+		return nil, internalerrors.DatabaseError
 	}
 
 	return rows, nil
