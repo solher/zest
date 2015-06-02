@@ -20,8 +20,11 @@ var slice = typewriter.TemplateSlice{
 	find,
 	findByID,
 	upsert,
+	updateByID,
 	deleteAll,
 	deleteByID,
+	related,
+	relatedOne,
 }
 
 var controller = &typewriter.Template{
@@ -30,12 +33,13 @@ var controller = &typewriter.Template{
 	type Abstract{{.Type}}Inter interface {
 		Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
 		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
-		Find(filter *interfaces.Filter) ([]domain.{{.Type}}, error)
-		FindByID(id int, filter *interfaces.Filter) (*domain.{{.Type}}, error)
-		Upsert({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
-		UpsertOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)
-		DeleteAll(filter *interfaces.Filter) error
-		DeleteByID(id int) error
+		Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
+		FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		Upsert({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error)
+		UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		UpdateByID(id int, {{.Name}} *domain.{{.Type}},	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error)
+		DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+		DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 	}
 
 	type {{.Type}}Ctrl struct {
@@ -44,12 +48,11 @@ var controller = &typewriter.Template{
 		routeDir   *interfaces.RouteDirectory
 	}
 
-	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.AbstractRender,
-		routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *{{.Type}}Ctrl {
+	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *{{.Type}}Ctrl {
 		controller := &{{.Type}}Ctrl{interactor: interactor, render: render, routeDir: routeDir}
 
-		if routeDir != nil && permissionDir != nil {
-			set{{.Type}}AccessOptions(routeDir, permissionDir, controller)
+		if routeDir != nil {
+			set{{.Type}}Access(routeDir, controller)
 		}
 
 		return controller
@@ -74,15 +77,15 @@ var create = &typewriter.Template{
 			}
 		}
 
-		lastRessource := interfaces.GetLastRessource(r)
+		// lastRessource := interfaces.GetLastRessource(r)
 
 		if {{.Name}}s == nil {
-			{{.Name}}.ScopeModel(lastRessource.ID)
+			// {{.Name}}.ScopeModel(lastRessource.ID)
 			{{.Name}}, err = c.interactor.CreateOne({{.Name}})
 		} else {
-			for i := range {{.Name}}s {
-				(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
-			}
+			// for i := range {{.Name}}s {
+			// 	(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
+			// }
 			{{.Name}}s, err = c.interactor.Create({{.Name}}s)
 		}
 
@@ -115,8 +118,10 @@ var find = &typewriter.Template{
 		}
 
 		filter = interfaces.FilterIfLastRessource(r, filter)
+		filter = interfaces.FilterIfOwnerRelations(r, filter)
+		relations := interfaces.GetOwnerRelations(r)
 
-		{{.Name}}s, err := c.interactor.Find(filter)
+		{{.Name}}s, err := c.interactor.Find(filter, relations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
@@ -142,7 +147,10 @@ var findByID = &typewriter.Template{
 			return
 		}
 
-		{{.Name}}, err := c.interactor.FindByID(id, filter)
+		filter = interfaces.FilterIfOwnerRelations(r, filter)
+		relations := interfaces.GetOwnerRelations(r)
+
+		{{.Name}}, err := c.interactor.FindByID(id, filter, relations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 			return
@@ -170,16 +178,18 @@ var upsert = &typewriter.Template{
 			}
 		}
 
-		lastRessource := interfaces.GetLastRessource(r)
+		// lastRessource := interfaces.GetLastRessource(r)
+		filter := interfaces.FilterIfOwnerRelations(r, nil)
+		ownerRelations := interfaces.GetOwnerRelations(r)
 
 		if {{.Name}}s == nil {
-			{{.Name}}.ScopeModel(lastRessource.ID)
-			{{.Name}}, err = c.interactor.UpsertOne({{.Name}})
+			// {{.Name}}.ScopeModel(lastRessource.ID)
+			{{.Name}}, err = c.interactor.UpsertOne({{.Name}}, filter, ownerRelations)
 		} else {
-			for i := range {{.Name}}s {
-				(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
-			}
-			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s)
+			// for i := range {{.Name}}s {
+			// 	(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
+			// }
+			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s, filter, ownerRelations)
 		}
 
 		if err != nil {
@@ -200,6 +210,45 @@ var upsert = &typewriter.Template{
 	}
 `}
 
+var updateByID = &typewriter.Template{
+	Name: "UpdateByID",
+	Text: `
+	func (c *{{.Type}}Ctrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		id, err := strconv.Atoi(params["id"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
+
+		{{.Name}} := &domain.{{.Type}}{}
+
+		err = json.NewDecoder(r.Body).Decode({{.Name}})
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+			return
+		}
+
+		// lastRessource := interfaces.GetLastRessource(r)
+		filter := interfaces.FilterIfOwnerRelations(r, nil)
+		ownerRelations := interfaces.GetOwnerRelations(r)
+
+		// {{.Name}}.ScopeModel(lastRessource.ID)
+		{{.Name}}, err = c.interactor.UpdateByID(id, {{.Name}}, filter, ownerRelations)
+
+		if err != nil {
+			switch err.(type) {
+			case *internalerrors.ViolatedConstraint:
+				c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+			default:
+				c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+			}
+			return
+		}
+
+		c.render.JSON(w, http.StatusCreated, {{.Name}})
+	}
+`}
+
 var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
@@ -211,8 +260,10 @@ var deleteAll = &typewriter.Template{
 		}
 
 		filter = interfaces.FilterIfLastRessource(r, filter)
+		filter = interfaces.FilterIfOwnerRelations(r, filter)
+		relations := interfaces.GetOwnerRelations(r)
 
-		err = c.interactor.DeleteAll(filter)
+		err = c.interactor.DeleteAll(filter, relations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 			return
@@ -232,12 +283,78 @@ var deleteByID = &typewriter.Template{
 			return
 		}
 
-		err = c.interactor.DeleteByID(id)
+		filter := interfaces.FilterIfOwnerRelations(r, nil)
+		ownerRelations := interfaces.GetOwnerRelations(r)
+
+		err = c.interactor.DeleteByID(id, filter, ownerRelations)
 		if err != nil {
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 			return
 		}
 
 		c.render.JSON(w, http.StatusNoContent, nil)
+	}
+`}
+
+var related = &typewriter.Template{
+	Name: "Related",
+	Text: `
+	func (c *{{.Type}}Ctrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		pk, err := strconv.Atoi(params["pk"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
+
+		related := params["related"]
+		key := interfaces.NewDirectoryKey(related)
+
+		var handler *httptreemux.HandlerFunc
+		switch r.Method {
+		case "POST":
+			handler = c.routeDir.Get(key.For("Create")).EffectiveHandler
+		case "GET":
+			handler = c.routeDir.Get(key.For("Find")).EffectiveHandler
+		case "PUT":
+			handler = c.routeDir.Get(key.For("Upsert")).EffectiveHandler
+		case "DELETE":
+			handler = c.routeDir.Get(key.For("DeleteAll")).EffectiveHandler
+		}
+
+		if handler == nil {
+			c.render.JSON(w, http.StatusNotFound, nil)
+			return
+		}
+
+		context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "{{.Name}}ID", ID: pk})
+
+		(*handler)(w, r, params)
+	}
+`}
+
+var relatedOne = &typewriter.Template{
+	Name: "RelatedOne",
+	Text: `
+	func (c *{{.Type}}Ctrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		params["id"] = params["fk"]
+
+		related := params["related"]
+		key := interfaces.NewDirectoryKey(related)
+
+		var handler httptreemux.HandlerFunc
+
+		switch r.Method {
+		case "GET":
+			handler = *c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+		case "DELETE":
+			handler = *c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
+		}
+
+		if handler == nil {
+			c.render.JSON(w, http.StatusNotFound, nil)
+			return
+		}
+
+		handler(w, r, params)
 	}
 `}

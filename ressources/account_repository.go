@@ -5,11 +5,13 @@
 package ressources
 
 import (
+	"database/sql"
 	"strings"
 
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AccountRepo struct {
@@ -31,9 +33,9 @@ func (r *AccountRepo) Create(accounts []domain.Account) ([]domain.Account, error
 
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		accounts[i] = account
@@ -50,16 +52,16 @@ func (r *AccountRepo) CreateOne(account *domain.Account) (*domain.Account, error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return account, nil
 }
 
-func (r *AccountRepo) Find(filter *interfaces.Filter) ([]domain.Account, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *AccountRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -74,15 +76,15 @@ func (r *AccountRepo) Find(filter *interfaces.Filter) ([]domain.Account, error) 
 	return accounts, nil
 }
 
-func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Account, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *AccountRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
 	account := domain.Account{}
 
-	err = query.First(&account, id).Error
+	err = query.Where("accounts.id = ?", id).First(&account).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -90,74 +92,59 @@ func (r *AccountRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Accou
 	return &account, nil
 }
 
-func (r *AccountRepo) Upsert(accounts []domain.Account) ([]domain.Account, error) {
+func (r *AccountRepo) Update(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
 	for i, account := range accounts {
-		if account.ID != 0 {
-			oldUser := domain.Account{}
+		queryCopy := *query
+		oldUser := domain.Account{}
 
-			err := db.First(&oldUser, account.ID).Updates(account).Error
-			if err != nil {
-				transaction.Rollback()
+		err := queryCopy.Where("accounts.id = ?", account.ID).First(&oldUser).Updates(accounts[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
-				}
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&account).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
-				}
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		accounts[i] = account
 	}
 
 	transaction.Commit()
 	return accounts, nil
 }
 
-func (r *AccountRepo) UpsertOne(account *domain.Account) (*domain.Account, error) {
-	db := r.store.GetDB()
+func (r *AccountRepo) UpdateByID(id int, account *domain.Account,
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
 
-	if account.ID != 0 {
-		oldUser := domain.Account{}
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
 
-		err := db.First(&oldUser, account.ID).Updates(account).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
-			}
+	oldUser := domain.Account{}
+
+	err = query.Where("accounts.id = ?", id).First(&oldUser).Updates(account).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
 		}
-	} else {
-		err := db.Create(&account).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
-			}
-		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return account, nil
 }
 
-func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
-	query, err := r.store.BuildQuery(filter)
+func (r *AccountRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -170,13 +157,31 @@ func (r *AccountRepo) DeleteAll(filter *interfaces.Filter) error {
 	return nil
 }
 
-func (r *AccountRepo) DeleteByID(id int) error {
-	db := r.store.GetDB()
+func (r *AccountRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
 
-	err := db.Delete(&domain.Account{GormModel: domain.GormModel{ID: id}}).Error
+	err = query.Delete(&domain.Account{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
 	return nil
+}
+
+func (r *AccountRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
+	db := r.store.GetDB()
+
+	rows, err := db.Raw(query, values...).Rows()
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
+	}
+
+	return rows, nil
 }

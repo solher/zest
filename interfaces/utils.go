@@ -8,10 +8,12 @@ import (
 	"strings"
 
 	"github.com/Solher/auth-scaffold/apierrors"
+	"github.com/Solher/auth-scaffold/domain"
+	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/gorilla/context"
 )
 
-func GetQueryFilter(r *http.Request) (*Filter, error) {
+func GetQueryFilter(r *http.Request) (*usecases.Filter, error) {
 	param := r.URL.Query().Get("filter")
 	if param == "" {
 		return nil, nil
@@ -19,7 +21,7 @@ func GetQueryFilter(r *http.Request) (*Filter, error) {
 
 	filterReader := strings.NewReader(param)
 
-	filter := &Filter{}
+	filter := &usecases.Filter{}
 	err := json.NewDecoder(filterReader).Decode(filter)
 	if err != nil {
 		return nil, err
@@ -53,6 +55,37 @@ func GetErrorCode(res string) string {
 	return apiError.ErrorCode
 }
 
+func GetOwnerRelations(r *http.Request) []domain.Relation {
+	ownerRelationsCtx := context.Get(r, "ownerRelations")
+	var ownerRelations []domain.Relation
+	if ownerRelationsCtx != nil {
+		ownerRelations = ownerRelationsCtx.([]domain.Relation)
+	}
+
+	return ownerRelations
+}
+
+func FilterIfOwnerRelations(r *http.Request, filter *usecases.Filter) *usecases.Filter {
+	ownerRelationsCtx := context.Get(r, "ownerRelations")
+	if ownerRelationsCtx != nil {
+		currentSession := context.Get(r, "currentSession").(domain.Session)
+
+		if filter == nil {
+			filter = &usecases.Filter{
+				Where: map[string]interface{}{"accountId": currentSession.AccountID},
+			}
+		} else {
+			if filter.Where == nil {
+				filter.Where = map[string]interface{}{"accountId": currentSession.AccountID}
+			} else {
+				filter.Where["accountId"] = currentSession.AccountID
+			}
+		}
+	}
+
+	return filter
+}
+
 func GetLastRessource(r *http.Request) *Ressource {
 	lastRessourceCtx := context.Get(r, "lastRessource")
 	var lastRessource *Ressource
@@ -65,14 +98,14 @@ func GetLastRessource(r *http.Request) *Ressource {
 	return lastRessource
 }
 
-func FilterIfLastRessource(r *http.Request, filter *Filter) *Filter {
+func FilterIfLastRessource(r *http.Request, filter *usecases.Filter) *usecases.Filter {
 	lastRessourceCtx := context.Get(r, "lastRessource")
 
 	if lastRessourceCtx != nil {
 		lastRessource := lastRessourceCtx.(*Ressource)
 
 		if filter == nil {
-			filter = &Filter{
+			filter = &usecases.Filter{
 				Where: map[string]interface{}{lastRessource.IDKey: lastRessource.ID},
 			}
 		} else {

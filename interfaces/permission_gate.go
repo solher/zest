@@ -6,41 +6,52 @@ import (
 	"github.com/Solher/auth-scaffold/apierrors"
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
 
 type PermissionGate struct {
-	next        *httptreemux.HandlerFunc
-	routes      *RouteDirectory
-	permissions usecases.PermissionDirectory
-	render      AbstractRender
+	accountInter AbstractAccountInter
+	next         *httptreemux.HandlerFunc
+	routes       *RouteDirectory
+	render       AbstractRender
 }
 
-func NewPermissionGate(next *httptreemux.HandlerFunc, routes *RouteDirectory, permissions usecases.PermissionDirectory, render AbstractRender) *PermissionGate {
-	return &PermissionGate{next: next, routes: routes, permissions: permissions, render: render}
+func NewPermissionGate(accountInter AbstractAccountInter, next *httptreemux.HandlerFunc,
+	routes *RouteDirectory, render AbstractRender) *PermissionGate {
+	return &PermissionGate{accountInter: accountInter, next: next, routes: routes, render: render}
 }
 
 func (c *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	sessionCtx := context.Get(r, "currentSession")
-	var role string
 
-	if sessionCtx == nil {
-		role = "guest"
-	} else {
+	accountID := 0
+
+	if sessionCtx != nil {
 		session := sessionCtx.(domain.Session)
-
-		if session.Account.IsAdmin {
-			role = "admin"
-		} else {
-			role = "authenticated"
-		}
+		accountID = session.AccountID
 	}
 
-	if !c.permissions[role].IsGranted(c.next) {
+	dirKey, err := c.routes.GetKey(c.next)
+	if err != nil {
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		return
+	}
+
+	roleNames, err := c.accountInter.GetGrantedRoles(accountID, dirKey.Ressource, dirKey.Method)
+	if err != nil {
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		return
+	}
+
+	if len(roleNames) == 0 {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.InsufficentPermissions)
 		return
+	}
+
+	if len(roleNames) == 1 && roleNames[0] == "Owner" {
+		relations := domain.ModelDirectory.FindPathToOwner(dirKey.Ressource)
+		context.Set(r, "ownerRelations", relations)
 	}
 
 	(*c.next)(w, r, params)

@@ -11,9 +11,7 @@ type Sessions struct {
 	interactor ressources.AbstractAccountInter
 }
 
-func NewSessions(accountRepo ressources.AbstractAccountRepo, userRepo ressources.AbstractUserRepo, sessionRepo ressources.AbstractSessionRepo) *Sessions {
-	accountInteractor := ressources.NewAccountInter(accountRepo, userRepo, sessionRepo)
-
+func NewSessions(accountInteractor ressources.AbstractAccountInter) *Sessions {
 	return &Sessions{interactor: accountInteractor}
 }
 

@@ -5,20 +5,22 @@
 package ressources
 
 import (
+	"database/sql"
+
 	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type AbstractUserRepo interface {
 	Create(users []domain.User) ([]domain.User, error)
 	CreateOne(user *domain.User) (*domain.User, error)
-	Find(filter *interfaces.Filter) ([]domain.User, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.User, error)
-	Upsert(users []domain.User) ([]domain.User, error)
-	UpsertOne(user *domain.User) (*domain.User, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
+	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
+	Update(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
+	UpdateByID(id int, user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
+	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
 type UserInter struct {
@@ -30,81 +32,219 @@ func NewUserInter(repo AbstractUserRepo) *UserInter {
 }
 
 func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
-	for i := range users {
-		if users[i].Password != "" {
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
-			if err != nil {
-				return nil, err
-			}
+	var err error
 
-			users[i].Password = string(hashedPassword)
+	for i := range users {
+		err = (&users[i]).BeforeCreate()
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	users, err := i.repo.Create(users)
-	return users, err
+	users, err = i.repo.Create(users)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range users {
+		err = (&users[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return users, nil
 }
 
 func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
-	if user.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
-		if err != nil {
-			return nil, err
-		}
-
-		user.Password = string(hashedPassword)
+	err := user.BeforeCreate()
+	if err != nil {
+		return nil, err
 	}
 
-	user, err := i.repo.CreateOne(user)
-	return user, err
+	user, err = i.repo.CreateOne(user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.AfterCreate()
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
-func (i *UserInter) Find(filter *interfaces.Filter) ([]domain.User, error) {
-	users, err := i.repo.Find(filter)
-	return users, err
+func (i *UserInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+	users, err := i.repo.Find(filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
-func (i *UserInter) FindByID(id int, filter *interfaces.Filter) (*domain.User, error) {
-	user, err := i.repo.FindByID(id, filter)
-	return user, err
+func (i *UserInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+	user, err := i.repo.FindByID(id, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
-func (i *UserInter) Upsert(users []domain.User) ([]domain.User, error) {
+func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+	usersToUpdate := []domain.User{}
+	usersToCreate := []domain.User{}
+
 	for i := range users {
-		if users[i].Password != "" {
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(users[i].Password), 0)
-			if err != nil {
-				return nil, err
-			}
+		var err error
 
-			users[i].Password = string(hashedPassword)
+		if users[i].ID != 0 {
+			err = (&users[i]).BeforeUpdate()
+			usersToUpdate = append(usersToUpdate, users[i])
+		} else {
+			err = (&users[i]).BeforeCreate()
+			usersToCreate = append(usersToCreate, users[i])
+		}
+
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	users, err := i.repo.Upsert(users)
-	return users, err
+	usersToUpdate, err := i.repo.Update(usersToUpdate, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	usersToCreate, err = i.repo.Create(usersToCreate)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range usersToUpdate {
+		err = (&users[i]).AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range usersToCreate {
+		err = (&users[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return append(usersToUpdate, usersToCreate...), nil
 }
 
-func (i *UserInter) UpsertOne(user *domain.User) (*domain.User, error) {
-	if user.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+	if user.ID != 0 {
+		err := user.BeforeUpdate()
 		if err != nil {
 			return nil, err
 		}
 
-		user.Password = string(hashedPassword)
+		user, err = i.repo.UpdateByID(user.ID, user, filter, ownerRelations)
+		if err != nil {
+			return nil, err
+		}
+
+		err = user.AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := user.BeforeCreate()
+		if err != nil {
+			return nil, err
+		}
+
+		user, err = i.repo.CreateOne(user)
+		if err != nil {
+			return nil, err
+		}
+
+		err = user.AfterCreate()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	user, err := i.repo.UpsertOne(user)
-	return user, err
+	return user, nil
 }
 
-func (i *UserInter) DeleteAll(filter *interfaces.Filter) error {
-	err := i.repo.DeleteAll(filter)
-	return err
+func (i *UserInter) UpdateByID(id int, user *domain.User,
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+
+	err := user.BeforeUpdate()
+	if err != nil {
+		return nil, err
+	}
+
+	user, err = i.repo.UpdateByID(id, user, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.AfterUpdate()
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
-func (i *UserInter) DeleteByID(id int) error {
-	err := i.repo.DeleteByID(id)
-	return err
+func (i *UserInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
+	users, err := i.repo.Find(filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	for i := range users {
+		err = (&users[i]).BeforeDelete()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = i.repo.DeleteAll(filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	for i := range users {
+		err = (&users[i]).AfterDelete()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *UserInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
+	user, err := i.repo.FindByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = user.BeforeDelete()
+	if err != nil {
+		return err
+	}
+
+	err = i.repo.DeleteByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = user.AfterDelete()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

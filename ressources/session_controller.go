@@ -15,17 +15,20 @@ import (
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/dimfeld/httptreemux"
+	"github.com/gorilla/context"
 )
 
 type AbstractSessionInter interface {
 	Create(sessions []domain.Session) ([]domain.Session, error)
 	CreateOne(session *domain.Session) (*domain.Session, error)
-	Find(filter *interfaces.Filter) ([]domain.Session, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.Session, error)
-	Upsert(sessions []domain.Session) ([]domain.Session, error)
-	UpsertOne(session *domain.Session) (*domain.Session, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
+	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	Upsert(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
+	UpsertOne(session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	UpdateByID(id int, session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
 }
 
 type SessionCtrl struct {
@@ -34,12 +37,11 @@ type SessionCtrl struct {
 	routeDir   *interfaces.RouteDirectory
 }
 
-func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender,
-	routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *SessionCtrl {
+func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *SessionCtrl {
 	controller := &SessionCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
-	if routeDir != nil && permissionDir != nil {
-		setSessionAccessOptions(routeDir, permissionDir, controller)
+	if routeDir != nil {
+		setSessionAccess(routeDir, controller)
 	}
 
 	return controller
@@ -60,15 +62,15 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
 
 	if sessions == nil {
-		session.ScopeModel(lastRessource.ID)
+		// session.ScopeModel(lastRessource.ID)
 		session, err = c.interactor.CreateOne(session)
 	} else {
-		for i := range sessions {
-			(&sessions[i]).ScopeModel(lastRessource.ID)
-		}
+		// for i := range sessions {
+		// 	(&sessions[i]).ScopeModel(lastRessource.ID)
+		// }
 		sessions, err = c.interactor.Create(sessions)
 	}
 
@@ -97,8 +99,10 @@ func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 	}
 
 	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
 
-	sessions, err := c.interactor.Find(filter)
+	sessions, err := c.interactor.Find(filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -120,7 +124,10 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 		return
 	}
 
-	session, err := c.interactor.FindByID(id, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
+
+	session, err := c.interactor.FindByID(id, filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
@@ -144,16 +151,18 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	// lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if sessions == nil {
-		session.ScopeModel(lastRessource.ID)
-		session, err = c.interactor.UpsertOne(session)
+		// session.ScopeModel(lastRessource.ID)
+		session, err = c.interactor.UpsertOne(session, filter, ownerRelations)
 	} else {
-		for i := range sessions {
-			(&sessions[i]).ScopeModel(lastRessource.ID)
-		}
-		sessions, err = c.interactor.Upsert(sessions)
+		// for i := range sessions {
+		// 	(&sessions[i]).ScopeModel(lastRessource.ID)
+		// }
+		sessions, err = c.interactor.Upsert(sessions, filter, ownerRelations)
 	}
 
 	if err != nil {
@@ -173,6 +182,41 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 }
 
+func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	session := &domain.Session{}
+
+	err = json.NewDecoder(r.Body).Decode(session)
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+		return
+	}
+
+	// lastRessource := interfaces.GetLastRessource(r)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	// session.ScopeModel(lastRessource.ID)
+	session, err = c.interactor.UpdateByID(id, session, filter, ownerRelations)
+
+	if err != nil {
+		switch err.(type) {
+		case *internalerrors.ViolatedConstraint:
+			c.render.JSONError(w, 422, apierrors.ViolatedConstraint, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	c.render.JSON(w, http.StatusCreated, session)
+}
+
 func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -181,8 +225,10 @@ func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 	}
 
 	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfOwnerRelations(r, filter)
+	relations := interfaces.GetOwnerRelations(r)
 
-	err = c.interactor.DeleteAll(filter)
+	err = c.interactor.DeleteAll(filter, relations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -198,11 +244,69 @@ func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	err = c.interactor.DeleteByID(id)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	ownerRelations := interfaces.GetOwnerRelations(r)
+
+	err = c.interactor.DeleteByID(id, filter, ownerRelations)
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
 	}
 
 	c.render.JSON(w, http.StatusNoContent, nil)
+}
+
+func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	pk, err := strconv.Atoi(params["pk"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	related := params["related"]
+	key := interfaces.NewDirectoryKey(related)
+
+	var handler *httptreemux.HandlerFunc
+	switch r.Method {
+	case "POST":
+		handler = c.routeDir.Get(key.For("Create")).EffectiveHandler
+	case "GET":
+		handler = c.routeDir.Get(key.For("Find")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("Upsert")).EffectiveHandler
+	case "DELETE":
+		handler = c.routeDir.Get(key.For("DeleteAll")).EffectiveHandler
+	}
+
+	if handler == nil {
+		c.render.JSON(w, http.StatusNotFound, nil)
+		return
+	}
+
+	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "sessionID", ID: pk})
+
+	(*handler)(w, r, params)
+}
+
+func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	params["id"] = params["fk"]
+
+	related := params["related"]
+	key := interfaces.NewDirectoryKey(related)
+
+	var handler httptreemux.HandlerFunc
+
+	switch r.Method {
+	case "GET":
+		handler = *c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+	case "DELETE":
+		handler = *c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
+	}
+
+	if handler == nil {
+		c.render.JSON(w, http.StatusNotFound, nil)
+		return
+	}
+
+	handler(w, r, params)
 }

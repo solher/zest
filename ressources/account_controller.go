@@ -8,7 +8,6 @@ import (
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/Solher/auth-scaffold/usecases"
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -33,12 +32,11 @@ type AccountCtrl struct {
 	routeDir   *interfaces.RouteDirectory
 }
 
-func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender,
-	routeDir *interfaces.RouteDirectory, permissionDir usecases.PermissionDirectory) *AccountCtrl {
+func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *AccountCtrl {
 	controller := &AccountCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
-	if routeDir != nil && permissionDir != nil {
-		setAccountAccessOptions(routeDir, permissionDir, controller)
+	if routeDir != nil {
+		setAccountAccess(routeDir, controller)
 	}
 
 	return controller
@@ -173,13 +171,13 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 	var handler *httptreemux.HandlerFunc
 	switch r.Method {
 	case "POST":
-		handler = c.routeDir.Get(key.For("Create")).Handler
+		handler = c.routeDir.Get(key.For("Create")).EffectiveHandler
 	case "GET":
-		handler = c.routeDir.Get(key.For("Find")).Handler
+		handler = c.routeDir.Get(key.For("Find")).EffectiveHandler
 	case "PUT":
-		handler = c.routeDir.Get(key.For("Upsert")).Handler
+		handler = c.routeDir.Get(key.For("Upsert")).EffectiveHandler
 	case "DELETE":
-		handler = c.routeDir.Get(key.For("DeleteAll")).Handler
+		handler = c.routeDir.Get(key.For("DeleteAll")).EffectiveHandler
 	}
 
 	if handler == nil {
@@ -202,9 +200,9 @@ func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 
 	switch r.Method {
 	case "GET":
-		handler = *c.routeDir.Get(key.For("FindByID")).Handler
+		handler = *c.routeDir.Get(key.For("FindByID")).EffectiveHandler
 	case "DELETE":
-		handler = *c.routeDir.Get(key.For("DeleteByID")).Handler
+		handler = *c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}
 
 	handler(w, r, params)

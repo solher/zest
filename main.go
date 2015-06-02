@@ -12,7 +12,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 
-	_ "github.com/clipperhouse/typewriter" // Forced to permit vendoring.
+	_ "github.com/clipperhouse/typewriter" // Forced to allow vendoring.
 )
 
 var Environment, Port, DatabaseURL string
@@ -45,10 +45,14 @@ func main() {
 
 	app := negroni.New()
 	router := httptreemux.New()
+	router.RedirectBehavior = httptreemux.UseHandler
 	render := infrastructure.NewRender()
 	store := infrastructure.NewGormStore()
+	sessionCache := infrastructure.NewLRUCacheStore(1024)
+	roleCache := infrastructure.NewCacheStore()
+	aclCache := infrastructure.NewCacheStore()
 
-	initApp(app, router, render, store)
+	initApp(app, router, render, store, sessionCache, roleCache, aclCache)
 	defer closeApp(store)
 
 	app.Run(Port)
@@ -69,6 +73,58 @@ func handleOsArgs() bool {
 	return false
 }
 
+func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render,
+	store *infrastructure.GormStore, lruCacheStore *infrastructure.LRUCacheStore, roleCacheStore, aclCacheStore *infrastructure.CacheStore) {
+
+	err := connectDB(store)
+	if err != nil {
+		panic("Could not connect to database.")
+	}
+
+	userRepository := ressources.NewUserRepo(store)
+	sessionRepository := ressources.NewSessionRepo(store)
+	accountRepository := ressources.NewAccountRepo(store)
+	roleMappingRepository := ressources.NewRoleMappingRepo(store)
+	roleRepository := ressources.NewRoleRepo(store)
+	aclMappingRepository := ressources.NewAclMappingRepo(store)
+	aclRepository := ressources.NewAclRepo(store)
+
+	sessionCacheInter := usecases.NewSessionCacheInter(sessionRepository, lruCacheStore)
+	permissionCacheInter := usecases.NewPermissionCacheInter(accountRepository, aclRepository, roleCacheStore, aclCacheStore)
+	sessionCacheInter.Refresh()
+	permissionCacheInter.Refresh()
+
+	userInteractor := ressources.NewUserInter(userRepository)
+	sessionInteractor := ressources.NewSessionInter(sessionRepository)
+	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository, sessionCacheInter, permissionCacheInter)
+	roleMappingInteractor := ressources.NewRoleMappingInter(roleMappingRepository)
+	roleInteractor := ressources.NewRoleInter(roleRepository)
+	aclMappingInteractor := ressources.NewAclMappingInter(aclMappingRepository)
+	aclInteractor := ressources.NewAclInter(aclRepository)
+
+	routes := interfaces.NewRouteDirectory(accountInteractor, render)
+
+	ressources.NewUserCtrl(userInteractor, render, routes)
+	ressources.NewSessionCtrl(sessionInteractor, render, routes)
+	ressources.NewAccountCtrl(accountInteractor, render, routes)
+	ressources.NewRoleMappingCtrl(roleMappingInteractor, render, routes)
+	ressources.NewRoleCtrl(roleInteractor, render, routes)
+	ressources.NewAclMappingCtrl(aclMappingInteractor, render, routes)
+	ressources.NewAclCtrl(aclInteractor, render, routes)
+
+	routes.Register(router)
+
+	app.Use(negroni.NewLogger())
+	app.Use(negroni.NewRecovery())
+	app.Use(middlewares.NewSessions(accountInteractor))
+
+	app.UseHandler(router)
+}
+
+func closeApp(store *infrastructure.GormStore) {
+	store.Close()
+}
+
 func connectDB(store *infrastructure.GormStore) error {
 	var err error
 
@@ -79,38 +135,4 @@ func connectDB(store *infrastructure.GormStore) error {
 	}
 
 	return err
-}
-
-func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render, store *infrastructure.GormStore) {
-	err := connectDB(store)
-	if err != nil {
-		panic("Could not connect to database.")
-	}
-
-	permissions := usecases.NewPermissionDirectory()
-	routes := interfaces.NewRouteDirectory(permissions, render)
-
-	userRepository := ressources.NewUserRepo(store)
-	userInteractor := ressources.NewUserInter(userRepository)
-	ressources.NewUserCtrl(userInteractor, render, routes, permissions)
-
-	sessionRepository := ressources.NewSessionRepo(store)
-	sessionInteractor := ressources.NewSessionInter(sessionRepository)
-	ressources.NewSessionCtrl(sessionInteractor, render, routes, permissions)
-
-	accountRepository := ressources.NewAccountRepo(store)
-	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository)
-	ressources.NewAccountCtrl(accountInteractor, render, routes, permissions)
-
-	routes.Register(router)
-
-	app.Use(negroni.NewLogger())
-	app.Use(negroni.NewRecovery())
-	app.Use(middlewares.NewSessions(accountRepository, userRepository, sessionRepository))
-
-	app.UseHandler(router)
-}
-
-func closeApp(store *infrastructure.GormStore) {
-	store.Close()
 }

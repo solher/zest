@@ -5,11 +5,13 @@
 package ressources
 
 import (
+	"database/sql"
 	"strings"
 
 	"github.com/Solher/auth-scaffold/domain"
 	"github.com/Solher/auth-scaffold/interfaces"
 	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/auth-scaffold/usecases"
 )
 
 type SessionRepo struct {
@@ -31,9 +33,9 @@ func (r *SessionRepo) Create(sessions []domain.Session) ([]domain.Session, error
 
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
 			}
+
+			return nil, internalerrors.DatabaseError
 		}
 
 		sessions[i] = session
@@ -50,16 +52,16 @@ func (r *SessionRepo) CreateOne(session *domain.Session) (*domain.Session, error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		} else {
-			return nil, internalerrors.DatabaseError
 		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return session, nil
 }
 
-func (r *SessionRepo) Find(filter *interfaces.Filter) ([]domain.Session, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *SessionRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -74,15 +76,15 @@ func (r *SessionRepo) Find(filter *interfaces.Filter) ([]domain.Session, error) 
 	return sessions, nil
 }
 
-func (r *SessionRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Session, error) {
-	query, err := r.store.BuildQuery(filter)
+func (r *SessionRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
 	session := domain.Session{}
 
-	err = query.First(&session, id).Error
+	err = query.Where("sessions.id = ?", id).First(&session).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -90,74 +92,59 @@ func (r *SessionRepo) FindByID(id int, filter *interfaces.Filter) (*domain.Sessi
 	return &session, nil
 }
 
-func (r *SessionRepo) Upsert(sessions []domain.Session) ([]domain.Session, error) {
+func (r *SessionRepo) Update(sessions []domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Session, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
 	for i, session := range sessions {
-		if session.ID != 0 {
-			oldUser := domain.Session{}
+		queryCopy := *query
+		oldUser := domain.Session{}
 
-			err := db.First(&oldUser, session.ID).Updates(session).Error
-			if err != nil {
-				transaction.Rollback()
+		err := queryCopy.Where("sessions.id = ?", session.ID).First(&oldUser).Updates(sessions[i]).Error
+		if err != nil {
+			transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
-				}
+			if strings.Contains(err.Error(), "constraint") {
+				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
-		} else {
-			err := db.Create(&session).Error
-			if err != nil {
-				transaction.Rollback()
 
-				if strings.Contains(err.Error(), "constraint") {
-					return nil, internalerrors.NewViolatedConstraint(err.Error())
-				} else {
-					return nil, internalerrors.DatabaseError
-				}
-			}
+			return nil, internalerrors.DatabaseError
 		}
-
-		sessions[i] = session
 	}
 
 	transaction.Commit()
 	return sessions, nil
 }
 
-func (r *SessionRepo) UpsertOne(session *domain.Session) (*domain.Session, error) {
-	db := r.store.GetDB()
+func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
+	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 
-	if session.ID != 0 {
-		oldUser := domain.Session{}
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
 
-		err := db.First(&oldUser, session.ID).Updates(session).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
-			}
+	oldUser := domain.Session{}
+
+	err = query.Where("sessions.id = ?", id).First(&oldUser).Updates(session).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
 		}
-	} else {
-		err := db.Create(&session).Error
-		if err != nil {
-			if strings.Contains(err.Error(), "constraint") {
-				return nil, internalerrors.NewViolatedConstraint(err.Error())
-			} else {
-				return nil, internalerrors.DatabaseError
-			}
-		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return session, nil
 }
 
-func (r *SessionRepo) DeleteAll(filter *interfaces.Filter) error {
-	query, err := r.store.BuildQuery(filter)
+func (r *SessionRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -170,13 +157,31 @@ func (r *SessionRepo) DeleteAll(filter *interfaces.Filter) error {
 	return nil
 }
 
-func (r *SessionRepo) DeleteByID(id int) error {
-	db := r.store.GetDB()
+func (r *SessionRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
+	query, err := r.store.BuildQuery(filter, ownerRelations)
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
 
-	err := db.Delete(&domain.Session{GormModel: domain.GormModel{ID: id}}).Error
+	err = query.Delete(&domain.Session{GormModel: domain.GormModel{ID: id}}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
 	return nil
+}
+
+func (r *SessionRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
+	db := r.store.GetDB()
+
+	rows, err := db.Raw(query, values...).Rows()
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
+	}
+
+	return rows, nil
 }

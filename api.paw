@@ -5,7 +5,7 @@
     <databaseInfo>
         <version>134481920</version>
         <UUID>9DB9C28E-9A60-41C4-8F65-FC8DEFBE5A03</UUID>
-        <nextObjectID>169</nextObjectID>
+        <nextObjectID>171</nextObjectID>
         <metadata>
             <plist version="1.0">
                 <dict>
@@ -164,7 +164,7 @@
         <attribute name="method" type="string">DELETE</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
         <attribute name="body" type="string"></attribute>
-        <attribute name="order" type="int64">4</attribute>
+        <attribute name="order" type="int64">5</attribute>
         <attribute name="name" type="string">DeleteAll</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z120"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -172,14 +172,14 @@
     </object>
     <object type="LMREQUEST" id="z117">
         <attribute name="uuid" type="string">2995B6A3-E072-4E26-911D-8A9336215C0E</attribute>
-        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/6"]</attribute>
+        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/1"]</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">DELETE</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="order" type="int64">5</attribute>
+        <attribute name="order" type="int64">6</attribute>
         <attribute name="name" type="string">DeleteByID</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z120"></relationship>
         <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
@@ -205,7 +205,7 @@
         <attribute name="order" type="int64">2</attribute>
         <attribute name="name" type="string">Users</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM"></relationship>
-        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z116 z119 z138 z117 z137 z131"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM" idrefs="z171 z137 z131 z116 z117 z138 z119"></relationship>
         <relationship name="bodyparameters" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="headers" type="0/0" destination="LMKEYVALUE"></relationship>
         <relationship name="urlparameters" type="0/0" destination="LMKEYVALUE"></relationship>
@@ -266,7 +266,7 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">PUT</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">["[\\n{\\n  \\"firstName\\": \\"Pascal\\",\\n  \\"lastName\\": \\"Vincent\\"\\n},\\n{\\n  \\"id\\": 2,\\n  \\"firstName\\": \\"Fabienne\\"\\n}\\n]"]</attribute>
+        <attribute name="body" type="string">["[\\n{\\n  \\"id\\": 2,\\n  \\"firstName\\": \\"Fabienne\\"\\n}\\n]"]</attribute>
         <attribute name="order" type="int64">3</attribute>
         <attribute name="name" type="string">Upsert</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z120"></relationship>
@@ -274,9 +274,8 @@
         <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z113"></relationship>
     </object>
     <object type="LMREQUEST" id="z132">
-        <attribute name="body" type="string"></attribute>
         <attribute name="uuid" type="string">894048B7-18D6-4832-86FA-EE35F5BF824A</attribute>
-        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/accounts\\/me\\/users"]</attribute>
+        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/accounts\\/me"]</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
@@ -324,7 +323,7 @@
     </object>
     <object type="LMREQUEST" id="z138">
         <attribute name="uuid" type="string">8E0B4731-CCF8-43C1-8688-5198657B126F</attribute>
-        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/2"]</attribute>
+        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/1"]</attribute>
         <attribute name="storecookies" type="bool">1</attribute>
         <attribute name="sendcookies" type="bool">1</attribute>
         <attribute name="redirectmethod" type="bool">0</attribute>
@@ -528,5 +527,29 @@
         <attribute name="value" type="string">3005</attribute>
         <relationship name="environment" type="1/1" destination="LMENVIRONMENT" idrefs="z114"></relationship>
         <relationship name="variable" type="1/1" destination="LMENVIRONMENTVARIABLE" idrefs="z168"></relationship>
+    </object>
+    <object type="LMKEYVALUE" id="z170">
+        <attribute name="order" type="int64">0</attribute>
+        <attribute name="enabled" type="bool">1</attribute>
+        <relationship name="groupforbodyparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforheaders" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="groupforurlparameters" type="0/1" destination="LMREQUESTGROUP"></relationship>
+        <relationship name="request" type="0/1" destination="LMREQUEST" idrefs="z171"></relationship>
+    </object>
+    <object type="LMREQUEST" id="z171">
+        <attribute name="uuid" type="string">FD473E4B-29CC-47A3-86C0-E45C246DA4FB</attribute>
+        <attribute name="url" type="string">["http:\\/\\/",{"data":{"environmentVariable":"A5F7BDCE-D0C9-4F30-B5A3-1028E0846645"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},":",{"data":{"environmentVariable":"0846BDDD-C4E9-44AC-88A9-ECB8C7CBC756"},"identifier":"com.luckymarmot.EnvironmentVariableDynamicValue"},"\\/users\\/2"]</attribute>
+        <attribute name="storecookies" type="bool">1</attribute>
+        <attribute name="sendcookies" type="bool">1</attribute>
+        <attribute name="redirectmethod" type="bool">0</attribute>
+        <attribute name="redirectauthorization" type="bool">0</attribute>
+        <attribute name="method" type="string">PUT</attribute>
+        <attribute name="followredirects" type="bool">0</attribute>
+        <attribute name="body" type="string">["{\\n  \\"id\\": 2,\\n  \\"firstName\\": \\"Fabienne\\"\\n}\\n"]</attribute>
+        <attribute name="order" type="int64">4</attribute>
+        <attribute name="name" type="string">UpdateByID</attribute>
+        <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z120"></relationship>
+        <relationship name="children" type="0/0" destination="LMREQUESTTREEITEM"></relationship>
+        <relationship name="headers" type="0/0" destination="LMKEYVALUE" idrefs="z170"></relationship>
     </object>
 </database>

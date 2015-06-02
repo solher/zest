@@ -1,10 +1,12 @@
 package ressources
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/auth-scaffold/usecases"
+
 	"github.com/Solher/auth-scaffold/internalerrors"
 	"github.com/Solher/auth-scaffold/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -13,31 +15,37 @@ import (
 type AbstractAccountRepo interface {
 	Create(accounts []domain.Account) ([]domain.Account, error)
 	CreateOne(account *domain.Account) (*domain.Account, error)
-	Find(filter *interfaces.Filter) ([]domain.Account, error)
-	FindByID(id int, filter *interfaces.Filter) (*domain.Account, error)
-	Upsert(accounts []domain.Account) ([]domain.Account, error)
-	UpsertOne(account *domain.Account) (*domain.Account, error)
-	DeleteAll(filter *interfaces.Filter) error
-	DeleteByID(id int) error
+	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
+	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
+	Update(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
+	UpdateByID(id int, account *domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
+	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
+	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
 type AccountInter struct {
-	repo        AbstractAccountRepo
-	userRepo    AbstractUserRepo
-	sessionRepo AbstractSessionRepo
+	repo                 AbstractAccountRepo
+	userRepo             AbstractUserRepo
+	sessionRepo          AbstractSessionRepo
+	sessionCacheInter    *usecases.SessionCacheInter
+	permissionCacheInter *usecases.PermissionCacheInter
 }
 
-func NewAccountInter(repo AbstractAccountRepo, userRepo AbstractUserRepo, sessionRepo AbstractSessionRepo) *AccountInter {
-	return &AccountInter{repo: repo, userRepo: userRepo, sessionRepo: sessionRepo}
+func NewAccountInter(repo AbstractAccountRepo, userRepo AbstractUserRepo, sessionRepo AbstractSessionRepo,
+	sessionCacheInter *usecases.SessionCacheInter, permissionCacheInter *usecases.PermissionCacheInter) *AccountInter {
+
+	return &AccountInter{repo: repo, userRepo: userRepo, sessionRepo: sessionRepo,
+		sessionCacheInter: sessionCacheInter, permissionCacheInter: permissionCacheInter}
 }
 
 func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error) {
-	filter := &interfaces.Filter{
+	filter := &usecases.Filter{
 		Limit: 1,
 		Where: map[string]interface{}{"email": credentials.Email},
 	}
 
-	users, err := i.userRepo.Find(filter)
+	users, err := i.userRepo.Find(filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +82,23 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		return nil, err
 	}
 
+	err = i.sessionCacheInter.Add(session.AuthToken, *session)
+	if err != nil {
+		return nil, err
+	}
+
 	return session, nil
 }
 
 func (i *AccountInter) Signout(currentSession *domain.Session) error {
-	err := i.sessionRepo.DeleteByID(currentSession.ID)
+	authToken := currentSession.AuthToken
+
+	err := i.sessionRepo.DeleteByID(currentSession.ID, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	err = i.sessionCacheInter.Remove(authToken)
 	if err != nil {
 		return err
 	}
@@ -105,11 +125,11 @@ func (i *AccountInter) Signup(user *domain.User) (*domain.Account, error) {
 	return account, nil
 }
 func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account, error) {
-	filter := &interfaces.Filter{
+	filter := &usecases.Filter{
 		Include: []interface{}{"users"},
 	}
 
-	account, err := i.repo.FindByID(currentSession.AccountID, filter)
+	account, err := i.repo.FindByID(currentSession.AccountID, filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -121,24 +141,92 @@ func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account,
 }
 
 func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Session, error) {
-	filter := &interfaces.Filter{
-		Limit:   1,
-		Where:   map[string]interface{}{"authToken": authToken},
-		Include: []interface{}{"account"},
-	}
+	session, err := i.sessionCacheInter.Get(authToken)
 
-	sessions, err := i.sessionRepo.Find(filter)
 	if err != nil {
-		return nil, err
-	}
+		filter := &usecases.Filter{
+			Limit: 1,
+			Where: map[string]interface{}{"authToken": authToken},
+		}
 
-	if len(sessions) == 1 {
-		session := sessions[0]
+		sessions, err := i.sessionRepo.Find(filter, nil)
+		if err != nil {
+			return nil, err
+		}
 
-		if session.ValidTo.After(time.Now()) {
-			return &session, nil
+		if len(sessions) == 1 {
+			session = sessions[0]
+
+			err = i.sessionCacheInter.Add(session.AuthToken, session)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
+	if session.ValidTo.After(time.Now()) {
+		return &session, nil
+	}
+
 	return nil, nil
+}
+
+func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) ([]string, error) {
+	var rows *sql.Rows
+
+	roleNames, err := i.permissionCacheInter.GetPermissionRoles(accountID, ressource, method)
+
+	if err != nil {
+		if accountID == 0 {
+			rows, err = i.repo.Raw(`
+				SELECT DISTINCT roles.name
+				FROM roles, acls
+				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
+				WHERE roles.name IN ('Guest', 'Anyone') AND acls.ressource = ? AND acls.method = ?
+				`, ressource, method)
+		} else {
+			rows, err = i.repo.Raw(`
+				SELECT DISTINCT roles.name
+				FROM roles, acls
+				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
+				WHERE roles.name IN ('Authenticated', 'Owner', 'Anyone') AND acls.ressource = ? AND acls.method = ?
+				`, ressource, method)
+		}
+
+		defer rows.Close()
+
+		if err != nil {
+			return nil, err
+		}
+
+		for rows.Next() {
+			var roleName string
+			rows.Scan(&roleName)
+			roleNames = append(roleNames, roleName)
+		}
+
+		if len(roleNames) == 0 {
+			rows, err = i.repo.Raw(`
+				SELECT DISTINCT roles.name
+				FROM roles, acls
+				INNER JOIN role_mappings ON role_mappings.role_id = roles.id
+				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
+				WHERE role_mappings.account_id = ? AND acls.ressource = ? AND acls.method = ?
+				`, accountID, ressource, method)
+		}
+
+		defer rows.Close()
+
+		if err != nil {
+			return nil, err
+		}
+
+		for rows.Next() {
+			var roleName string
+			rows.Scan(&roleName)
+			roleNames = append(roleNames, roleName)
+		}
+	}
+
+	return roleNames, nil
 }
