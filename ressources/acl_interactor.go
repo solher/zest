@@ -34,8 +34,8 @@ func NewAclInter(repo AbstractAclRepo) *AclInter {
 func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 	var err error
 
-	for i := range acls {
-		err = (&acls[i]).BeforeActionCreate()
+	for k := range acls {
+		err = i.BeforeCreate(&acls[k])
 		if err != nil {
 			return nil, err
 		}
@@ -46,8 +46,8 @@ func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 		return nil, err
 	}
 
-	for i := range acls {
-		err = (&acls[i]).AfterActionCreate()
+	for k := range acls {
+		err = i.AfterCreate(&acls[k])
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 }
 
 func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
-	err := acl.BeforeActionCreate()
+	err := i.BeforeCreate(acl)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
 		return nil, err
 	}
 
-	err = acl.AfterActionCreate()
+	err = i.AfterCreate(acl)
 	if err != nil {
 		return nil, err
 	}
@@ -97,15 +97,15 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 	aclsToUpdate := []domain.Acl{}
 	aclsToCreate := []domain.Acl{}
 
-	for i := range acls {
+	for k := range acls {
 		var err error
 
-		if acls[i].ID != 0 {
-			err = (&acls[i]).BeforeActionUpdate()
-			aclsToUpdate = append(aclsToUpdate, acls[i])
+		if acls[k].ID != 0 {
+			err = i.BeforeUpdate(&acls[k])
+			aclsToUpdate = append(aclsToUpdate, acls[k])
 		} else {
-			err = (&acls[i]).BeforeActionCreate()
-			aclsToCreate = append(aclsToCreate, acls[i])
+			err = i.BeforeCreate(&acls[k])
+			aclsToCreate = append(aclsToCreate, acls[k])
 		}
 
 		if err != nil {
@@ -123,15 +123,15 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 		return nil, err
 	}
 
-	for i := range aclsToUpdate {
-		err = (&acls[i]).AfterActionUpdate()
+	for k := range aclsToUpdate {
+		err = i.AfterUpdate(&acls[k])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for i := range aclsToCreate {
-		err = (&acls[i]).AfterActionCreate()
+	for k := range aclsToCreate {
+		err = i.AfterCreate(&acls[k])
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 
 func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 	if acl.ID != 0 {
-		err := acl.BeforeActionUpdate()
+		err := i.BeforeUpdate(acl)
 		if err != nil {
 			return nil, err
 		}
@@ -152,12 +152,12 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 			return nil, err
 		}
 
-		err = acl.AfterActionUpdate()
+		err = i.AfterUpdate(acl)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := acl.BeforeActionCreate()
+		err := i.BeforeCreate(acl)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 			return nil, err
 		}
 
-		err = acl.AfterActionCreate()
+		err = i.AfterCreate(acl)
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 
-	err := acl.BeforeActionUpdate()
+	err := i.BeforeUpdate(acl)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 		return nil, err
 	}
 
-	err = acl.AfterActionUpdate()
+	err = i.AfterUpdate(acl)
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +203,8 @@ func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Re
 		return err
 	}
 
-	for i := range acls {
-		err = (&acls[i]).BeforeActionDelete()
+	for k := range acls {
+		err = i.BeforeDelete(&acls[k])
 		if err != nil {
 			return err
 		}
@@ -215,8 +215,8 @@ func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Re
 		return err
 	}
 
-	for i := range acls {
-		err = (&acls[i]).AfterActionDelete()
+	for k := range acls {
+		err = i.AfterDelete(&acls[k])
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []
 		return err
 	}
 
-	err = acl.BeforeActionDelete()
+	err = i.BeforeDelete(acl)
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []
 		return err
 	}
 
-	err = acl.AfterActionDelete()
+	err = i.AfterDelete(acl)
 	if err != nil {
 		return err
 	}

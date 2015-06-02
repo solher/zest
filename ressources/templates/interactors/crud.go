@@ -57,8 +57,8 @@ var create = &typewriter.Template{
 	func (i *{{.Type}}Inter) Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error) {
 		var err error
 
-		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).BeforeActionCreate()
+		for k := range {{.Name}}s {
+			err = i.BeforeCreate(&{{.Name}}s[k])
 			if err != nil {
 				return nil, err
 			}
@@ -69,8 +69,8 @@ var create = &typewriter.Template{
 			return nil, err
 		}
 
-		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).AfterActionCreate()
+		for k := range {{.Name}}s {
+			err = i.AfterCreate(&{{.Name}}s[k])
 			if err != nil {
 				return nil, err
 			}
@@ -84,7 +84,7 @@ var createOne = &typewriter.Template{
 	Name: "CreateOne",
 	Text: `
 	func (i *{{.Type}}Inter) CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
-		err := {{.Name}}.BeforeActionCreate()
+		err := i.BeforeCreate({{.Name}})
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +94,7 @@ var createOne = &typewriter.Template{
 			return nil, err
 		}
 
-		err = {{.Name}}.AfterActionCreate()
+		err = i.AfterCreate({{.Name}})
 		if err != nil {
 			return nil, err
 		}
@@ -136,15 +136,15 @@ var upsert = &typewriter.Template{
 		{{.Name}}sToUpdate := []domain.{{.Type}}{}
 		{{.Name}}sToCreate := []domain.{{.Type}}{}
 
-		for i := range {{.Name}}s {
+		for k := range {{.Name}}s {
 			var err error
 
-			if {{.Name}}s[i].ID != 0 {
-				err = (&{{.Name}}s[i]).BeforeActionUpdate()
-				{{.Name}}sToUpdate = append({{.Name}}sToUpdate, {{.Name}}s[i])
+			if {{.Name}}s[k].ID != 0 {
+				err = i.BeforeUpdate(&{{.Name}}s[k])
+				{{.Name}}sToUpdate = append({{.Name}}sToUpdate, {{.Name}}s[k])
 			} else {
-				err = (&{{.Name}}s[i]).BeforeActionCreate()
-				{{.Name}}sToCreate = append({{.Name}}sToCreate, {{.Name}}s[i])
+				err = i.BeforeCreate(&{{.Name}}s[k])
+				{{.Name}}sToCreate = append({{.Name}}sToCreate, {{.Name}}s[k])
 			}
 
 			if err != nil {
@@ -162,15 +162,15 @@ var upsert = &typewriter.Template{
 			return nil, err
 		}
 
-		for i := range {{.Name}}sToUpdate {
-			err = (&{{.Name}}s[i]).AfterActionUpdate()
+		for k := range {{.Name}}sToUpdate {
+			err = i.AfterUpdate(&{{.Name}}s[k])
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		for i := range {{.Name}}sToCreate {
-			err = (&{{.Name}}s[i]).AfterActionCreate()
+		for k := range {{.Name}}sToCreate {
+			err = i.AfterCreate(&{{.Name}}s[k])
 			if err != nil {
 				return nil, err
 			}
@@ -185,7 +185,7 @@ var upsertOne = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 		if {{.Name}}.ID != 0 {
-			err := {{.Name}}.BeforeActionUpdate()
+			err := i.BeforeUpdate({{.Name}})
 			if err != nil {
 				return nil, err
 			}
@@ -195,12 +195,12 @@ var upsertOne = &typewriter.Template{
 				return nil, err
 			}
 
-			err = {{.Name}}.AfterActionUpdate()
+			err = i.AfterUpdate({{.Name}})
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			err := {{.Name}}.BeforeActionCreate()
+			err := i.BeforeCreate({{.Name}})
 			if err != nil {
 				return nil, err
 			}
@@ -210,7 +210,7 @@ var upsertOne = &typewriter.Template{
 				return nil, err
 			}
 
-			err = {{.Name}}.AfterActionCreate()
+			err = i.AfterCreate({{.Name}})
 			if err != nil {
 				return nil, err
 			}
@@ -226,7 +226,7 @@ var updateByID = &typewriter.Template{
 	func (i *{{.Type}}Inter) UpdateByID(id int, {{.Name}} *domain.{{.Type}},
 		filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 
-		err := {{.Name}}.BeforeActionUpdate()
+		err := i.BeforeUpdate({{.Name}})
 		if err != nil {
 			return nil, err
 		}
@@ -236,7 +236,7 @@ var updateByID = &typewriter.Template{
 			return nil, err
 		}
 
-		err = {{.Name}}.AfterActionUpdate()
+		err = i.AfterUpdate({{.Name}})
 		if err != nil {
 			return nil, err
 		}
@@ -254,8 +254,8 @@ var deleteAll = &typewriter.Template{
 			return err
 		}
 
-		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).BeforeActionDelete()
+		for k := range {{.Name}}s {
+			err = i.BeforeDelete(&{{.Name}}s[k])
 			if err != nil {
 				return err
 			}
@@ -266,8 +266,8 @@ var deleteAll = &typewriter.Template{
 			return err
 		}
 
-		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).AfterActionDelete()
+		for k := range {{.Name}}s {
+			err = i.AfterDelete(&{{.Name}}s[k])
 			if err != nil {
 				return err
 			}
@@ -286,7 +286,7 @@ var deleteByID = &typewriter.Template{
 			return err
 		}
 
-		err = {{.Name}}.BeforeActionDelete()
+		err = i.BeforeDelete({{.Name}})
 		if err != nil {
 			return err
 		}
@@ -296,7 +296,7 @@ var deleteByID = &typewriter.Template{
 			return err
 		}
 
-		err = {{.Name}}.AfterActionDelete()
+		err = i.AfterDelete({{.Name}})
 		if err != nil {
 			return err
 		}

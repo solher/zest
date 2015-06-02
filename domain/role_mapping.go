@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 func init() {
 	relations := []Relation{
 		{Related: "accounts", Fk: "accountId"},
@@ -11,7 +9,7 @@ func init() {
 	ModelDirectory.Register(RoleMapping{}, "roleMappings", relations)
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
+//+gen hooks access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
 type RoleMapping struct {
 	GormModel
 	AccountID int     `json:"accountId,omitempty" sql:"index"`
@@ -29,40 +27,12 @@ func (m *RoleMapping) SetRelatedID(idKey string, id int) {
 	}
 }
 
-func scopeRoleMapping(m *RoleMapping) {
-	m.ID = 0
-	m.CreatedAt = time.Time{}
-	m.UpdatedAt = m.CreatedAt
+func (m *RoleMapping) ScopeModel() error {
+	return nil
 }
 
 func (m *RoleMapping) BeforeRender() error {
 	m.Role.BeforeRender()
 	m.Account.BeforeRender()
-	return nil
-}
-
-func (m *RoleMapping) BeforeActionCreate() error {
-	scopeRoleMapping(m)
-	return nil
-}
-
-func (m *RoleMapping) AfterActionCreate() error {
-	return nil
-}
-
-func (m *RoleMapping) BeforeActionUpdate() error {
-	scopeRoleMapping(m)
-	return nil
-}
-
-func (m *RoleMapping) AfterActionUpdate() error {
-	return nil
-}
-
-func (m *RoleMapping) BeforeActionDelete() error {
-	return nil
-}
-
-func (m *RoleMapping) AfterActionDelete() error {
 	return nil
 }

@@ -1,10 +1,6 @@
 package domain
 
-import (
-	"time"
-
-	"golang.org/x/crypto/bcrypt"
-)
+import "golang.org/x/crypto/bcrypt"
 
 func init() {
 	relations := []Relation{
@@ -14,7 +10,7 @@ func init() {
 	ModelDirectory.Register(User{}, "users", relations)
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
+//+gen hooks access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
 type User struct {
 	GormModel
 	AccountID int     `json:"accountId,omitempty" sql:"index"`
@@ -32,11 +28,7 @@ func (m *User) SetRelatedID(idKey string, id int) {
 	}
 }
 
-func scopeUser(m *User) error {
-	m.ID = 0
-	m.CreatedAt = time.Time{}
-	m.UpdatedAt = m.CreatedAt
-
+func (m *User) ScopeModel() error {
 	if m.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(m.Password), 0)
 		if err != nil {
@@ -52,39 +44,5 @@ func scopeUser(m *User) error {
 func (m *User) BeforeRender() error {
 	m.Password = ""
 	m.Account.BeforeRender()
-	return nil
-}
-
-func (m *User) BeforeActionCreate() error {
-	err := scopeUser(m)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *User) AfterActionCreate() error {
-	return nil
-}
-
-func (m *User) BeforeActionUpdate() error {
-	err := scopeUser(m)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *User) AfterActionUpdate() error {
-	return nil
-}
-
-func (m *User) BeforeActionDelete() error {
-	return nil
-}
-
-func (m *User) AfterActionDelete() error {
 	return nil
 }

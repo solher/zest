@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 func init() {
 	relations := []Relation{
 		{Related: "roles", Fk: "roleId"},
@@ -11,7 +9,7 @@ func init() {
 	ModelDirectory.Register(AclMapping{}, "aclMappings", relations)
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
+//+gen hooks access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
 type AclMapping struct {
 	GormModel
 	RoleID int  `json:"roleId,omitempty" sql:"index"`
@@ -29,40 +27,12 @@ func (m *AclMapping) SetRelatedID(idKey string, id int) {
 	}
 }
 
-func scopeAclMapping(m *AclMapping) {
-	m.ID = 0
-	m.CreatedAt = time.Time{}
-	m.UpdatedAt = m.CreatedAt
+func (m *AclMapping) ScopeModel() error {
+	return nil
 }
 
 func (m *AclMapping) BeforeRender() error {
 	m.Role.BeforeRender()
 	m.Acl.BeforeRender()
-	return nil
-}
-
-func (m *AclMapping) BeforeActionCreate() error {
-	scopeAclMapping(m)
-	return nil
-}
-
-func (m *AclMapping) AfterActionCreate() error {
-	return nil
-}
-
-func (m *AclMapping) BeforeActionUpdate() error {
-	scopeAclMapping(m)
-	return nil
-}
-
-func (m *AclMapping) AfterActionUpdate() error {
-	return nil
-}
-
-func (m *AclMapping) BeforeActionDelete() error {
-	return nil
-}
-
-func (m *AclMapping) AfterActionDelete() error {
 	return nil
 }

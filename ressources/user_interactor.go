@@ -34,8 +34,8 @@ func NewUserInter(repo AbstractUserRepo) *UserInter {
 func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
 	var err error
 
-	for i := range users {
-		err = (&users[i]).BeforeActionCreate()
+	for k := range users {
+		err = i.BeforeCreate(&users[k])
 		if err != nil {
 			return nil, err
 		}
@@ -46,8 +46,8 @@ func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
 		return nil, err
 	}
 
-	for i := range users {
-		err = (&users[i]).AfterActionCreate()
+	for k := range users {
+		err = i.AfterCreate(&users[k])
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
 }
 
 func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
-	err := user.BeforeActionCreate()
+	err := i.BeforeCreate(user)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
 		return nil, err
 	}
 
-	err = user.AfterActionCreate()
+	err = i.AfterCreate(user)
 	if err != nil {
 		return nil, err
 	}
@@ -97,15 +97,15 @@ func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRe
 	usersToUpdate := []domain.User{}
 	usersToCreate := []domain.User{}
 
-	for i := range users {
+	for k := range users {
 		var err error
 
-		if users[i].ID != 0 {
-			err = (&users[i]).BeforeActionUpdate()
-			usersToUpdate = append(usersToUpdate, users[i])
+		if users[k].ID != 0 {
+			err = i.BeforeUpdate(&users[k])
+			usersToUpdate = append(usersToUpdate, users[k])
 		} else {
-			err = (&users[i]).BeforeActionCreate()
-			usersToCreate = append(usersToCreate, users[i])
+			err = i.BeforeCreate(&users[k])
+			usersToCreate = append(usersToCreate, users[k])
 		}
 
 		if err != nil {
@@ -123,15 +123,15 @@ func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRe
 		return nil, err
 	}
 
-	for i := range usersToUpdate {
-		err = (&users[i]).AfterActionUpdate()
+	for k := range usersToUpdate {
+		err = i.AfterUpdate(&users[k])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for i := range usersToCreate {
-		err = (&users[i]).AfterActionCreate()
+	for k := range usersToCreate {
+		err = i.AfterCreate(&users[k])
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRe
 
 func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 	if user.ID != 0 {
-		err := user.BeforeActionUpdate()
+		err := i.BeforeUpdate(user)
 		if err != nil {
 			return nil, err
 		}
@@ -152,12 +152,12 @@ func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerR
 			return nil, err
 		}
 
-		err = user.AfterActionUpdate()
+		err = i.AfterUpdate(user)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := user.BeforeActionCreate()
+		err := i.BeforeCreate(user)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerR
 			return nil, err
 		}
 
-		err = user.AfterActionCreate()
+		err = i.AfterCreate(user)
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerR
 func (i *UserInter) UpdateByID(id int, user *domain.User,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 
-	err := user.BeforeActionUpdate()
+	err := i.BeforeUpdate(user)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (i *UserInter) UpdateByID(id int, user *domain.User,
 		return nil, err
 	}
 
-	err = user.AfterActionUpdate()
+	err = i.AfterUpdate(user)
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +203,8 @@ func (i *UserInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.R
 		return err
 	}
 
-	for i := range users {
-		err = (&users[i]).BeforeActionDelete()
+	for k := range users {
+		err = i.BeforeDelete(&users[k])
 		if err != nil {
 			return err
 		}
@@ -215,8 +215,8 @@ func (i *UserInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.R
 		return err
 	}
 
-	for i := range users {
-		err = (&users[i]).AfterActionDelete()
+	for k := range users {
+		err = i.AfterDelete(&users[k])
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (i *UserInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations [
 		return err
 	}
 
-	err = user.BeforeActionDelete()
+	err = i.BeforeDelete(user)
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (i *UserInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations [
 		return err
 	}
 
-	err = user.AfterActionDelete()
+	err = i.AfterDelete(user)
 	if err != nil {
 		return err
 	}

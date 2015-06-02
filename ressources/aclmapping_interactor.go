@@ -34,8 +34,8 @@ func NewAclMappingInter(repo AbstractAclMappingRepo) *AclMappingInter {
 func (i *AclMappingInter) Create(aclmappings []domain.AclMapping) ([]domain.AclMapping, error) {
 	var err error
 
-	for i := range aclmappings {
-		err = (&aclmappings[i]).BeforeActionCreate()
+	for k := range aclmappings {
+		err = i.BeforeCreate(&aclmappings[k])
 		if err != nil {
 			return nil, err
 		}
@@ -46,8 +46,8 @@ func (i *AclMappingInter) Create(aclmappings []domain.AclMapping) ([]domain.AclM
 		return nil, err
 	}
 
-	for i := range aclmappings {
-		err = (&aclmappings[i]).AfterActionCreate()
+	for k := range aclmappings {
+		err = i.AfterCreate(&aclmappings[k])
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (i *AclMappingInter) Create(aclmappings []domain.AclMapping) ([]domain.AclM
 }
 
 func (i *AclMappingInter) CreateOne(aclmapping *domain.AclMapping) (*domain.AclMapping, error) {
-	err := aclmapping.BeforeActionCreate()
+	err := i.BeforeCreate(aclmapping)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (i *AclMappingInter) CreateOne(aclmapping *domain.AclMapping) (*domain.AclM
 		return nil, err
 	}
 
-	err = aclmapping.AfterActionCreate()
+	err = i.AfterCreate(aclmapping)
 	if err != nil {
 		return nil, err
 	}
@@ -97,15 +97,15 @@ func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping, filter *usecas
 	aclmappingsToUpdate := []domain.AclMapping{}
 	aclmappingsToCreate := []domain.AclMapping{}
 
-	for i := range aclmappings {
+	for k := range aclmappings {
 		var err error
 
-		if aclmappings[i].ID != 0 {
-			err = (&aclmappings[i]).BeforeActionUpdate()
-			aclmappingsToUpdate = append(aclmappingsToUpdate, aclmappings[i])
+		if aclmappings[k].ID != 0 {
+			err = i.BeforeUpdate(&aclmappings[k])
+			aclmappingsToUpdate = append(aclmappingsToUpdate, aclmappings[k])
 		} else {
-			err = (&aclmappings[i]).BeforeActionCreate()
-			aclmappingsToCreate = append(aclmappingsToCreate, aclmappings[i])
+			err = i.BeforeCreate(&aclmappings[k])
+			aclmappingsToCreate = append(aclmappingsToCreate, aclmappings[k])
 		}
 
 		if err != nil {
@@ -123,15 +123,15 @@ func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping, filter *usecas
 		return nil, err
 	}
 
-	for i := range aclmappingsToUpdate {
-		err = (&aclmappings[i]).AfterActionUpdate()
+	for k := range aclmappingsToUpdate {
+		err = i.AfterUpdate(&aclmappings[k])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for i := range aclmappingsToCreate {
-		err = (&aclmappings[i]).AfterActionCreate()
+	for k := range aclmappingsToCreate {
+		err = i.AfterCreate(&aclmappings[k])
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping, filter *usecas
 
 func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 	if aclmapping.ID != 0 {
-		err := aclmapping.BeforeActionUpdate()
+		err := i.BeforeUpdate(aclmapping)
 		if err != nil {
 			return nil, err
 		}
@@ -152,12 +152,12 @@ func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *useca
 			return nil, err
 		}
 
-		err = aclmapping.AfterActionUpdate()
+		err = i.AfterUpdate(aclmapping)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := aclmapping.BeforeActionCreate()
+		err := i.BeforeCreate(aclmapping)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *useca
 			return nil, err
 		}
 
-		err = aclmapping.AfterActionCreate()
+		err = i.AfterCreate(aclmapping)
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *useca
 func (i *AclMappingInter) UpdateByID(id int, aclmapping *domain.AclMapping,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 
-	err := aclmapping.BeforeActionUpdate()
+	err := i.BeforeUpdate(aclmapping)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (i *AclMappingInter) UpdateByID(id int, aclmapping *domain.AclMapping,
 		return nil, err
 	}
 
-	err = aclmapping.AfterActionUpdate()
+	err = i.AfterUpdate(aclmapping)
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +203,8 @@ func (i *AclMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []do
 		return err
 	}
 
-	for i := range aclmappings {
-		err = (&aclmappings[i]).BeforeActionDelete()
+	for k := range aclmappings {
+		err = i.BeforeDelete(&aclmappings[k])
 		if err != nil {
 			return err
 		}
@@ -215,8 +215,8 @@ func (i *AclMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []do
 		return err
 	}
 
-	for i := range aclmappings {
-		err = (&aclmappings[i]).AfterActionDelete()
+	for k := range aclmappings {
+		err = i.AfterDelete(&aclmappings[k])
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (i *AclMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRelat
 		return err
 	}
 
-	err = aclmapping.BeforeActionDelete()
+	err = i.BeforeDelete(aclmapping)
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (i *AclMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRelat
 		return err
 	}
 
-	err = aclmapping.AfterActionDelete()
+	err = i.AfterDelete(aclmapping)
 	if err != nil {
 		return err
 	}

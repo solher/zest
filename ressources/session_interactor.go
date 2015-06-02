@@ -34,8 +34,8 @@ func NewSessionInter(repo AbstractSessionRepo) *SessionInter {
 func (i *SessionInter) Create(sessions []domain.Session) ([]domain.Session, error) {
 	var err error
 
-	for i := range sessions {
-		err = (&sessions[i]).BeforeActionCreate()
+	for k := range sessions {
+		err = i.BeforeCreate(&sessions[k])
 		if err != nil {
 			return nil, err
 		}
@@ -46,8 +46,8 @@ func (i *SessionInter) Create(sessions []domain.Session) ([]domain.Session, erro
 		return nil, err
 	}
 
-	for i := range sessions {
-		err = (&sessions[i]).AfterActionCreate()
+	for k := range sessions {
+		err = i.AfterCreate(&sessions[k])
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (i *SessionInter) Create(sessions []domain.Session) ([]domain.Session, erro
 }
 
 func (i *SessionInter) CreateOne(session *domain.Session) (*domain.Session, error) {
-	err := session.BeforeActionCreate()
+	err := i.BeforeCreate(session)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (i *SessionInter) CreateOne(session *domain.Session) (*domain.Session, erro
 		return nil, err
 	}
 
-	err = session.AfterActionCreate()
+	err = i.AfterCreate(session)
 	if err != nil {
 		return nil, err
 	}
@@ -97,15 +97,15 @@ func (i *SessionInter) Upsert(sessions []domain.Session, filter *usecases.Filter
 	sessionsToUpdate := []domain.Session{}
 	sessionsToCreate := []domain.Session{}
 
-	for i := range sessions {
+	for k := range sessions {
 		var err error
 
-		if sessions[i].ID != 0 {
-			err = (&sessions[i]).BeforeActionUpdate()
-			sessionsToUpdate = append(sessionsToUpdate, sessions[i])
+		if sessions[k].ID != 0 {
+			err = i.BeforeUpdate(&sessions[k])
+			sessionsToUpdate = append(sessionsToUpdate, sessions[k])
 		} else {
-			err = (&sessions[i]).BeforeActionCreate()
-			sessionsToCreate = append(sessionsToCreate, sessions[i])
+			err = i.BeforeCreate(&sessions[k])
+			sessionsToCreate = append(sessionsToCreate, sessions[k])
 		}
 
 		if err != nil {
@@ -123,15 +123,15 @@ func (i *SessionInter) Upsert(sessions []domain.Session, filter *usecases.Filter
 		return nil, err
 	}
 
-	for i := range sessionsToUpdate {
-		err = (&sessions[i]).AfterActionUpdate()
+	for k := range sessionsToUpdate {
+		err = i.AfterUpdate(&sessions[k])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for i := range sessionsToCreate {
-		err = (&sessions[i]).AfterActionCreate()
+	for k := range sessionsToCreate {
+		err = i.AfterCreate(&sessions[k])
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (i *SessionInter) Upsert(sessions []domain.Session, filter *usecases.Filter
 
 func (i *SessionInter) UpsertOne(session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 	if session.ID != 0 {
-		err := session.BeforeActionUpdate()
+		err := i.BeforeUpdate(session)
 		if err != nil {
 			return nil, err
 		}
@@ -152,12 +152,12 @@ func (i *SessionInter) UpsertOne(session *domain.Session, filter *usecases.Filte
 			return nil, err
 		}
 
-		err = session.AfterActionUpdate()
+		err = i.AfterUpdate(session)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := session.BeforeActionCreate()
+		err := i.BeforeCreate(session)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func (i *SessionInter) UpsertOne(session *domain.Session, filter *usecases.Filte
 			return nil, err
 		}
 
-		err = session.AfterActionCreate()
+		err = i.AfterCreate(session)
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (i *SessionInter) UpsertOne(session *domain.Session, filter *usecases.Filte
 func (i *SessionInter) UpdateByID(id int, session *domain.Session,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 
-	err := session.BeforeActionUpdate()
+	err := i.BeforeUpdate(session)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (i *SessionInter) UpdateByID(id int, session *domain.Session,
 		return nil, err
 	}
 
-	err = session.AfterActionUpdate()
+	err = i.AfterUpdate(session)
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +203,8 @@ func (i *SessionInter) DeleteAll(filter *usecases.Filter, ownerRelations []domai
 		return err
 	}
 
-	for i := range sessions {
-		err = (&sessions[i]).BeforeActionDelete()
+	for k := range sessions {
+		err = i.BeforeDelete(&sessions[k])
 		if err != nil {
 			return err
 		}
@@ -215,8 +215,8 @@ func (i *SessionInter) DeleteAll(filter *usecases.Filter, ownerRelations []domai
 		return err
 	}
 
-	for i := range sessions {
-		err = (&sessions[i]).AfterActionDelete()
+	for k := range sessions {
+		err = i.AfterDelete(&sessions[k])
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (i *SessionInter) DeleteByID(id int, filter *usecases.Filter, ownerRelation
 		return err
 	}
 
-	err = session.BeforeActionDelete()
+	err = i.BeforeDelete(session)
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (i *SessionInter) DeleteByID(id int, filter *usecases.Filter, ownerRelation
 		return err
 	}
 
-	err = session.AfterActionDelete()
+	err = i.AfterDelete(session)
 	if err != nil {
 		return err
 	}

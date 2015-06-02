@@ -10,7 +10,7 @@ func init() {
 	ModelDirectory.Register(Session{}, "sessions", relations)
 }
 
-//+gen access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
+//+gen hooks access controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
 type Session struct {
 	GormModel
 	AccountID int       `json:"accountId,omitempty" sql:"index"`
@@ -29,40 +29,12 @@ func (m *Session) SetRelatedID(idKey string, id int) {
 	}
 }
 
-func scopeSession(m *Session) {
-	m.ID = 0
-	m.CreatedAt = time.Time{}
-	m.UpdatedAt = m.CreatedAt
-	m.DeletedAt = m.CreatedAt
+func (m *Session) ScopeModel() error {
+	m.DeletedAt = time.Time{}
+	return nil
 }
 
 func (m *Session) BeforeRender() error {
 	m.Account.BeforeRender()
-	return nil
-}
-
-func (m *Session) BeforeActionCreate() error {
-	scopeSession(m)
-	return nil
-}
-
-func (m *Session) AfterActionCreate() error {
-	return nil
-}
-
-func (m *Session) BeforeActionUpdate() error {
-	scopeSession(m)
-	return nil
-}
-
-func (m *Session) AfterActionUpdate() error {
-	return nil
-}
-
-func (m *Session) BeforeActionDelete() error {
-	return nil
-}
-
-func (m *Session) AfterActionDelete() error {
 	return nil
 }
