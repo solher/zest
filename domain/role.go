@@ -37,28 +37,28 @@ func (m *Role) ValidateDelete() error {
 	return nil
 }
 
-func (m *Role) BeforeCreate() error {
+func (m *Role) BeforeActionCreate() error {
 	scopeRole(m)
 	return nil
 }
 
-func (m *Role) AfterCreate() error {
+func (m *Role) AfterActionCreate() error {
 	return nil
 }
 
-func (m *Role) BeforeUpdate() error {
+func (m *Role) BeforeActionUpdate() error {
 	scopeRole(m)
 	return nil
 }
 
-func (m *Role) AfterUpdate() error {
+func (m *Role) AfterActionUpdate() error {
 	return nil
 }
 
-func (m *Role) BeforeDelete() error {
+func (m *Role) BeforeActionDelete() error {
 	return nil
 }
 
-func (m *Role) AfterDelete() error {
+func (m *Role) AfterActionDelete() error {
 	return nil
 }

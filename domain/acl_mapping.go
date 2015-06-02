@@ -38,28 +38,28 @@ func (m *AclMapping) ValidateDelete() error {
 	return nil
 }
 
-func (m *AclMapping) BeforeCreate() error {
+func (m *AclMapping) BeforeActionCreate() error {
 	scopeAclMapping(m)
 	return nil
 }
 
-func (m *AclMapping) AfterCreate() error {
+func (m *AclMapping) AfterActionCreate() error {
 	return nil
 }
 
-func (m *AclMapping) BeforeUpdate() error {
+func (m *AclMapping) BeforeActionUpdate() error {
 	scopeAclMapping(m)
 	return nil
 }
 
-func (m *AclMapping) AfterUpdate() error {
+func (m *AclMapping) AfterActionUpdate() error {
 	return nil
 }
 
-func (m *AclMapping) BeforeDelete() error {
+func (m *AclMapping) BeforeActionDelete() error {
 	return nil
 }
 
-func (m *AclMapping) AfterDelete() error {
+func (m *AclMapping) AfterActionDelete() error {
 	return nil
 }

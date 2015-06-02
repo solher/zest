@@ -57,7 +57,7 @@ func (st *GormStore) MigrateTables(tables []interface{}) error {
 	return nil
 }
 
-func (st *GormStore) ReinitTables(tables []interface{}) error {
+func (st *GormStore) ResetTables(tables []interface{}) error {
 	for _, table := range tables {
 		upcastedTable := reflect.New(reflect.TypeOf(table)).Interface()
 

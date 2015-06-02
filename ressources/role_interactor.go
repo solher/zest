@@ -35,7 +35,7 @@ func (i *RoleInter) Create(roles []domain.Role) ([]domain.Role, error) {
 	var err error
 
 	for i := range roles {
-		err = (&roles[i]).BeforeCreate()
+		err = (&roles[i]).BeforeActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +47,7 @@ func (i *RoleInter) Create(roles []domain.Role) ([]domain.Role, error) {
 	}
 
 	for i := range roles {
-		err = (&roles[i]).AfterCreate()
+		err = (&roles[i]).AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (i *RoleInter) Create(roles []domain.Role) ([]domain.Role, error) {
 }
 
 func (i *RoleInter) CreateOne(role *domain.Role) (*domain.Role, error) {
-	err := role.BeforeCreate()
+	err := role.BeforeActionCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (i *RoleInter) CreateOne(role *domain.Role) (*domain.Role, error) {
 		return nil, err
 	}
 
-	err = role.AfterCreate()
+	err = role.AfterActionCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -101,10 +101,10 @@ func (i *RoleInter) Upsert(roles []domain.Role, filter *usecases.Filter, ownerRe
 		var err error
 
 		if roles[i].ID != 0 {
-			err = (&roles[i]).BeforeUpdate()
+			err = (&roles[i]).BeforeActionUpdate()
 			rolesToUpdate = append(rolesToUpdate, roles[i])
 		} else {
-			err = (&roles[i]).BeforeCreate()
+			err = (&roles[i]).BeforeActionCreate()
 			rolesToCreate = append(rolesToCreate, roles[i])
 		}
 
@@ -124,14 +124,14 @@ func (i *RoleInter) Upsert(roles []domain.Role, filter *usecases.Filter, ownerRe
 	}
 
 	for i := range rolesToUpdate {
-		err = (&roles[i]).AfterUpdate()
+		err = (&roles[i]).AfterActionUpdate()
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for i := range rolesToCreate {
-		err = (&roles[i]).AfterCreate()
+		err = (&roles[i]).AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (i *RoleInter) Upsert(roles []domain.Role, filter *usecases.Filter, ownerRe
 
 func (i *RoleInter) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 	if role.ID != 0 {
-		err := role.BeforeUpdate()
+		err := role.BeforeActionUpdate()
 		if err != nil {
 			return nil, err
 		}
@@ -152,12 +152,12 @@ func (i *RoleInter) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerR
 			return nil, err
 		}
 
-		err = role.AfterUpdate()
+		err = role.AfterActionUpdate()
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := role.BeforeCreate()
+		err := role.BeforeActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func (i *RoleInter) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerR
 			return nil, err
 		}
 
-		err = role.AfterCreate()
+		err = role.AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (i *RoleInter) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerR
 func (i *RoleInter) UpdateByID(id int, role *domain.Role,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error) {
 
-	err := role.BeforeUpdate()
+	err := role.BeforeActionUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (i *RoleInter) UpdateByID(id int, role *domain.Role,
 		return nil, err
 	}
 
-	err = role.AfterUpdate()
+	err = role.AfterActionUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (i *RoleInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.R
 	}
 
 	for i := range roles {
-		err = (&roles[i]).BeforeDelete()
+		err = (&roles[i]).BeforeActionDelete()
 		if err != nil {
 			return err
 		}
@@ -216,7 +216,7 @@ func (i *RoleInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.R
 	}
 
 	for i := range roles {
-		err = (&roles[i]).AfterDelete()
+		err = (&roles[i]).AfterActionDelete()
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (i *RoleInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations [
 		return err
 	}
 
-	err = role.BeforeDelete()
+	err = role.BeforeActionDelete()
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (i *RoleInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations [
 		return err
 	}
 
-	err = role.AfterDelete()
+	err = role.AfterActionDelete()
 	if err != nil {
 		return err
 	}

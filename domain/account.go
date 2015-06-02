@@ -38,28 +38,28 @@ func (m *Account) ValidateDelete() error {
 	return nil
 }
 
-func (m *Account) BeforeCreate() error {
+func (m *Account) BeforeActionCreate() error {
 	scopeAccount(m)
 	return nil
 }
 
-func (m *Account) AfterCreate() error {
+func (m *Account) AfterActionCreate() error {
 	return nil
 }
 
-func (m *Account) BeforeUpdate() error {
+func (m *Account) BeforeActionUpdate() error {
 	scopeAccount(m)
 	return nil
 }
 
-func (m *Account) AfterUpdate() error {
+func (m *Account) AfterActionUpdate() error {
 	return nil
 }
 
-func (m *Account) BeforeDelete() error {
+func (m *Account) BeforeActionDelete() error {
 	return nil
 }
 
-func (m *Account) AfterDelete() error {
+func (m *Account) AfterActionDelete() error {
 	return nil
 }

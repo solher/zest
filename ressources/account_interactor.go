@@ -26,16 +26,16 @@ type AbstractAccountRepo interface {
 
 type AccountInter struct {
 	repo                 AbstractAccountRepo
-	userRepo             AbstractUserRepo
-	sessionRepo          AbstractSessionRepo
+	userInter            AbstractUserInter
+	sessionInter         AbstractSessionInter
 	sessionCacheInter    *usecases.SessionCacheInter
 	permissionCacheInter *usecases.PermissionCacheInter
 }
 
-func NewAccountInter(repo AbstractAccountRepo, userRepo AbstractUserRepo, sessionRepo AbstractSessionRepo,
+func NewAccountInter(repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter,
 	sessionCacheInter *usecases.SessionCacheInter, permissionCacheInter *usecases.PermissionCacheInter) *AccountInter {
 
-	return &AccountInter{repo: repo, userRepo: userRepo, sessionRepo: sessionRepo,
+	return &AccountInter{repo: repo, userInter: userInter, sessionInter: sessionInter,
 		sessionCacheInter: sessionCacheInter, permissionCacheInter: permissionCacheInter}
 }
 
@@ -45,7 +45,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		Where: map[string]interface{}{"email": credentials.Email},
 	}
 
-	users, err := i.userRepo.Find(filter, nil)
+	users, err := i.userInter.Find(filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		ValidTo:   validTo,
 	}
 
-	session, err = i.sessionRepo.CreateOne(session)
+	session, err = i.sessionInter.CreateOne(session)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 func (i *AccountInter) Signout(currentSession *domain.Session) error {
 	authToken := currentSession.AuthToken
 
-	err := i.sessionRepo.DeleteByID(currentSession.ID, nil, nil)
+	err := i.sessionInter.DeleteByID(currentSession.ID, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -105,25 +105,25 @@ func (i *AccountInter) Signout(currentSession *domain.Session) error {
 
 	return nil
 }
+
 func (i *AccountInter) Signup(user *domain.User) (*domain.Account, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)
+	account, err := i.repo.CreateOne(&domain.Account{})
 	if err != nil {
 		return nil, err
 	}
 
-	user.Password = string(hashedPassword)
+	user.AccountID = account.ID
 
-	account := &domain.Account{
-		Users: []domain.User{*user},
-	}
-
-	account, err = i.repo.CreateOne(account)
+	user, err = i.userInter.CreateOne(user)
 	if err != nil {
 		return nil, err
 	}
+
+	account.Users = []domain.User{*user}
 
 	return account, nil
 }
+
 func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account, error) {
 	filter := &usecases.Filter{
 		Include: []interface{}{"users"},
@@ -149,7 +149,7 @@ func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Sessio
 			Where: map[string]interface{}{"authToken": authToken},
 		}
 
-		sessions, err := i.sessionRepo.Find(filter, nil)
+		sessions, err := i.sessionInter.Find(filter, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -193,8 +193,6 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 				`, ressource, method)
 		}
 
-		defer rows.Close()
-
 		if err != nil {
 			return nil, err
 		}
@@ -203,6 +201,11 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 			var roleName string
 			rows.Scan(&roleName)
 			roleNames = append(roleNames, roleName)
+		}
+
+		err = rows.Close()
+		if err != nil {
+			return nil, err
 		}
 
 		if len(roleNames) == 0 {
@@ -215,8 +218,6 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 				`, accountID, ressource, method)
 		}
 
-		defer rows.Close()
-
 		if err != nil {
 			return nil, err
 		}
@@ -225,6 +226,11 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 			var roleName string
 			rows.Scan(&roleName)
 			roleNames = append(roleNames, roleName)
+		}
+
+		err = rows.Close()
+		if err != nil {
+			return nil, err
 		}
 	}
 

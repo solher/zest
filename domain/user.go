@@ -53,7 +53,7 @@ func (m *User) ValidateDelete() error {
 	return nil
 }
 
-func (m *User) BeforeCreate() error {
+func (m *User) BeforeActionCreate() error {
 	err := scopeUser(m)
 	if err != nil {
 		return err
@@ -62,11 +62,11 @@ func (m *User) BeforeCreate() error {
 	return nil
 }
 
-func (m *User) AfterCreate() error {
+func (m *User) AfterActionCreate() error {
 	return nil
 }
 
-func (m *User) BeforeUpdate() error {
+func (m *User) BeforeActionUpdate() error {
 	err := scopeUser(m)
 	if err != nil {
 		return err
@@ -75,14 +75,14 @@ func (m *User) BeforeUpdate() error {
 	return nil
 }
 
-func (m *User) AfterUpdate() error {
+func (m *User) AfterActionUpdate() error {
 	return nil
 }
 
-func (m *User) BeforeDelete() error {
+func (m *User) BeforeActionDelete() error {
 	return nil
 }
 
-func (m *User) AfterDelete() error {
+func (m *User) AfterActionDelete() error {
 	return nil
 }

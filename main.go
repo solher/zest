@@ -61,8 +61,8 @@ func main() {
 func handleOsArgs() bool {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "reinitDB":
-			reinitDatabase()
+		case "resetDB":
+			resetDatabase()
 			return true
 		case "migrateDB":
 			migrateDatabase()
@@ -96,7 +96,7 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 
 	userInteractor := ressources.NewUserInter(userRepository)
 	sessionInteractor := ressources.NewSessionInter(sessionRepository)
-	accountInteractor := ressources.NewAccountInter(accountRepository, userRepository, sessionRepository, sessionCacheInter, permissionCacheInter)
+	accountInteractor := ressources.NewAccountInter(accountRepository, userInteractor, sessionInteractor, sessionCacheInter, permissionCacheInter)
 	roleMappingInteractor := ressources.NewRoleMappingInter(roleMappingRepository)
 	roleInteractor := ressources.NewRoleInter(roleRepository)
 	aclMappingInteractor := ressources.NewAclMappingInter(aclMappingRepository)

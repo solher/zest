@@ -38,28 +38,28 @@ func (m *RoleMapping) ValidateDelete() error {
 	return nil
 }
 
-func (m *RoleMapping) BeforeCreate() error {
+func (m *RoleMapping) BeforeActionCreate() error {
 	scopeRoleMapping(m)
 	return nil
 }
 
-func (m *RoleMapping) AfterCreate() error {
+func (m *RoleMapping) AfterActionCreate() error {
 	return nil
 }
 
-func (m *RoleMapping) BeforeUpdate() error {
+func (m *RoleMapping) BeforeActionUpdate() error {
 	scopeRoleMapping(m)
 	return nil
 }
 
-func (m *RoleMapping) AfterUpdate() error {
+func (m *RoleMapping) AfterActionUpdate() error {
 	return nil
 }
 
-func (m *RoleMapping) BeforeDelete() error {
+func (m *RoleMapping) BeforeActionDelete() error {
 	return nil
 }
 
-func (m *RoleMapping) AfterDelete() error {
+func (m *RoleMapping) AfterActionDelete() error {
 	return nil
 }

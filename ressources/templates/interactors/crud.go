@@ -58,7 +58,7 @@ var create = &typewriter.Template{
 		var err error
 
 		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).BeforeCreate()
+			err = (&{{.Name}}s[i]).BeforeActionCreate()
 			if err != nil {
 				return nil, err
 			}
@@ -70,7 +70,7 @@ var create = &typewriter.Template{
 		}
 
 		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).AfterCreate()
+			err = (&{{.Name}}s[i]).AfterActionCreate()
 			if err != nil {
 				return nil, err
 			}
@@ -84,7 +84,7 @@ var createOne = &typewriter.Template{
 	Name: "CreateOne",
 	Text: `
 	func (i *{{.Type}}Inter) CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
-		err := {{.Name}}.BeforeCreate()
+		err := {{.Name}}.BeforeActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +94,7 @@ var createOne = &typewriter.Template{
 			return nil, err
 		}
 
-		err = {{.Name}}.AfterCreate()
+		err = {{.Name}}.AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -140,10 +140,10 @@ var upsert = &typewriter.Template{
 			var err error
 
 			if {{.Name}}s[i].ID != 0 {
-				err = (&{{.Name}}s[i]).BeforeUpdate()
+				err = (&{{.Name}}s[i]).BeforeActionUpdate()
 				{{.Name}}sToUpdate = append({{.Name}}sToUpdate, {{.Name}}s[i])
 			} else {
-				err = (&{{.Name}}s[i]).BeforeCreate()
+				err = (&{{.Name}}s[i]).BeforeActionCreate()
 				{{.Name}}sToCreate = append({{.Name}}sToCreate, {{.Name}}s[i])
 			}
 
@@ -163,14 +163,14 @@ var upsert = &typewriter.Template{
 		}
 
 		for i := range {{.Name}}sToUpdate {
-			err = (&{{.Name}}s[i]).AfterUpdate()
+			err = (&{{.Name}}s[i]).AfterActionUpdate()
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		for i := range {{.Name}}sToCreate {
-			err = (&{{.Name}}s[i]).AfterCreate()
+			err = (&{{.Name}}s[i]).AfterActionCreate()
 			if err != nil {
 				return nil, err
 			}
@@ -185,7 +185,7 @@ var upsertOne = &typewriter.Template{
 	Text: `
 	func (i *{{.Type}}Inter) UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 		if {{.Name}}.ID != 0 {
-			err := {{.Name}}.BeforeUpdate()
+			err := {{.Name}}.BeforeActionUpdate()
 			if err != nil {
 				return nil, err
 			}
@@ -195,12 +195,12 @@ var upsertOne = &typewriter.Template{
 				return nil, err
 			}
 
-			err = {{.Name}}.AfterUpdate()
+			err = {{.Name}}.AfterActionUpdate()
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			err := {{.Name}}.BeforeCreate()
+			err := {{.Name}}.BeforeActionCreate()
 			if err != nil {
 				return nil, err
 			}
@@ -210,7 +210,7 @@ var upsertOne = &typewriter.Template{
 				return nil, err
 			}
 
-			err = {{.Name}}.AfterCreate()
+			err = {{.Name}}.AfterActionCreate()
 			if err != nil {
 				return nil, err
 			}
@@ -226,7 +226,7 @@ var updateByID = &typewriter.Template{
 	func (i *{{.Type}}Inter) UpdateByID(id int, {{.Name}} *domain.{{.Type}},
 		filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 
-		err := {{.Name}}.BeforeUpdate()
+		err := {{.Name}}.BeforeActionUpdate()
 		if err != nil {
 			return nil, err
 		}
@@ -236,7 +236,7 @@ var updateByID = &typewriter.Template{
 			return nil, err
 		}
 
-		err = {{.Name}}.AfterUpdate()
+		err = {{.Name}}.AfterActionUpdate()
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +255,7 @@ var deleteAll = &typewriter.Template{
 		}
 
 		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).BeforeDelete()
+			err = (&{{.Name}}s[i]).BeforeActionDelete()
 			if err != nil {
 				return err
 			}
@@ -267,7 +267,7 @@ var deleteAll = &typewriter.Template{
 		}
 
 		for i := range {{.Name}}s {
-			err = (&{{.Name}}s[i]).AfterDelete()
+			err = (&{{.Name}}s[i]).AfterActionDelete()
 			if err != nil {
 				return err
 			}
@@ -286,7 +286,7 @@ var deleteByID = &typewriter.Template{
 			return err
 		}
 
-		err = {{.Name}}.BeforeDelete()
+		err = {{.Name}}.BeforeActionDelete()
 		if err != nil {
 			return err
 		}
@@ -296,7 +296,7 @@ var deleteByID = &typewriter.Template{
 			return err
 		}
 
-		err = {{.Name}}.AfterDelete()
+		err = {{.Name}}.AfterActionDelete()
 		if err != nil {
 			return err
 		}

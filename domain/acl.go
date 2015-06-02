@@ -36,28 +36,28 @@ func (m *Acl) ValidateDelete() error {
 	return nil
 }
 
-func (m *Acl) BeforeCreate() error {
+func (m *Acl) BeforeActionCreate() error {
 	scopeAcl(m)
 	return nil
 }
 
-func (m *Acl) AfterCreate() error {
+func (m *Acl) AfterActionCreate() error {
 	return nil
 }
 
-func (m *Acl) BeforeUpdate() error {
+func (m *Acl) BeforeActionUpdate() error {
 	scopeAcl(m)
 	return nil
 }
 
-func (m *Acl) AfterUpdate() error {
+func (m *Acl) AfterActionUpdate() error {
 	return nil
 }
 
-func (m *Acl) BeforeDelete() error {
+func (m *Acl) BeforeActionDelete() error {
 	return nil
 }
 
-func (m *Acl) AfterDelete() error {
+func (m *Acl) AfterActionDelete() error {
 	return nil
 }

@@ -35,7 +35,7 @@ func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 	var err error
 
 	for i := range acls {
-		err = (&acls[i]).BeforeCreate()
+		err = (&acls[i]).BeforeActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +47,7 @@ func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 	}
 
 	for i := range acls {
-		err = (&acls[i]).AfterCreate()
+		err = (&acls[i]).AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 }
 
 func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
-	err := acl.BeforeCreate()
+	err := acl.BeforeActionCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
 		return nil, err
 	}
 
-	err = acl.AfterCreate()
+	err = acl.AfterActionCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -101,10 +101,10 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 		var err error
 
 		if acls[i].ID != 0 {
-			err = (&acls[i]).BeforeUpdate()
+			err = (&acls[i]).BeforeActionUpdate()
 			aclsToUpdate = append(aclsToUpdate, acls[i])
 		} else {
-			err = (&acls[i]).BeforeCreate()
+			err = (&acls[i]).BeforeActionCreate()
 			aclsToCreate = append(aclsToCreate, acls[i])
 		}
 
@@ -124,14 +124,14 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 	}
 
 	for i := range aclsToUpdate {
-		err = (&acls[i]).AfterUpdate()
+		err = (&acls[i]).AfterActionUpdate()
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for i := range aclsToCreate {
-		err = (&acls[i]).AfterCreate()
+		err = (&acls[i]).AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 
 func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 	if acl.ID != 0 {
-		err := acl.BeforeUpdate()
+		err := acl.BeforeActionUpdate()
 		if err != nil {
 			return nil, err
 		}
@@ -152,12 +152,12 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 			return nil, err
 		}
 
-		err = acl.AfterUpdate()
+		err = acl.AfterActionUpdate()
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := acl.BeforeCreate()
+		err := acl.BeforeActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 			return nil, err
 		}
 
-		err = acl.AfterCreate()
+		err = acl.AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 
-	err := acl.BeforeUpdate()
+	err := acl.BeforeActionUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 		return nil, err
 	}
 
-	err = acl.AfterUpdate()
+	err = acl.AfterActionUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Re
 	}
 
 	for i := range acls {
-		err = (&acls[i]).BeforeDelete()
+		err = (&acls[i]).BeforeActionDelete()
 		if err != nil {
 			return err
 		}
@@ -216,7 +216,7 @@ func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Re
 	}
 
 	for i := range acls {
-		err = (&acls[i]).AfterDelete()
+		err = (&acls[i]).AfterActionDelete()
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []
 		return err
 	}
 
-	err = acl.BeforeDelete()
+	err = acl.BeforeActionDelete()
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []
 		return err
 	}
 
-	err = acl.AfterDelete()
+	err = acl.AfterActionDelete()
 	if err != nil {
 		return err
 	}

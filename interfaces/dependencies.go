@@ -14,8 +14,6 @@ type (
 		Connect(adapter, url string) error
 		Close() error
 		GetDB() *gorm.DB
-		MigrateTables(tables []interface{}) error
-		ReinitTables(tables []interface{}) error
 		BuildQuery(filter *usecases.Filter, ownerRelations []domain.Relation) (*gorm.DB, error)
 	}
 

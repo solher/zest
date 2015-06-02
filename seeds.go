@@ -28,7 +28,7 @@ func migrateDatabase() {
 	fmt.Println("Done.")
 }
 
-func reinitDatabase() {
+func resetDatabase() {
 	store := infrastructure.NewGormStore()
 
 	err := connectDB(store)
@@ -37,11 +37,11 @@ func reinitDatabase() {
 	}
 	defer store.Close()
 
-	fmt.Println("Reinitializing database...")
+	fmt.Println("Resetting database...")
 
-	err = store.ReinitTables(domain.ModelDirectory.Models)
+	err = store.ResetTables(domain.ModelDirectory.Models)
 	if err != nil {
-		panic("Could not reinit database: " + err.Error())
+		panic("Could not reset database: " + err.Error())
 	}
 
 	err = seedDatabase(store)

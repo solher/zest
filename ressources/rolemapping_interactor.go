@@ -35,7 +35,7 @@ func (i *RoleMappingInter) Create(rolemappings []domain.RoleMapping) ([]domain.R
 	var err error
 
 	for i := range rolemappings {
-		err = (&rolemappings[i]).BeforeCreate()
+		err = (&rolemappings[i]).BeforeActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +47,7 @@ func (i *RoleMappingInter) Create(rolemappings []domain.RoleMapping) ([]domain.R
 	}
 
 	for i := range rolemappings {
-		err = (&rolemappings[i]).AfterCreate()
+		err = (&rolemappings[i]).AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (i *RoleMappingInter) Create(rolemappings []domain.RoleMapping) ([]domain.R
 }
 
 func (i *RoleMappingInter) CreateOne(rolemapping *domain.RoleMapping) (*domain.RoleMapping, error) {
-	err := rolemapping.BeforeCreate()
+	err := rolemapping.BeforeActionCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (i *RoleMappingInter) CreateOne(rolemapping *domain.RoleMapping) (*domain.R
 		return nil, err
 	}
 
-	err = rolemapping.AfterCreate()
+	err = rolemapping.AfterActionCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -101,10 +101,10 @@ func (i *RoleMappingInter) Upsert(rolemappings []domain.RoleMapping, filter *use
 		var err error
 
 		if rolemappings[i].ID != 0 {
-			err = (&rolemappings[i]).BeforeUpdate()
+			err = (&rolemappings[i]).BeforeActionUpdate()
 			rolemappingsToUpdate = append(rolemappingsToUpdate, rolemappings[i])
 		} else {
-			err = (&rolemappings[i]).BeforeCreate()
+			err = (&rolemappings[i]).BeforeActionCreate()
 			rolemappingsToCreate = append(rolemappingsToCreate, rolemappings[i])
 		}
 
@@ -124,14 +124,14 @@ func (i *RoleMappingInter) Upsert(rolemappings []domain.RoleMapping, filter *use
 	}
 
 	for i := range rolemappingsToUpdate {
-		err = (&rolemappings[i]).AfterUpdate()
+		err = (&rolemappings[i]).AfterActionUpdate()
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for i := range rolemappingsToCreate {
-		err = (&rolemappings[i]).AfterCreate()
+		err = (&rolemappings[i]).AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (i *RoleMappingInter) Upsert(rolemappings []domain.RoleMapping, filter *use
 
 func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 	if rolemapping.ID != 0 {
-		err := rolemapping.BeforeUpdate()
+		err := rolemapping.BeforeActionUpdate()
 		if err != nil {
 			return nil, err
 		}
@@ -152,12 +152,12 @@ func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *us
 			return nil, err
 		}
 
-		err = rolemapping.AfterUpdate()
+		err = rolemapping.AfterActionUpdate()
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := rolemapping.BeforeCreate()
+		err := rolemapping.BeforeActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *us
 			return nil, err
 		}
 
-		err = rolemapping.AfterCreate()
+		err = rolemapping.AfterActionCreate()
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *us
 func (i *RoleMappingInter) UpdateByID(id int, rolemapping *domain.RoleMapping,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 
-	err := rolemapping.BeforeUpdate()
+	err := rolemapping.BeforeActionUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (i *RoleMappingInter) UpdateByID(id int, rolemapping *domain.RoleMapping,
 		return nil, err
 	}
 
-	err = rolemapping.AfterUpdate()
+	err = rolemapping.AfterActionUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (i *RoleMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []d
 	}
 
 	for i := range rolemappings {
-		err = (&rolemappings[i]).BeforeDelete()
+		err = (&rolemappings[i]).BeforeActionDelete()
 		if err != nil {
 			return err
 		}
@@ -216,7 +216,7 @@ func (i *RoleMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []d
 	}
 
 	for i := range rolemappings {
-		err = (&rolemappings[i]).AfterDelete()
+		err = (&rolemappings[i]).AfterActionDelete()
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (i *RoleMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRela
 		return err
 	}
 
-	err = rolemapping.BeforeDelete()
+	err = rolemapping.BeforeActionDelete()
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (i *RoleMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRela
 		return err
 	}
 
-	err = rolemapping.AfterDelete()
+	err = rolemapping.AfterActionDelete()
 	if err != nil {
 		return err
 	}

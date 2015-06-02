@@ -41,28 +41,28 @@ func (m *Session) ValidateDelete() error {
 	return nil
 }
 
-func (m *Session) BeforeCreate() error {
+func (m *Session) BeforeActionCreate() error {
 	scopeSession(m)
 	return nil
 }
 
-func (m *Session) AfterCreate() error {
+func (m *Session) AfterActionCreate() error {
 	return nil
 }
 
-func (m *Session) BeforeUpdate() error {
+func (m *Session) BeforeActionUpdate() error {
 	scopeSession(m)
 	return nil
 }
 
-func (m *Session) AfterUpdate() error {
+func (m *Session) AfterActionUpdate() error {
 	return nil
 }
 
-func (m *Session) BeforeDelete() error {
+func (m *Session) BeforeActionDelete() error {
 	return nil
 }
 
-func (m *Session) AfterDelete() error {
+func (m *Session) AfterActionDelete() error {
 	return nil
 }
