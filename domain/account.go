@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 func init() {
 	relations := []Relation{
 		{Related: "users"},
@@ -20,46 +18,22 @@ type Account struct {
 	RoleMappings []RoleMapping `json:"roleMappings,omitempty"`
 }
 
-func scopeAccount(m *Account) {
-	m.ID = 0
-	m.CreatedAt = time.Time{}
-	m.UpdatedAt = m.CreatedAt
-}
+func (m *Account) BeforeRender() error {
+	users := m.Users
+	sessions := m.Sessions
+	roleMappings := m.RoleMappings
 
-func (m *Account) ValidateCreate() error {
-	return nil
-}
+	for i := range users {
+		(&users[i]).BeforeRender()
+	}
 
-func (m *Account) ValidateUpdate() error {
-	return nil
-}
+	for i := range sessions {
+		(&sessions[i]).BeforeRender()
+	}
 
-func (m *Account) ValidateDelete() error {
-	return nil
-}
+	for i := range roleMappings {
+		(&roleMappings[i]).BeforeRender()
+	}
 
-func (m *Account) BeforeActionCreate() error {
-	scopeAccount(m)
-	return nil
-}
-
-func (m *Account) AfterActionCreate() error {
-	return nil
-}
-
-func (m *Account) BeforeActionUpdate() error {
-	scopeAccount(m)
-	return nil
-}
-
-func (m *Account) AfterActionUpdate() error {
-	return nil
-}
-
-func (m *Account) BeforeActionDelete() error {
-	return nil
-}
-
-func (m *Account) AfterActionDelete() error {
 	return nil
 }

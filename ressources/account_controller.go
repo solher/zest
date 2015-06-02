@@ -70,6 +70,7 @@ func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ map[strin
 	cookie := http.Cookie{Name: "authToken", Value: session.AuthToken, Expires: session.ValidTo, Path: "/"}
 	http.SetCookie(w, &cookie)
 
+	session.BeforeRender()
 	c.render.JSON(w, http.StatusCreated, session)
 }
 
@@ -135,6 +136,7 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ map[strin
 		return
 	}
 
+	account.BeforeRender()
 	c.render.JSON(w, http.StatusCreated, account)
 }
 
@@ -153,6 +155,7 @@ func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ map[stri
 		return
 	}
 
+	account.BeforeRender()
 	c.render.JSON(w, http.StatusOK, account)
 }
 

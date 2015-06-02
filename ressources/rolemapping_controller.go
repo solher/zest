@@ -62,15 +62,15 @@ func (c *RoleMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[s
 		}
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 
 	if rolemappings == nil {
-		// rolemapping.ScopeModel(lastRessource.ID)
+		rolemapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		rolemapping, err = c.interactor.CreateOne(rolemapping)
 	} else {
-		// for i := range rolemappings {
-		// 	(&rolemappings[i]).ScopeModel(lastRessource.ID)
-		// }
+		for i := range rolemappings {
+			(&rolemappings[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		}
 		rolemappings, err = c.interactor.Create(rolemappings)
 	}
 
@@ -85,8 +85,12 @@ func (c *RoleMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[s
 	}
 
 	if rolemappings == nil {
+		rolemapping.BeforeRender()
 		c.render.JSON(w, http.StatusCreated, rolemapping)
 	} else {
+		for i := range rolemappings {
+			(&rolemappings[i]).BeforeRender()
+		}
 		c.render.JSON(w, http.StatusCreated, rolemappings)
 	}
 }
@@ -108,6 +112,9 @@ func (c *RoleMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[str
 		return
 	}
 
+	for i := range rolemappings {
+		(&rolemappings[i]).BeforeRender()
+	}
 	c.render.JSON(w, http.StatusOK, rolemappings)
 }
 
@@ -133,6 +140,7 @@ func (c *RoleMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, param
 		return
 	}
 
+	rolemapping.BeforeRender()
 	c.render.JSON(w, http.StatusOK, rolemapping)
 }
 
@@ -151,17 +159,17 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 		}
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if rolemappings == nil {
-		// rolemapping.ScopeModel(lastRessource.ID)
+		rolemapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		rolemapping, err = c.interactor.UpsertOne(rolemapping, filter, ownerRelations)
 	} else {
-		// for i := range rolemappings {
-		// 	(&rolemappings[i]).ScopeModel(lastRessource.ID)
-		// }
+		for i := range rolemappings {
+			(&rolemappings[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		}
 		rolemappings, err = c.interactor.Upsert(rolemappings, filter, ownerRelations)
 	}
 
@@ -176,8 +184,12 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 	}
 
 	if rolemappings == nil {
+		rolemapping.BeforeRender()
 		c.render.JSON(w, http.StatusCreated, rolemapping)
 	} else {
+		for i := range rolemappings {
+			(&rolemappings[i]).BeforeRender()
+		}
 		c.render.JSON(w, http.StatusCreated, rolemappings)
 	}
 }
@@ -197,11 +209,11 @@ func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, par
 		return
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
-	// rolemapping.ScopeModel(lastRessource.ID)
+	rolemapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 	rolemapping, err = c.interactor.UpdateByID(id, rolemapping, filter, ownerRelations)
 
 	if err != nil {
@@ -214,6 +226,7 @@ func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, par
 		return
 	}
 
+	rolemapping.BeforeRender()
 	c.render.JSON(w, http.StatusCreated, rolemapping)
 }
 

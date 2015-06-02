@@ -62,15 +62,15 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 
 	if sessions == nil {
-		// session.ScopeModel(lastRessource.ID)
+		session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		session, err = c.interactor.CreateOne(session)
 	} else {
-		// for i := range sessions {
-		// 	(&sessions[i]).ScopeModel(lastRessource.ID)
-		// }
+		for i := range sessions {
+			(&sessions[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		}
 		sessions, err = c.interactor.Create(sessions)
 	}
 
@@ -85,8 +85,12 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 
 	if sessions == nil {
+		session.BeforeRender()
 		c.render.JSON(w, http.StatusCreated, session)
 	} else {
+		for i := range sessions {
+			(&sessions[i]).BeforeRender()
+		}
 		c.render.JSON(w, http.StatusCreated, sessions)
 	}
 }
@@ -108,6 +112,9 @@ func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 		return
 	}
 
+	for i := range sessions {
+		(&sessions[i]).BeforeRender()
+	}
 	c.render.JSON(w, http.StatusOK, sessions)
 }
 
@@ -133,6 +140,7 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 		return
 	}
 
+	session.BeforeRender()
 	c.render.JSON(w, http.StatusOK, session)
 }
 
@@ -151,17 +159,17 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if sessions == nil {
-		// session.ScopeModel(lastRessource.ID)
+		session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		session, err = c.interactor.UpsertOne(session, filter, ownerRelations)
 	} else {
-		// for i := range sessions {
-		// 	(&sessions[i]).ScopeModel(lastRessource.ID)
-		// }
+		for i := range sessions {
+			(&sessions[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		}
 		sessions, err = c.interactor.Upsert(sessions, filter, ownerRelations)
 	}
 
@@ -176,8 +184,12 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 
 	if sessions == nil {
+		session.BeforeRender()
 		c.render.JSON(w, http.StatusCreated, session)
 	} else {
+		for i := range sessions {
+			(&sessions[i]).BeforeRender()
+		}
 		c.render.JSON(w, http.StatusCreated, sessions)
 	}
 }
@@ -197,11 +209,11 @@ func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
-	// session.ScopeModel(lastRessource.ID)
+	session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 	session, err = c.interactor.UpdateByID(id, session, filter, ownerRelations)
 
 	if err != nil {
@@ -214,6 +226,7 @@ func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
+	session.BeforeRender()
 	c.render.JSON(w, http.StatusCreated, session)
 }
 

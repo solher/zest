@@ -20,21 +20,24 @@ type RoleMapping struct {
 	Role      Role    `json:"role,omitempty"`
 }
 
+func (m *RoleMapping) SetRelatedID(idKey string, id int) {
+	switch idKey {
+	case "roleID":
+		m.RoleID = id
+	case "accountID":
+		m.AccountID = id
+	}
+}
+
 func scopeRoleMapping(m *RoleMapping) {
 	m.ID = 0
 	m.CreatedAt = time.Time{}
 	m.UpdatedAt = m.CreatedAt
 }
 
-func (m *RoleMapping) ValidateCreate() error {
-	return nil
-}
-
-func (m *RoleMapping) ValidateUpdate() error {
-	return nil
-}
-
-func (m *RoleMapping) ValidateDelete() error {
+func (m *RoleMapping) BeforeRender() error {
+	m.Role.BeforeRender()
+	m.Account.BeforeRender()
 	return nil
 }
 

@@ -18,21 +18,22 @@ type Acl struct {
 	AclMappings []AclMapping `json:"aclMappings,omitempty"`
 }
 
+func (m *Acl) SetRelatedID(idKey string, id int) {
+}
+
 func scopeAcl(m *Acl) {
 	m.ID = 0
 	m.CreatedAt = time.Time{}
 	m.UpdatedAt = m.CreatedAt
 }
 
-func (m *Acl) ValidateCreate() error {
-	return nil
-}
+func (m *Acl) BeforeRender() error {
+	aclMappings := m.AclMappings
 
-func (m *Acl) ValidateUpdate() error {
-	return nil
-}
+	for i := range aclMappings {
+		(&aclMappings[i]).BeforeRender()
+	}
 
-func (m *Acl) ValidateDelete() error {
 	return nil
 }
 

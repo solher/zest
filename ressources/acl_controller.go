@@ -62,15 +62,15 @@ func (c *AclCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]st
 		}
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 
 	if acls == nil {
-		// acl.ScopeModel(lastRessource.ID)
+		acl.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		acl, err = c.interactor.CreateOne(acl)
 	} else {
-		// for i := range acls {
-		// 	(&acls[i]).ScopeModel(lastRessource.ID)
-		// }
+		for i := range acls {
+			(&acls[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		}
 		acls, err = c.interactor.Create(acls)
 	}
 
@@ -85,8 +85,12 @@ func (c *AclCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]st
 	}
 
 	if acls == nil {
+		acl.BeforeRender()
 		c.render.JSON(w, http.StatusCreated, acl)
 	} else {
+		for i := range acls {
+			(&acls[i]).BeforeRender()
+		}
 		c.render.JSON(w, http.StatusCreated, acls)
 	}
 }
@@ -108,6 +112,9 @@ func (c *AclCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]stri
 		return
 	}
 
+	for i := range acls {
+		(&acls[i]).BeforeRender()
+	}
 	c.render.JSON(w, http.StatusOK, acls)
 }
 
@@ -133,6 +140,7 @@ func (c *AclCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[st
 		return
 	}
 
+	acl.BeforeRender()
 	c.render.JSON(w, http.StatusOK, acl)
 }
 
@@ -151,17 +159,17 @@ func (c *AclCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]st
 		}
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
 	if acls == nil {
-		// acl.ScopeModel(lastRessource.ID)
+		acl.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		acl, err = c.interactor.UpsertOne(acl, filter, ownerRelations)
 	} else {
-		// for i := range acls {
-		// 	(&acls[i]).ScopeModel(lastRessource.ID)
-		// }
+		for i := range acls {
+			(&acls[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		}
 		acls, err = c.interactor.Upsert(acls, filter, ownerRelations)
 	}
 
@@ -176,8 +184,12 @@ func (c *AclCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]st
 	}
 
 	if acls == nil {
+		acl.BeforeRender()
 		c.render.JSON(w, http.StatusCreated, acl)
 	} else {
+		for i := range acls {
+			(&acls[i]).BeforeRender()
+		}
 		c.render.JSON(w, http.StatusCreated, acls)
 	}
 }
@@ -197,11 +209,11 @@ func (c *AclCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[
 		return
 	}
 
-	// lastRessource := interfaces.GetLastRessource(r)
+	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	ownerRelations := interfaces.GetOwnerRelations(r)
 
-	// acl.ScopeModel(lastRessource.ID)
+	acl.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 	acl, err = c.interactor.UpdateByID(id, acl, filter, ownerRelations)
 
 	if err != nil {
@@ -214,6 +226,7 @@ func (c *AclCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[
 		return
 	}
 
+	acl.BeforeRender()
 	c.render.JSON(w, http.StatusCreated, acl)
 }
 

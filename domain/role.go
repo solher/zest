@@ -19,21 +19,27 @@ type Role struct {
 	AclMappings  []AclMapping  `json:"aclMappings,omitempty"`
 }
 
+func (m *Role) SetRelatedID(idKey string, id int) {
+}
+
 func scopeRole(m *Role) {
 	m.ID = 0
 	m.CreatedAt = time.Time{}
 	m.UpdatedAt = m.CreatedAt
 }
 
-func (m *Role) ValidateCreate() error {
-	return nil
-}
+func (m *Role) BeforeRender() error {
+	roleMappings := m.RoleMappings
+	aclMappings := m.AclMappings
 
-func (m *Role) ValidateUpdate() error {
-	return nil
-}
+	for i := range roleMappings {
+		(&roleMappings[i]).BeforeRender()
+	}
 
-func (m *Role) ValidateDelete() error {
+	for i := range aclMappings {
+		(&aclMappings[i]).BeforeRender()
+	}
+
 	return nil
 }
 

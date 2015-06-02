@@ -77,15 +77,15 @@ var create = &typewriter.Template{
 			}
 		}
 
-		// lastRessource := interfaces.GetLastRessource(r)
+		lastRessource := interfaces.GetLastRessource(r)
 
 		if {{.Name}}s == nil {
-			// {{.Name}}.ScopeModel(lastRessource.ID)
+			{{.Name}}.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 			{{.Name}}, err = c.interactor.CreateOne({{.Name}})
 		} else {
-			// for i := range {{.Name}}s {
-			// 	(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
-			// }
+			for i := range {{.Name}}s {
+				(&{{.Name}}s[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			}
 			{{.Name}}s, err = c.interactor.Create({{.Name}}s)
 		}
 
@@ -100,8 +100,12 @@ var create = &typewriter.Template{
 		}
 
 		if {{.Name}}s == nil {
+			{{.Name}}.BeforeRender()
 			c.render.JSON(w, http.StatusCreated, {{.Name}})
 		} else {
+			for i := range {{.Name}}s {
+				(&{{.Name}}s[i]).BeforeRender()
+			}
 			c.render.JSON(w, http.StatusCreated, {{.Name}}s)
 		}
 	}
@@ -127,6 +131,9 @@ var find = &typewriter.Template{
 			return
 		}
 
+		for i := range {{.Name}}s {
+			(&{{.Name}}s[i]).BeforeRender()
+		}
 		c.render.JSON(w, http.StatusOK, {{.Name}}s)
 	}
 `}
@@ -156,6 +163,7 @@ var findByID = &typewriter.Template{
 			return
 		}
 
+		{{.Name}}.BeforeRender()
 		c.render.JSON(w, http.StatusOK, {{.Name}})
 	}
 `}
@@ -178,17 +186,17 @@ var upsert = &typewriter.Template{
 			}
 		}
 
-		// lastRessource := interfaces.GetLastRessource(r)
+		lastRessource := interfaces.GetLastRessource(r)
 		filter := interfaces.FilterIfOwnerRelations(r, nil)
 		ownerRelations := interfaces.GetOwnerRelations(r)
 
 		if {{.Name}}s == nil {
-			// {{.Name}}.ScopeModel(lastRessource.ID)
+			{{.Name}}.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 			{{.Name}}, err = c.interactor.UpsertOne({{.Name}}, filter, ownerRelations)
 		} else {
-			// for i := range {{.Name}}s {
-			// 	(&{{.Name}}s[i]).ScopeModel(lastRessource.ID)
-			// }
+			for i := range {{.Name}}s {
+				(&{{.Name}}s[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			}
 			{{.Name}}s, err = c.interactor.Upsert({{.Name}}s, filter, ownerRelations)
 		}
 
@@ -203,8 +211,12 @@ var upsert = &typewriter.Template{
 		}
 
 		if {{.Name}}s == nil {
+			{{.Name}}.BeforeRender()
 			c.render.JSON(w, http.StatusCreated, {{.Name}})
 		} else {
+			for i := range {{.Name}}s {
+				(&{{.Name}}s[i]).BeforeRender()
+			}
 			c.render.JSON(w, http.StatusCreated, {{.Name}}s)
 		}
 	}
@@ -228,11 +240,11 @@ var updateByID = &typewriter.Template{
 			return
 		}
 
-		// lastRessource := interfaces.GetLastRessource(r)
+		lastRessource := interfaces.GetLastRessource(r)
 		filter := interfaces.FilterIfOwnerRelations(r, nil)
 		ownerRelations := interfaces.GetOwnerRelations(r)
 
-		// {{.Name}}.ScopeModel(lastRessource.ID)
+		{{.Name}}.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		{{.Name}}, err = c.interactor.UpdateByID(id, {{.Name}}, filter, ownerRelations)
 
 		if err != nil {
@@ -245,6 +257,7 @@ var updateByID = &typewriter.Template{
 			return
 		}
 
+		{{.Name}}.BeforeRender()
 		c.render.JSON(w, http.StatusCreated, {{.Name}})
 	}
 `}

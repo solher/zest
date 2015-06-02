@@ -22,6 +22,13 @@ type Session struct {
 	DeletedAt time.Time `json:"deletedAt,omitempty"`
 }
 
+func (m *Session) SetRelatedID(idKey string, id int) {
+	switch idKey {
+	case "accountID":
+		m.AccountID = id
+	}
+}
+
 func scopeSession(m *Session) {
 	m.ID = 0
 	m.CreatedAt = time.Time{}
@@ -29,15 +36,8 @@ func scopeSession(m *Session) {
 	m.DeletedAt = m.CreatedAt
 }
 
-func (m *Session) ValidateCreate() error {
-	return nil
-}
-
-func (m *Session) ValidateUpdate() error {
-	return nil
-}
-
-func (m *Session) ValidateDelete() error {
+func (m *Session) BeforeRender() error {
+	m.Account.BeforeRender()
 	return nil
 }
 
