@@ -180,15 +180,17 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 		if accountID == 0 {
 			rows, err = i.repo.Raw(`
 				SELECT DISTINCT roles.name
-				FROM acls, roles
-				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
+				FROM roles
+				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id
+				INNER JOIN acls ON acls.id = acl_mappings.acl_id
 				WHERE roles.name IN ('Guest', 'Anyone') AND acls.ressource = ? AND acls.method = ?
 				`, ressource, method)
 		} else {
 			rows, err = i.repo.Raw(`
 				SELECT DISTINCT roles.name
-				FROM acls, roles
-				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
+				FROM roles
+				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id
+				INNER JOIN acls ON acls.id = acl_mappings.acl_id
 				WHERE roles.name IN ('Authenticated', 'Owner', 'Anyone') AND acls.ressource = ? AND acls.method = ?
 				`, ressource, method)
 		}
@@ -211,9 +213,10 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 		if len(roleNames) == 0 {
 			rows, err = i.repo.Raw(`
 				SELECT DISTINCT roles.name
-				FROM acls, roles
+				FROM roles
 				INNER JOIN role_mappings ON role_mappings.role_id = roles.id
-				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id AND acl_mappings.acl_id = acls.id
+				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id
+				INNER JOIN acls ON acls.id = acl_mappings.acl_id
 				WHERE role_mappings.account_id = ? AND acls.ressource = ? AND acls.method = ?
 				`, accountID, ressource, method)
 		}
