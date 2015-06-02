@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Solher/auth-scaffold/apierrors"
-	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
-	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/Solher/zest/apierrors"
+	"github.com/Solher/zest/domain"
+	"github.com/Solher/zest/interfaces"
+	"github.com/Solher/zest/internalerrors"
+	"github.com/Solher/zest/usecases"
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )

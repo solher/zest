@@ -1,0 +1,81 @@
+{
+	"ImportPath": "github.com/Solher/zest",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/clipperhouse/typewriter",
+			"Rev": "b2142511da2a7d17f328cec2c8bef145185a03e6"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/negroni",
+			"Comment": "v0.1-70-gc7477ad",
+			"Rev": "c7477ad8e330bef55bf1ebe300cf8aa67c492d1b"
+		},
+		{
+			"ImportPath": "github.com/dimfeld/httppath",
+			"Rev": "c8e499c3ef3c3e272ed8bdcc1ccf39f73c88debc"
+		},
+		{
+			"ImportPath": "github.com/dimfeld/httptreemux",
+			"Comment": "1.1.1",
+			"Rev": "d7382503947eee9231d3eef712080afc45f31401"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/golang-lru",
+			"Rev": "995efda3e073b6946b175ed93901d729ad47466a"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/gorm",
+			"Rev": "c2dda88f9a8a0b5c73733e87689dc94cf2818fa2"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-47-g93e9980",
+			"Rev": "93e9980741c9e593411b94e07d5bad8cfb4809db"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Rev": "542ae647f8601bafd96233961b150cae198e0295"
+		},
+		{
+			"ImportPath": "github.com/rif/cache2go",
+			"Rev": "299c904a9e61154bed268c97c321b924498cbead"
+		},
+		{
+			"ImportPath": "github.com/unrolled/render",
+			"Rev": "83f2ba57c12cec399ef137457b1957e41ef0bbe8"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "4d48e5fa3d62b5e6e71260571bf76c767198ca02"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "4d48e5fa3d62b5e6e71260571bf76c767198ca02"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/ast/astutil",
+			"Rev": "3f8aef80c8663afe839340245170f63d49a5f256"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/exact",
+			"Rev": "3f8aef80c8663afe839340245170f63d49a5f256"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/gcimporter",
+			"Rev": "3f8aef80c8663afe839340245170f63d49a5f256"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/types",
+			"Rev": "3f8aef80c8663afe839340245170f63d49a5f256"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/imports",
+			"Rev": "3f8aef80c8663afe839340245170f63d49a5f256"
+		}
+	]
+}

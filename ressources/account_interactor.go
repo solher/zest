@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/Solher/zest/domain"
+	"github.com/Solher/zest/usecases"
 
-	"github.com/Solher/auth-scaffold/internalerrors"
-	"github.com/Solher/auth-scaffold/utils"
+	"github.com/Solher/zest/internalerrors"
+	"github.com/Solher/zest/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 

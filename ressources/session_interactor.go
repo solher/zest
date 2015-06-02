@@ -7,8 +7,8 @@ package ressources
 import (
 	"database/sql"
 
-	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/Solher/zest/domain"
+	"github.com/Solher/zest/usecases"
 )
 
 type AbstractSessionRepo interface {

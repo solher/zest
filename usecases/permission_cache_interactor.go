@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/utils"
+	"github.com/Solher/zest/domain"
+	"github.com/Solher/zest/utils"
 )
 
 type AclCacheKey struct {

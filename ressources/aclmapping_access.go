@@ -5,7 +5,7 @@
 package ressources
 
 import (
-	"github.com/Solher/auth-scaffold/interfaces"
+	"github.com/Solher/zest/interfaces"
 	"github.com/dimfeld/httptreemux"
 )
 

@@ -3,9 +3,9 @@ package interfaces
 import (
 	"net/http"
 
-	"github.com/Solher/auth-scaffold/apierrors"
-	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/Solher/zest/apierrors"
+	"github.com/Solher/zest/domain"
+	"github.com/Solher/zest/usecases"
 	"github.com/jinzhu/gorm"
 )
 

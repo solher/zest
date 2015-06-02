@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/Solher/auth-scaffold/ressources/templates"
+	"github.com/Solher/zest/ressources/templates"
 	"github.com/clipperhouse/typewriter"
 )
 

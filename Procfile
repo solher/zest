@@ -1,2 +1,2 @@
-web: auth-scaffold
+web: zest
 worker: worker

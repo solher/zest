@@ -3,7 +3,7 @@ package infrastructure
 import (
 	"net/http"
 
-	"github.com/Solher/auth-scaffold/apierrors"
+	"github.com/Solher/zest/apierrors"
 	"github.com/unrolled/render"
 )
 

@@ -3,7 +3,7 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/Solher/auth-scaffold/ressources"
+	"github.com/Solher/zest/ressources"
 	"github.com/gorilla/context"
 )
 

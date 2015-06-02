@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Solher/auth-scaffold/apierrors"
-	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/interfaces"
-	"github.com/Solher/auth-scaffold/internalerrors"
+	"github.com/Solher/zest/apierrors"
+	"github.com/Solher/zest/domain"
+	"github.com/Solher/zest/interfaces"
+	"github.com/Solher/zest/internalerrors"
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )

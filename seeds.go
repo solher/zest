@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/Solher/auth-scaffold/domain"
-	"github.com/Solher/auth-scaffold/infrastructure"
-	"github.com/Solher/auth-scaffold/ressources"
-	"github.com/Solher/auth-scaffold/utils"
+	"github.com/Solher/zest/domain"
+	"github.com/Solher/zest/infrastructure"
+	"github.com/Solher/zest/ressources"
+	"github.com/Solher/zest/utils"
 )
 
 func migrateDatabase() {

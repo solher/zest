@@ -1,6 +1,6 @@
 package usecases
 
-import "github.com/Solher/auth-scaffold/domain"
+import "github.com/Solher/zest/domain"
 
 type AbstractSessionRepo interface {
 	Find(filter *Filter, ownerRelations []domain.Relation) ([]domain.Session, error)

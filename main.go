@@ -4,11 +4,11 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/Solher/auth-scaffold/infrastructure"
-	"github.com/Solher/auth-scaffold/interfaces"
-	"github.com/Solher/auth-scaffold/middlewares"
-	"github.com/Solher/auth-scaffold/ressources"
-	"github.com/Solher/auth-scaffold/usecases"
+	"github.com/Solher/zest/infrastructure"
+	"github.com/Solher/zest/interfaces"
+	"github.com/Solher/zest/middlewares"
+	"github.com/Solher/zest/ressources"
+	"github.com/Solher/zest/usecases"
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 
