@@ -57,7 +57,17 @@ func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 }
 
 func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
-	acl, err := i.repo.CreateOne(acl)
+	err := acl.BeforeCreate()
+	if err != nil {
+		return nil, err
+	}
+
+	acl, err = i.repo.CreateOne(acl)
+	if err != nil {
+		return nil, err
+	}
+
+	err = acl.AfterCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +97,19 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 	aclsToUpdate := []domain.Acl{}
 	aclsToCreate := []domain.Acl{}
 
-	for _, acl := range acls {
-		if acl.ID != 0 {
-			aclsToUpdate = append(aclsToUpdate, acl)
+	for i := range acls {
+		var err error
+
+		if acls[i].ID != 0 {
+			err = (&acls[i]).BeforeUpdate()
+			aclsToUpdate = append(aclsToUpdate, acls[i])
 		} else {
-			aclsToCreate = append(aclsToCreate, acl)
+			err = (&acls[i]).BeforeCreate()
+			aclsToCreate = append(aclsToCreate, acls[i])
+		}
+
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -105,20 +123,54 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 		return nil, err
 	}
 
+	for i := range aclsToUpdate {
+		err = (&acls[i]).AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range aclsToCreate {
+		err = (&acls[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return append(aclsToUpdate, aclsToCreate...), nil
 }
 
 func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
-	var err error
-
 	if acl.ID != 0 {
-		acl, err = i.repo.UpdateByID(acl.ID, acl, filter, ownerRelations)
-	} else {
-		acl, err = i.repo.CreateOne(acl)
-	}
+		err := acl.BeforeUpdate()
+		if err != nil {
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		acl, err = i.repo.UpdateByID(acl.ID, acl, filter, ownerRelations)
+		if err != nil {
+			return nil, err
+		}
+
+		err = acl.AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := acl.BeforeCreate()
+		if err != nil {
+			return nil, err
+		}
+
+		acl, err = i.repo.CreateOne(acl)
+		if err != nil {
+			return nil, err
+		}
+
+		err = acl.AfterCreate()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return acl, nil
@@ -127,7 +179,17 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 
-	acl, err := i.repo.UpdateByID(id, acl, filter, ownerRelations)
+	err := acl.BeforeUpdate()
+	if err != nil {
+		return nil, err
+	}
+
+	acl, err = i.repo.UpdateByID(id, acl, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	err = acl.AfterUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -136,16 +198,50 @@ func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 }
 
 func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteAll(filter, ownerRelations)
+	acls, err := i.repo.Find(filter, ownerRelations)
 	if err != nil {
 		return err
+	}
+
+	for i := range acls {
+		err = (&acls[i]).BeforeDelete()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = i.repo.DeleteAll(filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	for i := range acls {
+		err = (&acls[i]).AfterDelete()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteByID(id, filter, ownerRelations)
+	acl, err := i.repo.FindByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = acl.BeforeDelete()
+	if err != nil {
+		return err
+	}
+
+	err = i.repo.DeleteByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = acl.AfterDelete()
 	if err != nil {
 		return err
 	}

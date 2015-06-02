@@ -57,7 +57,17 @@ func (i *UserInter) Create(users []domain.User) ([]domain.User, error) {
 }
 
 func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
-	user, err := i.repo.CreateOne(user)
+	err := user.BeforeCreate()
+	if err != nil {
+		return nil, err
+	}
+
+	user, err = i.repo.CreateOne(user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.AfterCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +97,19 @@ func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRe
 	usersToUpdate := []domain.User{}
 	usersToCreate := []domain.User{}
 
-	for _, user := range users {
-		if user.ID != 0 {
-			usersToUpdate = append(usersToUpdate, user)
+	for i := range users {
+		var err error
+
+		if users[i].ID != 0 {
+			err = (&users[i]).BeforeUpdate()
+			usersToUpdate = append(usersToUpdate, users[i])
 		} else {
-			usersToCreate = append(usersToCreate, user)
+			err = (&users[i]).BeforeCreate()
+			usersToCreate = append(usersToCreate, users[i])
+		}
+
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -105,20 +123,54 @@ func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRe
 		return nil, err
 	}
 
+	for i := range usersToUpdate {
+		err = (&users[i]).AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range usersToCreate {
+		err = (&users[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return append(usersToUpdate, usersToCreate...), nil
 }
 
 func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
-	var err error
-
 	if user.ID != 0 {
-		user, err = i.repo.UpdateByID(user.ID, user, filter, ownerRelations)
-	} else {
-		user, err = i.repo.CreateOne(user)
-	}
+		err := user.BeforeUpdate()
+		if err != nil {
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		user, err = i.repo.UpdateByID(user.ID, user, filter, ownerRelations)
+		if err != nil {
+			return nil, err
+		}
+
+		err = user.AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := user.BeforeCreate()
+		if err != nil {
+			return nil, err
+		}
+
+		user, err = i.repo.CreateOne(user)
+		if err != nil {
+			return nil, err
+		}
+
+		err = user.AfterCreate()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return user, nil
@@ -127,7 +179,17 @@ func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerR
 func (i *UserInter) UpdateByID(id int, user *domain.User,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
 
-	user, err := i.repo.UpdateByID(id, user, filter, ownerRelations)
+	err := user.BeforeUpdate()
+	if err != nil {
+		return nil, err
+	}
+
+	user, err = i.repo.UpdateByID(id, user, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.AfterUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -136,16 +198,50 @@ func (i *UserInter) UpdateByID(id int, user *domain.User,
 }
 
 func (i *UserInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteAll(filter, ownerRelations)
+	users, err := i.repo.Find(filter, ownerRelations)
 	if err != nil {
 		return err
+	}
+
+	for i := range users {
+		err = (&users[i]).BeforeDelete()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = i.repo.DeleteAll(filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	for i := range users {
+		err = (&users[i]).AfterDelete()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (i *UserInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteByID(id, filter, ownerRelations)
+	user, err := i.repo.FindByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = user.BeforeDelete()
+	if err != nil {
+		return err
+	}
+
+	err = i.repo.DeleteByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = user.AfterDelete()
 	if err != nil {
 		return err
 	}

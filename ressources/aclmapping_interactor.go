@@ -57,7 +57,17 @@ func (i *AclMappingInter) Create(aclmappings []domain.AclMapping) ([]domain.AclM
 }
 
 func (i *AclMappingInter) CreateOne(aclmapping *domain.AclMapping) (*domain.AclMapping, error) {
-	aclmapping, err := i.repo.CreateOne(aclmapping)
+	err := aclmapping.BeforeCreate()
+	if err != nil {
+		return nil, err
+	}
+
+	aclmapping, err = i.repo.CreateOne(aclmapping)
+	if err != nil {
+		return nil, err
+	}
+
+	err = aclmapping.AfterCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +97,19 @@ func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping, filter *usecas
 	aclmappingsToUpdate := []domain.AclMapping{}
 	aclmappingsToCreate := []domain.AclMapping{}
 
-	for _, aclmapping := range aclmappings {
-		if aclmapping.ID != 0 {
-			aclmappingsToUpdate = append(aclmappingsToUpdate, aclmapping)
+	for i := range aclmappings {
+		var err error
+
+		if aclmappings[i].ID != 0 {
+			err = (&aclmappings[i]).BeforeUpdate()
+			aclmappingsToUpdate = append(aclmappingsToUpdate, aclmappings[i])
 		} else {
-			aclmappingsToCreate = append(aclmappingsToCreate, aclmapping)
+			err = (&aclmappings[i]).BeforeCreate()
+			aclmappingsToCreate = append(aclmappingsToCreate, aclmappings[i])
+		}
+
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -105,20 +123,54 @@ func (i *AclMappingInter) Upsert(aclmappings []domain.AclMapping, filter *usecas
 		return nil, err
 	}
 
+	for i := range aclmappingsToUpdate {
+		err = (&aclmappings[i]).AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range aclmappingsToCreate {
+		err = (&aclmappings[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return append(aclmappingsToUpdate, aclmappingsToCreate...), nil
 }
 
 func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
-	var err error
-
 	if aclmapping.ID != 0 {
-		aclmapping, err = i.repo.UpdateByID(aclmapping.ID, aclmapping, filter, ownerRelations)
-	} else {
-		aclmapping, err = i.repo.CreateOne(aclmapping)
-	}
+		err := aclmapping.BeforeUpdate()
+		if err != nil {
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		aclmapping, err = i.repo.UpdateByID(aclmapping.ID, aclmapping, filter, ownerRelations)
+		if err != nil {
+			return nil, err
+		}
+
+		err = aclmapping.AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := aclmapping.BeforeCreate()
+		if err != nil {
+			return nil, err
+		}
+
+		aclmapping, err = i.repo.CreateOne(aclmapping)
+		if err != nil {
+			return nil, err
+		}
+
+		err = aclmapping.AfterCreate()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return aclmapping, nil
@@ -127,7 +179,17 @@ func (i *AclMappingInter) UpsertOne(aclmapping *domain.AclMapping, filter *useca
 func (i *AclMappingInter) UpdateByID(id int, aclmapping *domain.AclMapping,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
 
-	aclmapping, err := i.repo.UpdateByID(id, aclmapping, filter, ownerRelations)
+	err := aclmapping.BeforeUpdate()
+	if err != nil {
+		return nil, err
+	}
+
+	aclmapping, err = i.repo.UpdateByID(id, aclmapping, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	err = aclmapping.AfterUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -136,16 +198,50 @@ func (i *AclMappingInter) UpdateByID(id int, aclmapping *domain.AclMapping,
 }
 
 func (i *AclMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteAll(filter, ownerRelations)
+	aclmappings, err := i.repo.Find(filter, ownerRelations)
 	if err != nil {
 		return err
+	}
+
+	for i := range aclmappings {
+		err = (&aclmappings[i]).BeforeDelete()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = i.repo.DeleteAll(filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	for i := range aclmappings {
+		err = (&aclmappings[i]).AfterDelete()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (i *AclMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteByID(id, filter, ownerRelations)
+	aclmapping, err := i.repo.FindByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = aclmapping.BeforeDelete()
+	if err != nil {
+		return err
+	}
+
+	err = i.repo.DeleteByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = aclmapping.AfterDelete()
 	if err != nil {
 		return err
 	}

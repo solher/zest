@@ -57,7 +57,17 @@ func (i *SessionInter) Create(sessions []domain.Session) ([]domain.Session, erro
 }
 
 func (i *SessionInter) CreateOne(session *domain.Session) (*domain.Session, error) {
-	session, err := i.repo.CreateOne(session)
+	err := session.BeforeCreate()
+	if err != nil {
+		return nil, err
+	}
+
+	session, err = i.repo.CreateOne(session)
+	if err != nil {
+		return nil, err
+	}
+
+	err = session.AfterCreate()
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +97,19 @@ func (i *SessionInter) Upsert(sessions []domain.Session, filter *usecases.Filter
 	sessionsToUpdate := []domain.Session{}
 	sessionsToCreate := []domain.Session{}
 
-	for _, session := range sessions {
-		if session.ID != 0 {
-			sessionsToUpdate = append(sessionsToUpdate, session)
+	for i := range sessions {
+		var err error
+
+		if sessions[i].ID != 0 {
+			err = (&sessions[i]).BeforeUpdate()
+			sessionsToUpdate = append(sessionsToUpdate, sessions[i])
 		} else {
-			sessionsToCreate = append(sessionsToCreate, session)
+			err = (&sessions[i]).BeforeCreate()
+			sessionsToCreate = append(sessionsToCreate, sessions[i])
+		}
+
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -105,20 +123,54 @@ func (i *SessionInter) Upsert(sessions []domain.Session, filter *usecases.Filter
 		return nil, err
 	}
 
+	for i := range sessionsToUpdate {
+		err = (&sessions[i]).AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range sessionsToCreate {
+		err = (&sessions[i]).AfterCreate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return append(sessionsToUpdate, sessionsToCreate...), nil
 }
 
 func (i *SessionInter) UpsertOne(session *domain.Session, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
-	var err error
-
 	if session.ID != 0 {
-		session, err = i.repo.UpdateByID(session.ID, session, filter, ownerRelations)
-	} else {
-		session, err = i.repo.CreateOne(session)
-	}
+		err := session.BeforeUpdate()
+		if err != nil {
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		session, err = i.repo.UpdateByID(session.ID, session, filter, ownerRelations)
+		if err != nil {
+			return nil, err
+		}
+
+		err = session.AfterUpdate()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := session.BeforeCreate()
+		if err != nil {
+			return nil, err
+		}
+
+		session, err = i.repo.CreateOne(session)
+		if err != nil {
+			return nil, err
+		}
+
+		err = session.AfterCreate()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return session, nil
@@ -127,7 +179,17 @@ func (i *SessionInter) UpsertOne(session *domain.Session, filter *usecases.Filte
 func (i *SessionInter) UpdateByID(id int, session *domain.Session,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Session, error) {
 
-	session, err := i.repo.UpdateByID(id, session, filter, ownerRelations)
+	err := session.BeforeUpdate()
+	if err != nil {
+		return nil, err
+	}
+
+	session, err = i.repo.UpdateByID(id, session, filter, ownerRelations)
+	if err != nil {
+		return nil, err
+	}
+
+	err = session.AfterUpdate()
 	if err != nil {
 		return nil, err
 	}
@@ -136,16 +198,50 @@ func (i *SessionInter) UpdateByID(id int, session *domain.Session,
 }
 
 func (i *SessionInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteAll(filter, ownerRelations)
+	sessions, err := i.repo.Find(filter, ownerRelations)
 	if err != nil {
 		return err
+	}
+
+	for i := range sessions {
+		err = (&sessions[i]).BeforeDelete()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = i.repo.DeleteAll(filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	for i := range sessions {
+		err = (&sessions[i]).AfterDelete()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (i *SessionInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteByID(id, filter, ownerRelations)
+	session, err := i.repo.FindByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = session.BeforeDelete()
+	if err != nil {
+		return err
+	}
+
+	err = i.repo.DeleteByID(id, filter, ownerRelations)
+	if err != nil {
+		return err
+	}
+
+	err = session.AfterDelete()
 	if err != nil {
 		return err
 	}
