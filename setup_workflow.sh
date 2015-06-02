@@ -16,7 +16,10 @@ go get -v github.com/clipperhouse/gen
 echo -e "$COL_BLUE""Installing live code reloader...$COL_RESET"
 go get -v github.com/codegangsta/gin
 
-echo -e "$COL_BLUE""Installing dependencies for Atom plugins...$COL_RESET"
+echo -e "$COL_BLUE""Installing dependencies manager...$COL_RESET"
+go get -v github.com/tools/godep
+
+echo -e "$COL_BLUE""Installing Atom plugins dependencies...$COL_RESET"
 go get -v github.com/redefiance/go-find-references
 go get -v golang.org/x/tools/cmd/gorename
 go get -v code.google.com/p/rog-go/exp/cmd/godef
