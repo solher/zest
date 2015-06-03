@@ -34,10 +34,10 @@ type AbstractUserInter interface {
 type UserCtrl struct {
 	interactor AbstractUserInter
 	render     interfaces.AbstractRender
-	routeDir   *interfaces.RouteDirectory
+	routeDir   *usecases.RouteDirectory
 }
 
-func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *UserCtrl {
+func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *UserCtrl {
 	controller := &UserCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
@@ -277,7 +277,7 @@ func (c *UserCtrl) Related(w http.ResponseWriter, r *http.Request, params map[st
 	}
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler *httptreemux.HandlerFunc
 	switch r.Method {
@@ -305,7 +305,7 @@ func (c *UserCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map
 	params["id"] = params["fk"]
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler httptreemux.HandlerFunc
 

@@ -45,10 +45,10 @@ var controller = &typewriter.Template{
 	type {{.Type}}Ctrl struct {
 		interactor Abstract{{.Type}}Inter
 		render     interfaces.AbstractRender
-		routeDir   *interfaces.RouteDirectory
+		routeDir   *usecases.RouteDirectory
 	}
 
-	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *{{.Type}}Ctrl {
+	func New{{.Type}}Ctrl(interactor Abstract{{.Type}}Inter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *{{.Type}}Ctrl {
 		controller := &{{.Type}}Ctrl{interactor: interactor, render: render, routeDir: routeDir}
 
 		if routeDir != nil {
@@ -320,7 +320,7 @@ var related = &typewriter.Template{
 		}
 
 		related := params["related"]
-		key := interfaces.NewDirectoryKey(related)
+		key := usecases.NewDirectoryKey(related)
 
 		var handler *httptreemux.HandlerFunc
 		switch r.Method {
@@ -352,7 +352,7 @@ var relatedOne = &typewriter.Template{
 		params["id"] = params["fk"]
 
 		related := params["related"]
-		key := interfaces.NewDirectoryKey(related)
+		key := usecases.NewDirectoryKey(related)
 
 		var handler httptreemux.HandlerFunc
 

@@ -8,6 +8,7 @@ import (
 	"github.com/Solher/zest/domain"
 	"github.com/Solher/zest/interfaces"
 	"github.com/Solher/zest/internalerrors"
+	"github.com/Solher/zest/usecases"
 	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
@@ -29,10 +30,10 @@ type AbstractAccountInter interface {
 type AccountCtrl struct {
 	interactor AbstractAccountInter
 	render     interfaces.AbstractRender
-	routeDir   *interfaces.RouteDirectory
+	routeDir   *usecases.RouteDirectory
 }
 
-func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *AccountCtrl {
+func NewAccountCtrl(interactor AbstractAccountInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *AccountCtrl {
 	controller := &AccountCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
@@ -169,7 +170,7 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 	session := sessionCtx.(domain.Session)
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler *httptreemux.HandlerFunc
 	switch r.Method {
@@ -197,7 +198,7 @@ func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 	params["id"] = params["fk"]
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler httptreemux.HandlerFunc
 

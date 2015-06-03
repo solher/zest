@@ -32,6 +32,10 @@ func NewAclInter(repo AbstractAclRepo) *AclInter {
 	return &AclInter{repo: repo}
 }
 
+func (i *AclInter) RefreshFromRoutes(routes []usecases.Route) error {
+	return nil
+}
+
 func (i *AclInter) BeforeSave(acl *domain.Acl) error {
 	acl.ID = 0
 	acl.CreatedAt = time.Time{}

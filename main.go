@@ -5,7 +5,6 @@ import (
 	"runtime"
 
 	"github.com/Solher/zest/infrastructure"
-	"github.com/Solher/zest/interfaces"
 	"github.com/Solher/zest/middlewares"
 	"github.com/Solher/zest/ressources"
 	"github.com/Solher/zest/usecases"
@@ -102,7 +101,7 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	aclMappingInter := ressources.NewAclMappingInter(aclMappingRepo)
 	aclInter := ressources.NewAclInter(aclRepo)
 
-	routes := interfaces.NewRouteDirectory(accountInter, render)
+	routes := usecases.NewRouteDirectory(accountInter, render)
 
 	ressources.NewUserCtrl(userInter, render, routes)
 	ressources.NewSessionCtrl(sessionInter, render, routes)

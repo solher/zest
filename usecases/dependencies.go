@@ -1,6 +1,11 @@
 package usecases
 
-import "github.com/Solher/zest/domain"
+import (
+	"net/http"
+
+	"github.com/Solher/zest/apierrors"
+	"github.com/Solher/zest/domain"
+)
 
 type AbstractCacheStore interface {
 	Add(key interface{}, value interface{}) error
@@ -23,4 +28,13 @@ type AbstractSessionCacheInter interface {
 	Get(authToken string) (domain.Session, error)
 	Refresh() error
 	RefreshSession(sessionID int) error
+}
+
+type AbstractAccountInter interface {
+	GetGrantedRoles(accountID int, ressource, method string) ([]string, error)
+}
+
+type AbstractRender interface {
+	JSONError(w http.ResponseWriter, status int, apiError *apierrors.APIError, err error)
+	JSON(w http.ResponseWriter, status int, object interface{})
 }

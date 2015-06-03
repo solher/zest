@@ -34,10 +34,10 @@ type AbstractAclMappingInter interface {
 type AclMappingCtrl struct {
 	interactor AbstractAclMappingInter
 	render     interfaces.AbstractRender
-	routeDir   *interfaces.RouteDirectory
+	routeDir   *usecases.RouteDirectory
 }
 
-func NewAclMappingCtrl(interactor AbstractAclMappingInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *AclMappingCtrl {
+func NewAclMappingCtrl(interactor AbstractAclMappingInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *AclMappingCtrl {
 	controller := &AclMappingCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
@@ -277,7 +277,7 @@ func (c *AclMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params 
 	}
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler *httptreemux.HandlerFunc
 	switch r.Method {
@@ -305,7 +305,7 @@ func (c *AclMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, para
 	params["id"] = params["fk"]
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler httptreemux.HandlerFunc
 

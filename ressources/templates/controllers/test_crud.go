@@ -133,7 +133,7 @@ var controllerTest = &typewriter.Template{
 		routes := interfaces.NewRouteDirectory()
 
 		controller := NewController(interactor, render, routes)
-		key := interfaces.NewDirectoryKey(controller)
+		key := usecases.NewDirectoryKey(controller)
 
 		Convey("Testing {{.Name}}s controller...", t, func() {
 			{{.Name}}s := []{{.Type}}{

@@ -34,10 +34,10 @@ type AbstractSessionInter interface {
 type SessionCtrl struct {
 	interactor AbstractSessionInter
 	render     interfaces.AbstractRender
-	routeDir   *interfaces.RouteDirectory
+	routeDir   *usecases.RouteDirectory
 }
 
-func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *SessionCtrl {
+func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *SessionCtrl {
 	controller := &SessionCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
@@ -277,7 +277,7 @@ func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 	}
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler *httptreemux.HandlerFunc
 	switch r.Method {
@@ -305,7 +305,7 @@ func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 	params["id"] = params["fk"]
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler httptreemux.HandlerFunc
 

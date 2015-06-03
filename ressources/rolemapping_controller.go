@@ -34,10 +34,10 @@ type AbstractRoleMappingInter interface {
 type RoleMappingCtrl struct {
 	interactor AbstractRoleMappingInter
 	render     interfaces.AbstractRender
-	routeDir   *interfaces.RouteDirectory
+	routeDir   *usecases.RouteDirectory
 }
 
-func NewRoleMappingCtrl(interactor AbstractRoleMappingInter, render interfaces.AbstractRender, routeDir *interfaces.RouteDirectory) *RoleMappingCtrl {
+func NewRoleMappingCtrl(interactor AbstractRoleMappingInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *RoleMappingCtrl {
 	controller := &RoleMappingCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
@@ -277,7 +277,7 @@ func (c *RoleMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params
 	}
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler *httptreemux.HandlerFunc
 	switch r.Method {
@@ -305,7 +305,7 @@ func (c *RoleMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, par
 	params["id"] = params["fk"]
 
 	related := params["related"]
-	key := interfaces.NewDirectoryKey(related)
+	key := usecases.NewDirectoryKey(related)
 
 	var handler httptreemux.HandlerFunc
 

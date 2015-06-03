@@ -30,7 +30,7 @@ func GetQueryFilter(r *http.Request) (*usecases.Filter, error) {
 	return filter, nil
 }
 
-func MockHTTPRequest(route Route, body, filter string, params map[string]string) string {
+func MockHTTPRequest(route usecases.Route, body, filter string, params map[string]string) string {
 	if route.Method == "" || route.Path == "" || route.Handler == nil {
 		panic("Non existing or incomplete route when mocking HTTP request.")
 	}

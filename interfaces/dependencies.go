@@ -17,10 +17,6 @@ type (
 		BuildQuery(filter *usecases.Filter, ownerRelations []domain.Relation) (*gorm.DB, error)
 	}
 
-	AbstractAccountInter interface {
-		GetGrantedRoles(accountID int, ressource, method string) ([]string, error)
-	}
-
 	AbstractRender interface {
 		JSONError(w http.ResponseWriter, status int, apiError *apierrors.APIError, err error)
 		JSON(w http.ResponseWriter, status int, object interface{})
