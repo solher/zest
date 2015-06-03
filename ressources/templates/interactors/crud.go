@@ -49,6 +49,19 @@ var interactor = &typewriter.Template{
 	func New{{.Type}}Inter(repo Abstract{{.Type}}Repo) *{{.Type}}Inter {
 		return &{{.Type}}Inter{repo: repo}
 	}
+
+	func (i *{{.Type}}Inter) BeforeSave({{.Name}} *domain.{{.Type}}) error {
+		{{.Name}}.ID = 0
+		{{.Name}}.CreatedAt = time.Time{}
+		{{.Name}}.UpdatedAt = time.Time{}
+
+		err := {{.Name}}.ScopeModel()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
 `}
 
 var create = &typewriter.Template{
@@ -58,7 +71,7 @@ var create = &typewriter.Template{
 		var err error
 
 		for k := range {{.Name}}s {
-			err = i.BeforeCreate(&{{.Name}}s[k])
+			err := i.BeforeSave(&{{.Name}}s[k])
 			if err != nil {
 				return nil, err
 			}
@@ -69,13 +82,6 @@ var create = &typewriter.Template{
 			return nil, err
 		}
 
-		for k := range {{.Name}}s {
-			err = i.AfterCreate(&{{.Name}}s[k])
-			if err != nil {
-				return nil, err
-			}
-		}
-
 		return {{.Name}}s, nil
 	}
 `}
@@ -84,17 +90,12 @@ var createOne = &typewriter.Template{
 	Name: "CreateOne",
 	Text: `
 	func (i *{{.Type}}Inter) CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error) {
-		err := i.BeforeCreate({{.Name}})
+		err := i.BeforeSave({{.Name}})
 		if err != nil {
 			return nil, err
 		}
 
 		{{.Name}}, err = i.repo.CreateOne({{.Name}})
-		if err != nil {
-			return nil, err
-		}
-
-		err = i.AfterCreate({{.Name}})
 		if err != nil {
 			return nil, err
 		}
@@ -137,18 +138,15 @@ var upsert = &typewriter.Template{
 		{{.Name}}sToCreate := []domain.{{.Type}}{}
 
 		for k := range {{.Name}}s {
-			var err error
-
-			if {{.Name}}s[k].ID != 0 {
-				err = i.BeforeUpdate(&{{.Name}}s[k])
-				{{.Name}}sToUpdate = append({{.Name}}sToUpdate, {{.Name}}s[k])
-			} else {
-				err = i.BeforeCreate(&{{.Name}}s[k])
-				{{.Name}}sToCreate = append({{.Name}}sToCreate, {{.Name}}s[k])
-			}
-
+			err := i.BeforeSave(&{{.Name}}s[k])
 			if err != nil {
 				return nil, err
+			}
+
+			if {{.Name}}s[k].ID != 0 {
+				{{.Name}}sToUpdate = append({{.Name}}sToUpdate, {{.Name}}s[k])
+			} else {
+				{{.Name}}sToCreate = append({{.Name}}sToCreate, {{.Name}}s[k])
 			}
 		}
 
@@ -162,20 +160,6 @@ var upsert = &typewriter.Template{
 			return nil, err
 		}
 
-		for k := range {{.Name}}sToUpdate {
-			err = i.AfterUpdate(&{{.Name}}s[k])
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		for k := range {{.Name}}sToCreate {
-			err = i.AfterCreate(&{{.Name}}s[k])
-			if err != nil {
-				return nil, err
-			}
-		}
-
 		return append({{.Name}}sToUpdate, {{.Name}}sToCreate...), nil
 	}
 `}
@@ -184,36 +168,20 @@ var upsertOne = &typewriter.Template{
 	Name: "UpsertOne",
 	Text: `
 	func (i *{{.Type}}Inter) UpsertOne({{.Name}} *domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
+		err := i.BeforeSave({{.Name}})
+		if err != nil {
+			return nil, err
+		}
+
 		if {{.Name}}.ID != 0 {
-			err := i.BeforeUpdate({{.Name}})
-			if err != nil {
-				return nil, err
-			}
-
 			{{.Name}}, err = i.repo.UpdateByID({{.Name}}.ID, {{.Name}}, filter, ownerRelations)
-			if err != nil {
-				return nil, err
-			}
 
-			err = i.AfterUpdate({{.Name}})
-			if err != nil {
-				return nil, err
-			}
 		} else {
-			err := i.BeforeCreate({{.Name}})
-			if err != nil {
-				return nil, err
-			}
-
 			{{.Name}}, err = i.repo.CreateOne({{.Name}})
-			if err != nil {
-				return nil, err
-			}
+		}
 
-			err = i.AfterCreate({{.Name}})
-			if err != nil {
-				return nil, err
-			}
+		if err != nil {
+			return nil, err
 		}
 
 		return {{.Name}}, nil
@@ -226,17 +194,12 @@ var updateByID = &typewriter.Template{
 	func (i *{{.Type}}Inter) UpdateByID(id int, {{.Name}} *domain.{{.Type}},
 		filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
 
-		err := i.BeforeUpdate({{.Name}})
+		err := i.BeforeSave({{.Name}})
 		if err != nil {
 			return nil, err
 		}
 
 		{{.Name}}, err = i.repo.UpdateByID(id, {{.Name}}, filter, ownerRelations)
-		if err != nil {
-			return nil, err
-		}
-
-		err = i.AfterUpdate({{.Name}})
 		if err != nil {
 			return nil, err
 		}
@@ -249,28 +212,9 @@ var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
 	func (i *{{.Type}}Inter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-		{{.Name}}s, err := i.repo.Find(filter, ownerRelations)
+		err := i.repo.DeleteAll(filter, ownerRelations)
 		if err != nil {
 			return err
-		}
-
-		for k := range {{.Name}}s {
-			err = i.BeforeDelete(&{{.Name}}s[k])
-			if err != nil {
-				return err
-			}
-		}
-
-		err = i.repo.DeleteAll(filter, ownerRelations)
-		if err != nil {
-			return err
-		}
-
-		for k := range {{.Name}}s {
-			err = i.AfterDelete(&{{.Name}}s[k])
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil
@@ -281,22 +225,7 @@ var deleteByID = &typewriter.Template{
 	Name: "DeleteByID",
 	Text: `
 	func (i *{{.Type}}Inter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-		{{.Name}}, err := i.repo.FindByID(id, filter, ownerRelations)
-		if err != nil {
-			return err
-		}
-
-		err = i.BeforeDelete({{.Name}})
-		if err != nil {
-			return err
-		}
-
-		err = i.repo.DeleteByID(id, filter, ownerRelations)
-		if err != nil {
-			return err
-		}
-
-		err = i.AfterDelete({{.Name}})
+		err := i.repo.DeleteByID(id, filter, ownerRelations)
 		if err != nil {
 			return err
 		}

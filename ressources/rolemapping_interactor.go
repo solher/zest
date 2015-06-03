@@ -6,6 +6,7 @@ package ressources
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/Solher/zest/domain"
 	"github.com/Solher/zest/usecases"
@@ -31,11 +32,24 @@ func NewRoleMappingInter(repo AbstractRoleMappingRepo) *RoleMappingInter {
 	return &RoleMappingInter{repo: repo}
 }
 
+func (i *RoleMappingInter) BeforeSave(rolemapping *domain.RoleMapping) error {
+	rolemapping.ID = 0
+	rolemapping.CreatedAt = time.Time{}
+	rolemapping.UpdatedAt = time.Time{}
+
+	err := rolemapping.ScopeModel()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (i *RoleMappingInter) Create(rolemappings []domain.RoleMapping) ([]domain.RoleMapping, error) {
 	var err error
 
 	for k := range rolemappings {
-		err = i.BeforeCreate(&rolemappings[k])
+		err := i.BeforeSave(&rolemappings[k])
 		if err != nil {
 			return nil, err
 		}
@@ -46,28 +60,16 @@ func (i *RoleMappingInter) Create(rolemappings []domain.RoleMapping) ([]domain.R
 		return nil, err
 	}
 
-	for k := range rolemappings {
-		err = i.AfterCreate(&rolemappings[k])
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return rolemappings, nil
 }
 
 func (i *RoleMappingInter) CreateOne(rolemapping *domain.RoleMapping) (*domain.RoleMapping, error) {
-	err := i.BeforeCreate(rolemapping)
+	err := i.BeforeSave(rolemapping)
 	if err != nil {
 		return nil, err
 	}
 
 	rolemapping, err = i.repo.CreateOne(rolemapping)
-	if err != nil {
-		return nil, err
-	}
-
-	err = i.AfterCreate(rolemapping)
 	if err != nil {
 		return nil, err
 	}
@@ -98,18 +100,15 @@ func (i *RoleMappingInter) Upsert(rolemappings []domain.RoleMapping, filter *use
 	rolemappingsToCreate := []domain.RoleMapping{}
 
 	for k := range rolemappings {
-		var err error
-
-		if rolemappings[k].ID != 0 {
-			err = i.BeforeUpdate(&rolemappings[k])
-			rolemappingsToUpdate = append(rolemappingsToUpdate, rolemappings[k])
-		} else {
-			err = i.BeforeCreate(&rolemappings[k])
-			rolemappingsToCreate = append(rolemappingsToCreate, rolemappings[k])
-		}
-
+		err := i.BeforeSave(&rolemappings[k])
 		if err != nil {
 			return nil, err
+		}
+
+		if rolemappings[k].ID != 0 {
+			rolemappingsToUpdate = append(rolemappingsToUpdate, rolemappings[k])
+		} else {
+			rolemappingsToCreate = append(rolemappingsToCreate, rolemappings[k])
 		}
 	}
 
@@ -123,54 +122,24 @@ func (i *RoleMappingInter) Upsert(rolemappings []domain.RoleMapping, filter *use
 		return nil, err
 	}
 
-	for k := range rolemappingsToUpdate {
-		err = i.AfterUpdate(&rolemappings[k])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for k := range rolemappingsToCreate {
-		err = i.AfterCreate(&rolemappings[k])
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return append(rolemappingsToUpdate, rolemappingsToCreate...), nil
 }
 
 func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+	err := i.BeforeSave(rolemapping)
+	if err != nil {
+		return nil, err
+	}
+
 	if rolemapping.ID != 0 {
-		err := i.BeforeUpdate(rolemapping)
-		if err != nil {
-			return nil, err
-		}
-
 		rolemapping, err = i.repo.UpdateByID(rolemapping.ID, rolemapping, filter, ownerRelations)
-		if err != nil {
-			return nil, err
-		}
 
-		err = i.AfterUpdate(rolemapping)
-		if err != nil {
-			return nil, err
-		}
 	} else {
-		err := i.BeforeCreate(rolemapping)
-		if err != nil {
-			return nil, err
-		}
-
 		rolemapping, err = i.repo.CreateOne(rolemapping)
-		if err != nil {
-			return nil, err
-		}
+	}
 
-		err = i.AfterCreate(rolemapping)
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	return rolemapping, nil
@@ -179,7 +148,7 @@ func (i *RoleMappingInter) UpsertOne(rolemapping *domain.RoleMapping, filter *us
 func (i *RoleMappingInter) UpdateByID(id int, rolemapping *domain.RoleMapping,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
 
-	err := i.BeforeUpdate(rolemapping)
+	err := i.BeforeSave(rolemapping)
 	if err != nil {
 		return nil, err
 	}
@@ -189,59 +158,20 @@ func (i *RoleMappingInter) UpdateByID(id int, rolemapping *domain.RoleMapping,
 		return nil, err
 	}
 
-	err = i.AfterUpdate(rolemapping)
-	if err != nil {
-		return nil, err
-	}
-
 	return rolemapping, nil
 }
 
 func (i *RoleMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	rolemappings, err := i.repo.Find(filter, ownerRelations)
+	err := i.repo.DeleteAll(filter, ownerRelations)
 	if err != nil {
 		return err
-	}
-
-	for k := range rolemappings {
-		err = i.BeforeDelete(&rolemappings[k])
-		if err != nil {
-			return err
-		}
-	}
-
-	err = i.repo.DeleteAll(filter, ownerRelations)
-	if err != nil {
-		return err
-	}
-
-	for k := range rolemappings {
-		err = i.AfterDelete(&rolemappings[k])
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
 }
 
 func (i *RoleMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	rolemapping, err := i.repo.FindByID(id, filter, ownerRelations)
-	if err != nil {
-		return err
-	}
-
-	err = i.BeforeDelete(rolemapping)
-	if err != nil {
-		return err
-	}
-
-	err = i.repo.DeleteByID(id, filter, ownerRelations)
-	if err != nil {
-		return err
-	}
-
-	err = i.AfterDelete(rolemapping)
+	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	if err != nil {
 		return err
 	}

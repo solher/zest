@@ -6,6 +6,7 @@ package ressources
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/Solher/zest/domain"
 	"github.com/Solher/zest/usecases"
@@ -31,11 +32,24 @@ func NewAclInter(repo AbstractAclRepo) *AclInter {
 	return &AclInter{repo: repo}
 }
 
+func (i *AclInter) BeforeSave(acl *domain.Acl) error {
+	acl.ID = 0
+	acl.CreatedAt = time.Time{}
+	acl.UpdatedAt = time.Time{}
+
+	err := acl.ScopeModel()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 	var err error
 
 	for k := range acls {
-		err = i.BeforeCreate(&acls[k])
+		err := i.BeforeSave(&acls[k])
 		if err != nil {
 			return nil, err
 		}
@@ -46,28 +60,16 @@ func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
 		return nil, err
 	}
 
-	for k := range acls {
-		err = i.AfterCreate(&acls[k])
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return acls, nil
 }
 
 func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
-	err := i.BeforeCreate(acl)
+	err := i.BeforeSave(acl)
 	if err != nil {
 		return nil, err
 	}
 
 	acl, err = i.repo.CreateOne(acl)
-	if err != nil {
-		return nil, err
-	}
-
-	err = i.AfterCreate(acl)
 	if err != nil {
 		return nil, err
 	}
@@ -98,18 +100,15 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 	aclsToCreate := []domain.Acl{}
 
 	for k := range acls {
-		var err error
-
-		if acls[k].ID != 0 {
-			err = i.BeforeUpdate(&acls[k])
-			aclsToUpdate = append(aclsToUpdate, acls[k])
-		} else {
-			err = i.BeforeCreate(&acls[k])
-			aclsToCreate = append(aclsToCreate, acls[k])
-		}
-
+		err := i.BeforeSave(&acls[k])
 		if err != nil {
 			return nil, err
+		}
+
+		if acls[k].ID != 0 {
+			aclsToUpdate = append(aclsToUpdate, acls[k])
+		} else {
+			aclsToCreate = append(aclsToCreate, acls[k])
 		}
 	}
 
@@ -123,54 +122,24 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 		return nil, err
 	}
 
-	for k := range aclsToUpdate {
-		err = i.AfterUpdate(&acls[k])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for k := range aclsToCreate {
-		err = i.AfterCreate(&acls[k])
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return append(aclsToUpdate, aclsToCreate...), nil
 }
 
 func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+	err := i.BeforeSave(acl)
+	if err != nil {
+		return nil, err
+	}
+
 	if acl.ID != 0 {
-		err := i.BeforeUpdate(acl)
-		if err != nil {
-			return nil, err
-		}
-
 		acl, err = i.repo.UpdateByID(acl.ID, acl, filter, ownerRelations)
-		if err != nil {
-			return nil, err
-		}
 
-		err = i.AfterUpdate(acl)
-		if err != nil {
-			return nil, err
-		}
 	} else {
-		err := i.BeforeCreate(acl)
-		if err != nil {
-			return nil, err
-		}
-
 		acl, err = i.repo.CreateOne(acl)
-		if err != nil {
-			return nil, err
-		}
+	}
 
-		err = i.AfterCreate(acl)
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	return acl, nil
@@ -179,7 +148,7 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
 
-	err := i.BeforeUpdate(acl)
+	err := i.BeforeSave(acl)
 	if err != nil {
 		return nil, err
 	}
@@ -189,59 +158,20 @@ func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 		return nil, err
 	}
 
-	err = i.AfterUpdate(acl)
-	if err != nil {
-		return nil, err
-	}
-
 	return acl, nil
 }
 
 func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	acls, err := i.repo.Find(filter, ownerRelations)
+	err := i.repo.DeleteAll(filter, ownerRelations)
 	if err != nil {
 		return err
-	}
-
-	for k := range acls {
-		err = i.BeforeDelete(&acls[k])
-		if err != nil {
-			return err
-		}
-	}
-
-	err = i.repo.DeleteAll(filter, ownerRelations)
-	if err != nil {
-		return err
-	}
-
-	for k := range acls {
-		err = i.AfterDelete(&acls[k])
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
 }
 
 func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	acl, err := i.repo.FindByID(id, filter, ownerRelations)
-	if err != nil {
-		return err
-	}
-
-	err = i.BeforeDelete(acl)
-	if err != nil {
-		return err
-	}
-
-	err = i.repo.DeleteByID(id, filter, ownerRelations)
-	if err != nil {
-		return err
-	}
-
-	err = i.AfterDelete(acl)
+	err := i.repo.DeleteByID(id, filter, ownerRelations)
 	if err != nil {
 		return err
 	}
