@@ -26,7 +26,7 @@ type AbstractAclMappingRepo interface {
 
 type AclMappingInter struct {
 	repo                 AbstractAclMappingRepo
-	permissionCacheInter AbstractPermissionCacheInter
+	permissionCacheInter usecases.AbstractPermissionCacheInter
 }
 
 func NewAclMappingInter(repo AbstractAclMappingRepo) *AclMappingInter {

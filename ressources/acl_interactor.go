@@ -133,7 +133,6 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 
 	if acl.ID != 0 {
 		acl, err = i.repo.UpdateByID(acl.ID, acl, filter, ownerRelations)
-
 	} else {
 		acl, err = i.repo.CreateOne(acl)
 	}

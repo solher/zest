@@ -26,7 +26,7 @@ type AbstractSessionRepo interface {
 
 type SessionInter struct {
 	repo              AbstractSessionRepo
-	sessionCacheInter AbstractSessionCacheInter
+	sessionCacheInter usecases.AbstractSessionCacheInter
 }
 
 func NewSessionInter(repo AbstractSessionRepo) *SessionInter {

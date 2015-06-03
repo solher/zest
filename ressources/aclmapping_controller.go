@@ -41,7 +41,7 @@ func NewAclMappingCtrl(interactor AbstractAclMappingInter, render interfaces.Abs
 	controller := &AclMappingCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
-		setAclMappingAccess(routeDir, controller)
+		setAclMappingRoutes(routeDir, controller)
 	}
 
 	return controller

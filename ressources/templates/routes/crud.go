@@ -8,7 +8,7 @@ import (
 func init() {
 	imports := []typewriter.ImportSpec{}
 
-	err := typewriter.Register(templates.NewWrite("access", slice, imports))
+	err := typewriter.Register(templates.NewWrite("routes", slice, imports))
 	if err != nil {
 		panic(err)
 	}
@@ -19,9 +19,9 @@ var slice = typewriter.TemplateSlice{
 }
 
 var routes = &typewriter.Template{
-	Name: "Access",
+	Name: "Routes",
 	Text: `
-	func set{{.Type}}Access(routeDir *interfaces.RouteDirectory, controller *{{.Type}}Ctrl) {
+	func set{{.Type}}Routes(routeDir *interfaces.RouteDirectory, controller *{{.Type}}Ctrl) {
 		key := interfaces.NewDirectoryKey("{{.Name}}s")
 		create := httptreemux.HandlerFunc(controller.Create)
 		find := httptreemux.HandlerFunc(controller.Find)

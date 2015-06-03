@@ -133,7 +133,6 @@ func (i *RoleInter) UpsertOne(role *domain.Role, filter *usecases.Filter, ownerR
 
 	if role.ID != 0 {
 		role, err = i.repo.UpdateByID(role.ID, role, filter, ownerRelations)
-
 	} else {
 		role, err = i.repo.CreateOne(role)
 	}

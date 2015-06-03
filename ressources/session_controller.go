@@ -41,7 +41,7 @@ func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractR
 	controller := &SessionCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
-		setSessionAccess(routeDir, controller)
+		setSessionRoutes(routeDir, controller)
 	}
 
 	return controller

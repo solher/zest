@@ -5,7 +5,7 @@ import (
 	"github.com/dimfeld/httptreemux"
 )
 
-func setAccountAccess(routeDir *interfaces.RouteDirectory, controller *AccountCtrl) {
+func setAccountRoutes(routeDir *interfaces.RouteDirectory, controller *AccountCtrl) {
 	key := interfaces.NewDirectoryKey("accounts")
 	signin := httptreemux.HandlerFunc(controller.Signin)
 	signout := httptreemux.HandlerFunc(controller.Signout)

@@ -41,7 +41,7 @@ func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender,
 	controller := &UserCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
-		setUserAccess(routeDir, controller)
+		setUserRoutes(routeDir, controller)
 	}
 
 	return controller

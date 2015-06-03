@@ -26,7 +26,7 @@ type AbstractRoleMappingRepo interface {
 
 type RoleMappingInter struct {
 	repo                 AbstractRoleMappingRepo
-	permissionCacheInter AbstractPermissionCacheInter
+	permissionCacheInter usecases.AbstractPermissionCacheInter
 }
 
 func NewRoleMappingInter(repo AbstractRoleMappingRepo) *RoleMappingInter {

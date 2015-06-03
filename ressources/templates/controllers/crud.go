@@ -52,7 +52,7 @@ var controller = &typewriter.Template{
 		controller := &{{.Type}}Ctrl{interactor: interactor, render: render, routeDir: routeDir}
 
 		if routeDir != nil {
-			set{{.Type}}Access(routeDir, controller)
+			set{{.Type}}Routes(routeDir, controller)
 		}
 
 		return controller
