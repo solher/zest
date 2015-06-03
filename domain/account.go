@@ -10,7 +10,7 @@ func init() {
 	ModelDirectory.Register(Account{}, "accounts", relations)
 }
 
-//+gen hooks repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw"
+//+gen repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw"
 type Account struct {
 	GormModel
 	Users        []User        `json:"users,omitempty"`

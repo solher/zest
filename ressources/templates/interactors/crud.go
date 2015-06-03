@@ -175,7 +175,6 @@ var upsertOne = &typewriter.Template{
 
 		if {{.Name}}.ID != 0 {
 			{{.Name}}, err = i.repo.UpdateByID({{.Name}}.ID, {{.Name}}, filter, ownerRelations)
-
 		} else {
 			{{.Name}}, err = i.repo.CreateOne({{.Name}})
 		}

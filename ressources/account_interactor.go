@@ -28,8 +28,8 @@ type AccountInter struct {
 	repo                 AbstractAccountRepo
 	userInter            AbstractUserInter
 	sessionInter         AbstractSessionInter
-	sessionCacheInter    *usecases.SessionCacheInter
-	permissionCacheInter *usecases.PermissionCacheInter
+	sessionCacheInter    AbstractSessionCacheInter
+	permissionCacheInter AbstractPermissionCacheInter
 }
 
 func NewAccountInter(repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter,
