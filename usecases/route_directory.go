@@ -37,6 +37,10 @@ func NewRouteDirectory(accountInter AbstractAccountInter, render AbstractRender)
 	return &RouteDirectory{accountInter: accountInter, routes: make(map[DirectoryKey]Route), render: render}
 }
 
+func (routeDir *RouteDirectory) Routes() map[DirectoryKey]Route {
+	return routeDir.routes
+}
+
 func (routeDir *RouteDirectory) Add(key *DirectoryKey, route *Route) {
 	routeDir.routes[*key] = *route
 }

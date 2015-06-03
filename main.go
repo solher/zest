@@ -101,17 +101,18 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	aclMappingInter := ressources.NewAclMappingInter(aclMappingRepo)
 	aclInter := ressources.NewAclInter(aclRepo)
 
-	routes := usecases.NewRouteDirectory(accountInter, render)
+	routeDir := usecases.NewRouteDirectory(accountInter, render)
 
-	ressources.NewUserCtrl(userInter, render, routes)
-	ressources.NewSessionCtrl(sessionInter, render, routes)
-	ressources.NewAccountCtrl(accountInter, render, routes)
-	ressources.NewRoleMappingCtrl(roleMappingInter, render, routes)
-	ressources.NewRoleCtrl(roleInter, render, routes)
-	ressources.NewAclMappingCtrl(aclMappingInter, render, routes)
-	ressources.NewAclCtrl(aclInter, render, routes)
+	ressources.NewUserCtrl(userInter, render, routeDir)
+	ressources.NewSessionCtrl(sessionInter, render, routeDir)
+	ressources.NewAccountCtrl(accountInter, render, routeDir)
+	ressources.NewRoleMappingCtrl(roleMappingInter, render, routeDir)
+	ressources.NewRoleCtrl(roleInter, render, routeDir)
+	ressources.NewAclMappingCtrl(aclMappingInter, render, routeDir)
+	ressources.NewAclCtrl(aclInter, render, routeDir)
 
-	routes.Register(router)
+	routeDir.Register(router)
+	aclInter.RefreshFromRoutes(routeDir.Routes())
 
 	app.Use(negroni.NewLogger())
 	app.Use(negroni.NewRecovery())

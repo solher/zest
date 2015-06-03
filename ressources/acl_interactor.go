@@ -32,7 +32,28 @@ func NewAclInter(repo AbstractAclRepo) *AclInter {
 	return &AclInter{repo: repo}
 }
 
-func (i *AclInter) RefreshFromRoutes(routes []usecases.Route) error {
+func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.Route) error {
+	for dirKey := range routes {
+		filter := &usecases.Filter{
+			Where: map[string]interface{}{
+				"ressource": dirKey.Ressource,
+				"method":    dirKey.Method,
+			},
+		}
+
+		acls, err := i.repo.Find(filter, nil)
+		if err != nil {
+			return err
+		}
+
+		if len(acls) == 0 {
+			_, err := i.repo.CreateOne(&domain.Acl{Ressource: dirKey.Ressource, Method: dirKey.Method})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 

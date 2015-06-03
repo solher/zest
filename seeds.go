@@ -88,40 +88,6 @@ func seedDatabase(store *infrastructure.GormStore) error {
 		return err
 	}
 
-	acls := []domain.Acl{
-		{Ressource: "accounts", Method: "Signin"},
-		{Ressource: "accounts", Method: "Signup"},
-		{Ressource: "accounts", Method: "Signout"},
-		{Ressource: "accounts", Method: "Current"},
-		{Ressource: "users", Method: "Create"},
-		{Ressource: "users", Method: "Find"},
-		{Ressource: "users", Method: "FindByID"},
-		{Ressource: "users", Method: "Upsert"},
-		{Ressource: "users", Method: "UpdateByID"},
-		{Ressource: "users", Method: "DeleteAll"},
-		{Ressource: "users", Method: "DeleteByID"},
-		{Ressource: "sessions", Method: "Create"},
-		{Ressource: "sessions", Method: "Find"},
-		{Ressource: "sessions", Method: "FindByID"},
-		{Ressource: "sessions", Method: "Upsert"},
-		{Ressource: "sessions", Method: "UpdateByID"},
-		{Ressource: "sessions", Method: "DeleteAll"},
-		{Ressource: "sessions", Method: "DeleteByID"},
-		{Ressource: "roleMappings", Method: "Create"},
-		{Ressource: "roleMappings", Method: "Find"},
-		{Ressource: "roleMappings", Method: "FindByID"},
-		{Ressource: "roleMappings", Method: "Upsert"},
-		{Ressource: "roleMappings", Method: "UpdateByID"},
-		{Ressource: "roleMappings", Method: "DeleteAll"},
-		{Ressource: "roleMappings", Method: "DeleteByID"},
-	}
-
-	aclRepository := ressources.NewAclRepo(store)
-	acls, err = aclRepository.Create(acls)
-	if err != nil {
-		return err
-	}
-
 	roleMappings := []domain.RoleMapping{
 		{AccountID: 1, RoleID: 1},
 	}

@@ -210,8 +210,9 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 			return nil, err
 		}
 
-		if len(roleNames) == 0 {
-			rows, err = i.repo.Raw(`
+		if accountID != 0 {
+			if len(roleNames) == 0 {
+				rows, err = i.repo.Raw(`
 				SELECT DISTINCT roles.name
 				FROM roles
 				INNER JOIN role_mappings ON role_mappings.role_id = roles.id
@@ -219,21 +220,22 @@ func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) 
 				INNER JOIN acls ON acls.id = acl_mappings.acl_id
 				WHERE role_mappings.account_id = ? AND acls.ressource = ? AND acls.method = ?
 				`, accountID, ressource, method)
-		}
+			}
 
-		if err != nil {
-			return nil, err
-		}
+			if err != nil {
+				return nil, err
+			}
 
-		for rows.Next() {
-			var roleName string
-			rows.Scan(&roleName)
-			roleNames = append(roleNames, roleName)
-		}
+			for rows.Next() {
+				var roleName string
+				rows.Scan(&roleName)
+				roleNames = append(roleNames, roleName)
+			}
 
-		err = rows.Close()
-		if err != nil {
-			return nil, err
+			err = rows.Close()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
