@@ -11,6 +11,7 @@ import (
 	"github.com/Solher/zest/usecases"
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
+	"github.com/rs/cors"
 
 	_ "github.com/clipperhouse/typewriter" // Forced to allow vendoring.
 )
@@ -116,6 +117,7 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 
 	app.Use(negroni.NewLogger())
 	app.Use(negroni.NewRecovery())
+	app.Use(cors.Default())
 	app.Use(middlewares.NewSessions(accountInteractor))
 
 	app.UseHandler(router)
