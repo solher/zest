@@ -116,6 +116,10 @@ func seedDatabase(store *infrastructure.GormStore, routes map[usecases.Directory
 	for i, acl := range acls {
 		aclMappings[i].AclID = acl.ID
 		aclMappings[i].RoleID = 1
+
+		if acl.Ressource == "accounts" {
+			aclMappings = append(aclMappings, domain.AclMapping{AclID: acl.ID, RoleID: 5})
+		}
 	}
 
 	aclMappingRepo := ressources.NewAclMappingRepo(store)

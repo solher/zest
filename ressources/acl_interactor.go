@@ -33,7 +33,11 @@ func NewAclInter(repo AbstractAclRepo) *AclInter {
 }
 
 func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.Route) error {
-	for dirKey := range routes {
+	for dirKey, route := range routes {
+		if !route.CheckPermissions {
+			continue
+		}
+
 		filter := &usecases.Filter{
 			Where: map[string]interface{}{
 				"ressource": dirKey.Ressource,
