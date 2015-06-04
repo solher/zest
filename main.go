@@ -38,11 +38,6 @@ func init() {
 }
 
 func main() {
-	mustExit := handleOsArgs()
-	if mustExit {
-		return
-	}
-
 	app := negroni.New()
 	router := httptreemux.New()
 	router.RedirectBehavior = httptreemux.UseHandler
@@ -52,20 +47,25 @@ func main() {
 	roleCache := infrastructure.NewCacheStore()
 	aclCache := infrastructure.NewCacheStore()
 
-	initApp(app, router, render, store, sessionCache, roleCache, aclCache)
+	routes := initApp(app, router, render, store, sessionCache, roleCache, aclCache)
 	defer closeApp(store)
+
+	mustExit := handleOsArgs(routes)
+	if mustExit {
+		return
+	}
 
 	app.Run(Port)
 }
 
-func handleOsArgs() bool {
+func handleOsArgs(routes map[usecases.DirectoryKey]usecases.Route) bool {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "resetDB":
-			resetDatabase()
+			resetDatabase(routes)
 			return true
-		case "migrateDB":
-			migrateDatabase()
+		case "updateDB":
+			updateDatabase(routes)
 			return true
 		}
 	}
@@ -74,7 +74,8 @@ func handleOsArgs() bool {
 }
 
 func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render,
-	store *infrastructure.GormStore, lruCacheStore *infrastructure.LRUCacheStore, roleCacheStore, aclCacheStore *infrastructure.CacheStore) {
+	store *infrastructure.GormStore, lruCacheStore *infrastructure.LRUCacheStore,
+	roleCacheStore, aclCacheStore *infrastructure.CacheStore) map[usecases.DirectoryKey]usecases.Route {
 
 	err := connectDB(store)
 	if err != nil {
@@ -121,6 +122,8 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	app.Use(middlewares.NewSessions(accountInter))
 
 	app.UseHandler(router)
+
+	return routeDir.Routes()
 }
 
 func closeApp(store *infrastructure.GormStore) {
