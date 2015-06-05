@@ -117,7 +117,7 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 	aclInter.RefreshFromRoutes(routeDir.Routes())
 
 	app.Use(negroni.NewLogger())
-	app.Use(negroni.NewRecovery())
+	app.Use(middlewares.NewRecovery(render))
 	app.Use(cors.Default())
 	app.Use(middlewares.NewSessions(accountInter))
 

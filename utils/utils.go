@@ -101,6 +101,12 @@ func ContainsStr(list []string, elem string) bool {
 	return false
 }
 
+func Breakpoint() {
+	fmt.Println("____________________________________________________________________")
+	fmt.Println("___________________________BREAKPOINT_______________________________")
+	fmt.Println("____________________________________________________________________")
+}
+
 func Dump(obj interface{}) {
 	fmt.Println("Dump:", obj)
 }
