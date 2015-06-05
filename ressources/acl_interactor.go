@@ -15,12 +15,12 @@ import (
 type AbstractAclRepo interface {
 	Create(acls []domain.Acl) ([]domain.Acl, error)
 	CreateOne(acl *domain.Acl) (*domain.Acl, error)
-	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
-	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
-	Update(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
-	UpdateByID(id int, acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
-	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Find(context usecases.QueryContext) ([]domain.Acl, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.Acl, error)
+	Update(acls []domain.Acl, context usecases.QueryContext) ([]domain.Acl, error)
+	UpdateByID(id int, acl *domain.Acl, context usecases.QueryContext) (*domain.Acl, error)
+	DeleteAll(context usecases.QueryContext) error
+	DeleteByID(id int, context usecases.QueryContext) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -45,7 +45,7 @@ func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.R
 			},
 		}
 
-		acls, err := i.repo.Find(filter, nil)
+		acls, err := i.repo.Find(usecases.QueryContext{Filter: filter})
 		if err != nil {
 			return err
 		}
@@ -106,8 +106,8 @@ func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
 	return acl, nil
 }
 
-func (i *AclInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
-	acls, err := i.repo.Find(filter, ownerRelations)
+func (i *AclInter) Find(context usecases.QueryContext) ([]domain.Acl, error) {
+	acls, err := i.repo.Find(context)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +115,8 @@ func (i *AclInter) Find(filter *usecases.Filter, ownerRelations []domain.Relatio
 	return acls, nil
 }
 
-func (i *AclInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
-	acl, err := i.repo.FindByID(id, filter, ownerRelations)
+func (i *AclInter) FindByID(id int, context usecases.QueryContext) (*domain.Acl, error) {
+	acl, err := i.repo.FindByID(id, context)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (i *AclInter) FindByID(id int, filter *usecases.Filter, ownerRelations []do
 	return acl, nil
 }
 
-func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
+func (i *AclInter) Upsert(acls []domain.Acl, context usecases.QueryContext) ([]domain.Acl, error) {
 	aclsToUpdate := []domain.Acl{}
 	aclsToCreate := []domain.Acl{}
 
@@ -141,7 +141,7 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 		}
 	}
 
-	aclsToUpdate, err := i.repo.Update(aclsToUpdate, filter, ownerRelations)
+	aclsToUpdate, err := i.repo.Update(aclsToUpdate, context)
 	if err != nil {
 		return nil, err
 	}
@@ -154,14 +154,14 @@ func (i *AclInter) Upsert(acls []domain.Acl, filter *usecases.Filter, ownerRelat
 	return append(aclsToUpdate, aclsToCreate...), nil
 }
 
-func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+func (i *AclInter) UpsertOne(acl *domain.Acl, context usecases.QueryContext) (*domain.Acl, error) {
 	err := i.BeforeSave(acl)
 	if err != nil {
 		return nil, err
 	}
 
 	if acl.ID != 0 {
-		acl, err = i.repo.UpdateByID(acl.ID, acl, filter, ownerRelations)
+		acl, err = i.repo.UpdateByID(acl.ID, acl, context)
 	} else {
 		acl, err = i.repo.CreateOne(acl)
 	}
@@ -174,14 +174,14 @@ func (i *AclInter) UpsertOne(acl *domain.Acl, filter *usecases.Filter, ownerRela
 }
 
 func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
-	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+	context usecases.QueryContext) (*domain.Acl, error) {
 
 	err := i.BeforeSave(acl)
 	if err != nil {
 		return nil, err
 	}
 
-	acl, err = i.repo.UpdateByID(id, acl, filter, ownerRelations)
+	acl, err = i.repo.UpdateByID(id, acl, context)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +189,8 @@ func (i *AclInter) UpdateByID(id int, acl *domain.Acl,
 	return acl, nil
 }
 
-func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteAll(filter, ownerRelations)
+func (i *AclInter) DeleteAll(context usecases.QueryContext) error {
+	err := i.repo.DeleteAll(context)
 	if err != nil {
 		return err
 	}
@@ -198,8 +198,8 @@ func (i *AclInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Re
 	return nil
 }
 
-func (i *AclInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteByID(id, filter, ownerRelations)
+func (i *AclInter) DeleteByID(id int, context usecases.QueryContext) error {
+	err := i.repo.DeleteByID(id, context)
 	if err != nil {
 		return err
 	}

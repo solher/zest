@@ -85,7 +85,7 @@
         <attribute name="redirectauthorization" type="bool">0</attribute>
         <attribute name="method" type="string">POST</attribute>
         <attribute name="followredirects" type="bool">0</attribute>
-        <attribute name="body" type="string">["{\\n  \\"email\\":\\"hourliert@gmail.com\\",\\n  \\"password\\":\\"1234\\"\\n}"]</attribute>
+        <attribute name="body" type="string">["{\\n  \\"email\\":\\"fabien.herfray@me.com\\",\\n  \\"password\\":\\"qwertyuiop\\"\\n}"]</attribute>
         <attribute name="order" type="int64">0</attribute>
         <attribute name="name" type="string">Signin</attribute>
         <relationship name="parent" type="0/1" destination="LMREQUESTTREEITEM" idrefs="z136"></relationship>

@@ -14,7 +14,7 @@ type (
 		Connect(adapter, url string) error
 		Close() error
 		GetDB() *gorm.DB
-		BuildQuery(filter *usecases.Filter, ownerRelations []domain.Relation) (*gorm.DB, error)
+		BuildQuery(filter *usecases.Filter, ownerRelations []domain.DBRelation) (*gorm.DB, error)
 	}
 
 	AbstractRender interface {

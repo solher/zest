@@ -3,7 +3,7 @@ package domain
 import "time"
 
 func init() {
-	relations := []Relation{
+	relations := []DBRelation{
 		{Related: "accounts", Fk: "accountId"},
 	}
 

@@ -60,8 +60,8 @@ func (r *AclRepo) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
 	return acl, nil
 }
 
-func (r *AclRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AclRepo) Find(context usecases.QueryContext) ([]domain.Acl, error) {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -76,8 +76,8 @@ func (r *AclRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation
 	return acls, nil
 }
 
-func (r *AclRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AclRepo) FindByID(id int, context usecases.QueryContext) (*domain.Acl, error) {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -92,11 +92,11 @@ func (r *AclRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []dom
 	return &acl, nil
 }
 
-func (r *AclRepo) Update(acls []domain.Acl, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Acl, error) {
+func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]domain.Acl, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -122,9 +122,9 @@ func (r *AclRepo) Update(acls []domain.Acl, filter *usecases.Filter, ownerRelati
 }
 
 func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
-	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Acl, error) {
+	context usecases.QueryContext) (*domain.Acl, error) {
 
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -143,8 +143,8 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 	return acl, nil
 }
 
-func (r *AclRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AclRepo) DeleteAll(context usecases.QueryContext) error {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -157,8 +157,8 @@ func (r *AclRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Rel
 	return nil
 }
 
-func (r *AclRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AclRepo) DeleteByID(id int, context usecases.QueryContext) error {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}

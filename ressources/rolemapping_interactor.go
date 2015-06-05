@@ -15,12 +15,12 @@ import (
 type AbstractRoleMappingRepo interface {
 	Create(roleMappings []domain.RoleMapping) ([]domain.RoleMapping, error)
 	CreateOne(roleMapping *domain.RoleMapping) (*domain.RoleMapping, error)
-	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
-	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	Update(roleMappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
-	UpdateByID(id int, roleMapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Find(context usecases.QueryContext) ([]domain.RoleMapping, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.RoleMapping, error)
+	Update(roleMappings []domain.RoleMapping, context usecases.QueryContext) ([]domain.RoleMapping, error)
+	UpdateByID(id int, roleMapping *domain.RoleMapping, context usecases.QueryContext) (*domain.RoleMapping, error)
+	DeleteAll(context usecases.QueryContext) error
+	DeleteByID(id int, context usecases.QueryContext) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -99,8 +99,8 @@ func (i *RoleMappingInter) CreateOne(roleMapping *domain.RoleMapping) (*domain.R
 	return roleMapping, nil
 }
 
-func (i *RoleMappingInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
-	roleMappings, err := i.repo.Find(filter, ownerRelations)
+func (i *RoleMappingInter) Find(context usecases.QueryContext) ([]domain.RoleMapping, error) {
+	roleMappings, err := i.repo.Find(context)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +108,8 @@ func (i *RoleMappingInter) Find(filter *usecases.Filter, ownerRelations []domain
 	return roleMappings, nil
 }
 
-func (i *RoleMappingInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
-	roleMapping, err := i.repo.FindByID(id, filter, ownerRelations)
+func (i *RoleMappingInter) FindByID(id int, context usecases.QueryContext) (*domain.RoleMapping, error) {
+	roleMapping, err := i.repo.FindByID(id, context)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (i *RoleMappingInter) FindByID(id int, filter *usecases.Filter, ownerRelati
 	return roleMapping, nil
 }
 
-func (i *RoleMappingInter) Upsert(roleMappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
+func (i *RoleMappingInter) Upsert(roleMappings []domain.RoleMapping, context usecases.QueryContext) ([]domain.RoleMapping, error) {
 	roleMappingsToUpdate := []domain.RoleMapping{}
 	roleMappingsToCreate := []domain.RoleMapping{}
 
@@ -134,7 +134,7 @@ func (i *RoleMappingInter) Upsert(roleMappings []domain.RoleMapping, filter *use
 		}
 	}
 
-	roleMappingsToUpdate, err := i.repo.Update(roleMappingsToUpdate, filter, ownerRelations)
+	roleMappingsToUpdate, err := i.repo.Update(roleMappingsToUpdate, context)
 	if err != nil {
 		return nil, err
 	}
@@ -156,14 +156,14 @@ func (i *RoleMappingInter) Upsert(roleMappings []domain.RoleMapping, filter *use
 	return roleMappings, nil
 }
 
-func (i *RoleMappingInter) UpsertOne(roleMapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+func (i *RoleMappingInter) UpsertOne(roleMapping *domain.RoleMapping, context usecases.QueryContext) (*domain.RoleMapping, error) {
 	err := i.BeforeSave(roleMapping)
 	if err != nil {
 		return nil, err
 	}
 
 	if roleMapping.ID != 0 {
-		roleMapping, err = i.repo.UpdateByID(roleMapping.ID, roleMapping, filter, ownerRelations)
+		roleMapping, err = i.repo.UpdateByID(roleMapping.ID, roleMapping, context)
 	} else {
 		roleMapping, err = i.repo.CreateOne(roleMapping)
 	}
@@ -181,14 +181,14 @@ func (i *RoleMappingInter) UpsertOne(roleMapping *domain.RoleMapping, filter *us
 }
 
 func (i *RoleMappingInter) UpdateByID(id int, roleMapping *domain.RoleMapping,
-	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+	context usecases.QueryContext) (*domain.RoleMapping, error) {
 
 	err := i.BeforeSave(roleMapping)
 	if err != nil {
 		return nil, err
 	}
 
-	roleMapping, err = i.repo.UpdateByID(id, roleMapping, filter, ownerRelations)
+	roleMapping, err = i.repo.UpdateByID(id, roleMapping, context)
 	if err != nil {
 		return nil, err
 	}
@@ -201,15 +201,15 @@ func (i *RoleMappingInter) UpdateByID(id int, roleMapping *domain.RoleMapping,
 	return roleMapping, nil
 }
 
-func (i *RoleMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	filter.Fields = nil
+func (i *RoleMappingInter) DeleteAll(context usecases.QueryContext) error {
+	context.Filter.Fields = nil
 
-	roleMappings, err := i.repo.Find(filter, ownerRelations)
+	roleMappings, err := i.repo.Find(context)
 	if err != nil {
 		return err
 	}
 
-	err = i.repo.DeleteAll(filter, ownerRelations)
+	err = i.repo.DeleteAll(context)
 	if err != nil {
 		return err
 	}
@@ -224,15 +224,15 @@ func (i *RoleMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []d
 	return nil
 }
 
-func (i *RoleMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	filter.Fields = nil
+func (i *RoleMappingInter) DeleteByID(id int, context usecases.QueryContext) error {
+	context.Filter.Fields = nil
 
-	roleMapping, err := i.repo.FindByID(id, filter, ownerRelations)
+	roleMapping, err := i.repo.FindByID(id, context)
 	if err != nil {
 		return err
 	}
 
-	err = i.repo.DeleteByID(id, filter, ownerRelations)
+	err = i.repo.DeleteByID(id, context)
 	if err != nil {
 		return err
 	}

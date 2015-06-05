@@ -1,7 +1,7 @@
 package domain
 
 func init() {
-	relations := []Relation{
+	relations := []DBRelation{
 		{Related: "accounts", Fk: "accountId"},
 		{Related: "roles", Fk: "roleId"},
 	}

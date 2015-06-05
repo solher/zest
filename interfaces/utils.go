@@ -55,11 +55,11 @@ func GetErrorCode(res string) string {
 	return apiError.ErrorCode
 }
 
-func GetOwnerRelations(r *http.Request) []domain.Relation {
+func GetOwnerRelations(r *http.Request) []domain.DBRelation {
 	ownerRelationsCtx := context.Get(r, "ownerRelations")
-	var ownerRelations []domain.Relation
+	var ownerRelations []domain.DBRelation
 	if ownerRelationsCtx != nil {
-		ownerRelations = ownerRelationsCtx.([]domain.Relation)
+		ownerRelations = ownerRelationsCtx.([]domain.DBRelation)
 	}
 
 	return ownerRelations

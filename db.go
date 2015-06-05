@@ -107,7 +107,7 @@ func seedDatabase(store *infrastructure.GormStore, routes map[usecases.Directory
 
 	aclRepo := ressources.NewAclRepo(store)
 	ressources.NewAclInter(aclRepo).RefreshFromRoutes(routes)
-	acls, err := aclRepo.Find(nil, nil)
+	acls, err := aclRepo.Find(usecases.QueryContext{})
 	if err != nil {
 		return err
 	}

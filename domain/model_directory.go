@@ -2,21 +2,21 @@ package domain
 
 type modelDirectory struct {
 	Models    []interface{}
-	Relations map[string][]Relation
+	Relations map[string][]DBRelation
 }
 
-type Relation struct {
+type DBRelation struct {
 	Ressource, Fk, Related string
 }
 
 func newModelDirectory() *modelDirectory {
 	modelDir := &modelDirectory{}
-	modelDir.Relations = make(map[string][]Relation)
+	modelDir.Relations = make(map[string][]DBRelation)
 
 	return modelDir
 }
 
-func (md *modelDirectory) Register(model interface{}, ressource string, relations []Relation) {
+func (md *modelDirectory) Register(model interface{}, ressource string, relations []DBRelation) {
 	md.Models = append(md.Models, model)
 
 	for i := range relations {
@@ -27,15 +27,15 @@ func (md *modelDirectory) Register(model interface{}, ressource string, relation
 }
 
 // WARNING: MIGHT NOT WORK WHEN MULTIPLE PATH ARE AVAILABLE.
-func (md *modelDirectory) FindPathToOwner(ressource string) []Relation {
-	relationPath := []Relation{}
+func (md *modelDirectory) FindPathToOwner(ressource string) []DBRelation {
+	relationPath := []DBRelation{}
 
 	relationPath = md.findPathToOwner("", ressource, relationPath)
 
 	return relationPath
 }
 
-func (md *modelDirectory) findPathToOwner(lastRessource, ressource string, relationPath []Relation) []Relation {
+func (md *modelDirectory) findPathToOwner(lastRessource, ressource string, relationPath []DBRelation) []DBRelation {
 	relations := md.Relations[ressource]
 
 	for _, relation := range relations {
@@ -62,7 +62,7 @@ func (md *modelDirectory) findPathToOwner(lastRessource, ressource string, relat
 	return nil
 }
 
-func containsRessource(relations []Relation, ressource string) bool {
+func containsRessource(relations []DBRelation, ressource string) bool {
 	for _, relation := range relations {
 		if relation.Related == ressource {
 			return true

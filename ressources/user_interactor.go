@@ -15,12 +15,12 @@ import (
 type AbstractUserRepo interface {
 	Create(users []domain.User) ([]domain.User, error)
 	CreateOne(user *domain.User) (*domain.User, error)
-	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
-	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
-	Update(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error)
-	UpdateByID(id int, user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error)
-	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Find(context usecases.QueryContext) ([]domain.User, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.User, error)
+	Update(users []domain.User, context usecases.QueryContext) ([]domain.User, error)
+	UpdateByID(id int, user *domain.User, context usecases.QueryContext) (*domain.User, error)
+	DeleteAll(context usecases.QueryContext) error
+	DeleteByID(id int, context usecases.QueryContext) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -77,8 +77,8 @@ func (i *UserInter) CreateOne(user *domain.User) (*domain.User, error) {
 	return user, nil
 }
 
-func (i *UserInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
-	users, err := i.repo.Find(filter, ownerRelations)
+func (i *UserInter) Find(context usecases.QueryContext) ([]domain.User, error) {
+	users, err := i.repo.Find(context)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +86,8 @@ func (i *UserInter) Find(filter *usecases.Filter, ownerRelations []domain.Relati
 	return users, nil
 }
 
-func (i *UserInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
-	user, err := i.repo.FindByID(id, filter, ownerRelations)
+func (i *UserInter) FindByID(id int, context usecases.QueryContext) (*domain.User, error) {
+	user, err := i.repo.FindByID(id, context)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (i *UserInter) FindByID(id int, filter *usecases.Filter, ownerRelations []d
 	return user, nil
 }
 
-func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.User, error) {
+func (i *UserInter) Upsert(users []domain.User, context usecases.QueryContext) ([]domain.User, error) {
 	usersToUpdate := []domain.User{}
 	usersToCreate := []domain.User{}
 
@@ -112,7 +112,7 @@ func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRe
 		}
 	}
 
-	usersToUpdate, err := i.repo.Update(usersToUpdate, filter, ownerRelations)
+	usersToUpdate, err := i.repo.Update(usersToUpdate, context)
 	if err != nil {
 		return nil, err
 	}
@@ -125,14 +125,14 @@ func (i *UserInter) Upsert(users []domain.User, filter *usecases.Filter, ownerRe
 	return append(usersToUpdate, usersToCreate...), nil
 }
 
-func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+func (i *UserInter) UpsertOne(user *domain.User, context usecases.QueryContext) (*domain.User, error) {
 	err := i.BeforeSave(user)
 	if err != nil {
 		return nil, err
 	}
 
 	if user.ID != 0 {
-		user, err = i.repo.UpdateByID(user.ID, user, filter, ownerRelations)
+		user, err = i.repo.UpdateByID(user.ID, user, context)
 	} else {
 		user, err = i.repo.CreateOne(user)
 	}
@@ -145,14 +145,14 @@ func (i *UserInter) UpsertOne(user *domain.User, filter *usecases.Filter, ownerR
 }
 
 func (i *UserInter) UpdateByID(id int, user *domain.User,
-	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.User, error) {
+	context usecases.QueryContext) (*domain.User, error) {
 
 	err := i.BeforeSave(user)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err = i.repo.UpdateByID(id, user, filter, ownerRelations)
+	user, err = i.repo.UpdateByID(id, user, context)
 	if err != nil {
 		return nil, err
 	}
@@ -160,8 +160,8 @@ func (i *UserInter) UpdateByID(id int, user *domain.User,
 	return user, nil
 }
 
-func (i *UserInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteAll(filter, ownerRelations)
+func (i *UserInter) DeleteAll(context usecases.QueryContext) error {
+	err := i.repo.DeleteAll(context)
 	if err != nil {
 		return err
 	}
@@ -169,8 +169,8 @@ func (i *UserInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.R
 	return nil
 }
 
-func (i *UserInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	err := i.repo.DeleteByID(id, filter, ownerRelations)
+func (i *UserInter) DeleteByID(id int, context usecases.QueryContext) error {
+	err := i.repo.DeleteByID(id, context)
 	if err != nil {
 		return err
 	}

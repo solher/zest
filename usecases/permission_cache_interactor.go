@@ -10,13 +10,13 @@ type AclCacheKey struct {
 }
 
 type AbstractAccountRepo interface {
-	Find(filter *Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
-	FindByID(id int, filter *Filter, ownerRelations []domain.Relation) (*domain.Account, error)
+	Find(context QueryContext) ([]domain.Account, error)
+	FindByID(id int, context QueryContext) (*domain.Account, error)
 }
 
 type AbstractAclRepo interface {
-	Find(filter *Filter, ownerRelations []domain.Relation) ([]domain.Acl, error)
-	FindByID(id int, filter *Filter, ownerRelations []domain.Relation) (*domain.Acl, error)
+	Find(context QueryContext) ([]domain.Acl, error)
+	FindByID(id int, context QueryContext) (*domain.Acl, error)
 }
 
 type PermissionCacheInter struct {
@@ -73,7 +73,7 @@ func (i *PermissionCacheInter) Refresh() error {
 		},
 	}
 
-	accounts, err := i.accountRepo.Find(filter, nil)
+	accounts, err := i.accountRepo.Find(QueryContext{Filter: filter})
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (i *PermissionCacheInter) Refresh() error {
 		},
 	}
 
-	acls, err := i.aclRepo.Find(filter, nil)
+	acls, err := i.aclRepo.Find(QueryContext{Filter: filter})
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (i *PermissionCacheInter) RefreshRole(accountID int) error {
 		},
 	}
 
-	account, err := i.accountRepo.FindByID(accountID, filter, nil)
+	account, err := i.accountRepo.FindByID(accountID, QueryContext{Filter: filter})
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (i *PermissionCacheInter) RefreshAcl(aclID int) error {
 		},
 	}
 
-	acl, err := i.aclRepo.FindByID(aclID, filter, nil)
+	acl, err := i.aclRepo.FindByID(aclID, QueryContext{Filter: filter})
 	if err != nil {
 		return err
 	}

@@ -1,5 +1,16 @@
 package usecases
 
+import "github.com/Solher/zest/domain"
+
+type QueryContext struct {
+	Filter         *Filter
+	OwnerRelations []domain.DBRelation
+}
+
+func NewQueryContext(filter *Filter, ownerRelations []domain.DBRelation) *QueryContext {
+	return &QueryContext{Filter: filter, OwnerRelations: ownerRelations}
+}
+
 type Filter struct {
 	Fields  []string               `json:"fields"`
 	Limit   int                    `json:"limit"`

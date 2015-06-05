@@ -75,11 +75,11 @@ func (st *GormStore) ResetTables(tables []interface{}) error {
 	return nil
 }
 
-func (st *GormStore) BuildQuery(filter *usecases.Filter, ownerRelations []domain.Relation) (*gorm.DB, error) {
+func (st *GormStore) BuildQuery(filter *usecases.Filter, ownerRelations []domain.DBRelation) (*gorm.DB, error) {
 	query := st.db
 
 	if ownerRelations != nil {
-		relationsMap := make(map[string][]domain.Relation)
+		relationsMap := make(map[string][]domain.DBRelation)
 
 		for _, relation := range ownerRelations {
 			relationsMap[relation.Ressource] = append(relationsMap[relation.Ressource], relation)

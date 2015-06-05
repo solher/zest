@@ -3,8 +3,8 @@ package usecases
 import "github.com/Solher/zest/domain"
 
 type AbstractSessionRepo interface {
-	Find(filter *Filter, ownerRelations []domain.Relation) ([]domain.Session, error)
-	FindByID(id int, filter *Filter, ownerRelations []domain.Relation) (*domain.Session, error)
+	Find(context QueryContext) ([]domain.Session, error)
+	FindByID(id int, context QueryContext) (*domain.Session, error)
 }
 
 type SessionCacheInter struct {
@@ -44,7 +44,7 @@ func (i *SessionCacheInter) Refresh() error {
 		Order: "updatedAt DESC",
 	}
 
-	sessions, err := i.sessionRepo.Find(filter, nil)
+	sessions, err := i.sessionRepo.Find(QueryContext{Filter: filter})
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (i *SessionCacheInter) Refresh() error {
 }
 
 func (i *SessionCacheInter) RefreshSession(sessionID int) error {
-	session, err := i.sessionRepo.FindByID(sessionID, nil, nil)
+	session, err := i.sessionRepo.FindByID(sessionID, QueryContext{})
 	if err != nil {
 		return err
 	}

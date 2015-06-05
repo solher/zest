@@ -15,12 +15,12 @@ import (
 type AbstractAclMappingRepo interface {
 	Create(aclMappings []domain.AclMapping) ([]domain.AclMapping, error)
 	CreateOne(aclMapping *domain.AclMapping) (*domain.AclMapping, error)
-	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error)
-	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
-	Update(aclMappings []domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error)
-	UpdateByID(id int, aclMapping *domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error)
-	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Find(context usecases.QueryContext) ([]domain.AclMapping, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.AclMapping, error)
+	Update(aclMappings []domain.AclMapping, context usecases.QueryContext) ([]domain.AclMapping, error)
+	UpdateByID(id int, aclMapping *domain.AclMapping, context usecases.QueryContext) (*domain.AclMapping, error)
+	DeleteAll(context usecases.QueryContext) error
+	DeleteByID(id int, context usecases.QueryContext) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -99,8 +99,8 @@ func (i *AclMappingInter) CreateOne(aclMapping *domain.AclMapping) (*domain.AclM
 	return aclMapping, nil
 }
 
-func (i *AclMappingInter) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
-	aclMappings, err := i.repo.Find(filter, ownerRelations)
+func (i *AclMappingInter) Find(context usecases.QueryContext) ([]domain.AclMapping, error) {
+	aclMappings, err := i.repo.Find(context)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +108,8 @@ func (i *AclMappingInter) Find(filter *usecases.Filter, ownerRelations []domain.
 	return aclMappings, nil
 }
 
-func (i *AclMappingInter) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
-	aclMapping, err := i.repo.FindByID(id, filter, ownerRelations)
+func (i *AclMappingInter) FindByID(id int, context usecases.QueryContext) (*domain.AclMapping, error) {
+	aclMapping, err := i.repo.FindByID(id, context)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (i *AclMappingInter) FindByID(id int, filter *usecases.Filter, ownerRelatio
 	return aclMapping, nil
 }
 
-func (i *AclMappingInter) Upsert(aclMappings []domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.AclMapping, error) {
+func (i *AclMappingInter) Upsert(aclMappings []domain.AclMapping, context usecases.QueryContext) ([]domain.AclMapping, error) {
 	aclMappingsToUpdate := []domain.AclMapping{}
 	aclMappingsToCreate := []domain.AclMapping{}
 
@@ -134,7 +134,7 @@ func (i *AclMappingInter) Upsert(aclMappings []domain.AclMapping, filter *usecas
 		}
 	}
 
-	aclMappingsToUpdate, err := i.repo.Update(aclMappingsToUpdate, filter, ownerRelations)
+	aclMappingsToUpdate, err := i.repo.Update(aclMappingsToUpdate, context)
 	if err != nil {
 		return nil, err
 	}
@@ -156,14 +156,14 @@ func (i *AclMappingInter) Upsert(aclMappings []domain.AclMapping, filter *usecas
 	return aclMappings, nil
 }
 
-func (i *AclMappingInter) UpsertOne(aclMapping *domain.AclMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+func (i *AclMappingInter) UpsertOne(aclMapping *domain.AclMapping, context usecases.QueryContext) (*domain.AclMapping, error) {
 	err := i.BeforeSave(aclMapping)
 	if err != nil {
 		return nil, err
 	}
 
 	if aclMapping.ID != 0 {
-		aclMapping, err = i.repo.UpdateByID(aclMapping.ID, aclMapping, filter, ownerRelations)
+		aclMapping, err = i.repo.UpdateByID(aclMapping.ID, aclMapping, context)
 	} else {
 		aclMapping, err = i.repo.CreateOne(aclMapping)
 	}
@@ -181,14 +181,14 @@ func (i *AclMappingInter) UpsertOne(aclMapping *domain.AclMapping, filter *useca
 }
 
 func (i *AclMappingInter) UpdateByID(id int, aclMapping *domain.AclMapping,
-	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.AclMapping, error) {
+	context usecases.QueryContext) (*domain.AclMapping, error) {
 
 	err := i.BeforeSave(aclMapping)
 	if err != nil {
 		return nil, err
 	}
 
-	aclMapping, err = i.repo.UpdateByID(id, aclMapping, filter, ownerRelations)
+	aclMapping, err = i.repo.UpdateByID(id, aclMapping, context)
 	if err != nil {
 		return nil, err
 	}
@@ -201,15 +201,15 @@ func (i *AclMappingInter) UpdateByID(id int, aclMapping *domain.AclMapping,
 	return aclMapping, nil
 }
 
-func (i *AclMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	filter.Fields = nil
+func (i *AclMappingInter) DeleteAll(context usecases.QueryContext) error {
+	context.Filter.Fields = nil
 
-	aclMappings, err := i.repo.Find(filter, ownerRelations)
+	aclMappings, err := i.repo.Find(context)
 	if err != nil {
 		return err
 	}
 
-	err = i.repo.DeleteAll(filter, ownerRelations)
+	err = i.repo.DeleteAll(context)
 	if err != nil {
 		return err
 	}
@@ -224,15 +224,15 @@ func (i *AclMappingInter) DeleteAll(filter *usecases.Filter, ownerRelations []do
 	return nil
 }
 
-func (i *AclMappingInter) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	filter.Fields = nil
+func (i *AclMappingInter) DeleteByID(id int, context usecases.QueryContext) error {
+	context.Filter.Fields = nil
 
-	aclMapping, err := i.repo.FindByID(id, filter, ownerRelations)
+	aclMapping, err := i.repo.FindByID(id, context)
 	if err != nil {
 		return err
 	}
 
-	err = i.repo.DeleteByID(id, filter, ownerRelations)
+	err = i.repo.DeleteByID(id, context)
 	if err != nil {
 		return err
 	}

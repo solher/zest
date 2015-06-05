@@ -3,7 +3,7 @@ package domain
 import "golang.org/x/crypto/bcrypt"
 
 func init() {
-	relations := []Relation{
+	relations := []DBRelation{
 		{Related: "accounts", Fk: "accountId"},
 	}
 

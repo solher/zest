@@ -60,8 +60,8 @@ func (r *RoleMappingRepo) CreateOne(rolemapping *domain.RoleMapping) (*domain.Ro
 	return rolemapping, nil
 }
 
-func (r *RoleMappingRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *RoleMappingRepo) Find(context usecases.QueryContext) ([]domain.RoleMapping, error) {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -76,8 +76,8 @@ func (r *RoleMappingRepo) Find(filter *usecases.Filter, ownerRelations []domain.
 	return rolemappings, nil
 }
 
-func (r *RoleMappingRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *RoleMappingRepo) FindByID(id int, context usecases.QueryContext) (*domain.RoleMapping, error) {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -92,11 +92,11 @@ func (r *RoleMappingRepo) FindByID(id int, filter *usecases.Filter, ownerRelatio
 	return &rolemapping, nil
 }
 
-func (r *RoleMappingRepo) Update(rolemappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error) {
+func (r *RoleMappingRepo) Update(rolemappings []domain.RoleMapping, context usecases.QueryContext) ([]domain.RoleMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -122,9 +122,9 @@ func (r *RoleMappingRepo) Update(rolemappings []domain.RoleMapping, filter *usec
 }
 
 func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,
-	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error) {
+	context usecases.QueryContext) (*domain.RoleMapping, error) {
 
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -143,8 +143,8 @@ func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,
 	return rolemapping, nil
 }
 
-func (r *RoleMappingRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *RoleMappingRepo) DeleteAll(context usecases.QueryContext) error {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -157,8 +157,8 @@ func (r *RoleMappingRepo) DeleteAll(filter *usecases.Filter, ownerRelations []do
 	return nil
 }
 
-func (r *RoleMappingRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *RoleMappingRepo) DeleteByID(id int, context usecases.QueryContext) error {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}

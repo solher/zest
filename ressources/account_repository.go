@@ -60,8 +60,8 @@ func (r *AccountRepo) CreateOne(account *domain.Account) (*domain.Account, error
 	return account, nil
 }
 
-func (r *AccountRepo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AccountRepo) Find(context usecases.QueryContext) ([]domain.Account, error) {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -76,8 +76,8 @@ func (r *AccountRepo) Find(filter *usecases.Filter, ownerRelations []domain.Rela
 	return accounts, nil
 }
 
-func (r *AccountRepo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AccountRepo) FindByID(id int, context usecases.QueryContext) (*domain.Account, error) {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -92,11 +92,11 @@ func (r *AccountRepo) FindByID(id int, filter *usecases.Filter, ownerRelations [
 	return &account, nil
 }
 
-func (r *AccountRepo) Update(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error) {
+func (r *AccountRepo) Update(accounts []domain.Account, context usecases.QueryContext) ([]domain.Account, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -122,9 +122,9 @@ func (r *AccountRepo) Update(accounts []domain.Account, filter *usecases.Filter,
 }
 
 func (r *AccountRepo) UpdateByID(id int, account *domain.Account,
-	filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error) {
+	context usecases.QueryContext) (*domain.Account, error) {
 
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -143,8 +143,8 @@ func (r *AccountRepo) UpdateByID(id int, account *domain.Account,
 	return account, nil
 }
 
-func (r *AccountRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AccountRepo) DeleteAll(context usecases.QueryContext) error {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -157,8 +157,8 @@ func (r *AccountRepo) DeleteAll(filter *usecases.Filter, ownerRelations []domain
 	return nil
 }
 
-func (r *AccountRepo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-	query, err := r.store.BuildQuery(filter, ownerRelations)
+func (r *AccountRepo) DeleteByID(id int, context usecases.QueryContext) error {
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}

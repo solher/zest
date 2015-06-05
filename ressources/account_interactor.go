@@ -15,12 +15,12 @@ import (
 type AbstractAccountRepo interface {
 	Create(accounts []domain.Account) ([]domain.Account, error)
 	CreateOne(account *domain.Account) (*domain.Account, error)
-	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
-	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
-	Update(accounts []domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Account, error)
-	UpdateByID(id int, account *domain.Account, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Account, error)
-	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Find(queryContext usecases.QueryContext) ([]domain.Account, error)
+	FindByID(id int, queryContext usecases.QueryContext) (*domain.Account, error)
+	Update(accounts []domain.Account, queryContext usecases.QueryContext) ([]domain.Account, error)
+	UpdateByID(id int, account *domain.Account, queryContext usecases.QueryContext) (*domain.Account, error)
+	DeleteAll(queryContext usecases.QueryContext) error
+	DeleteByID(id int, queryContext usecases.QueryContext) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
@@ -45,7 +45,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 		Where: map[string]interface{}{"email": credentials.Email},
 	}
 
-	users, err := i.userInter.Find(filter, nil)
+	users, err := i.userInter.Find(usecases.QueryContext{Filter: filter})
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 func (i *AccountInter) Signout(currentSession *domain.Session) error {
 	authToken := currentSession.AuthToken
 
-	err := i.sessionInter.DeleteByID(currentSession.ID, nil, nil)
+	err := i.sessionInter.DeleteByID(currentSession.ID, usecases.QueryContext{})
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account,
 		Include: []interface{}{"users"},
 	}
 
-	account, err := i.repo.FindByID(currentSession.AccountID, filter, nil)
+	account, err := i.repo.FindByID(currentSession.AccountID, usecases.QueryContext{Filter: filter})
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Sessio
 			Where: map[string]interface{}{"authToken": authToken},
 		}
 
-		sessions, err := i.sessionInter.Find(filter, nil)
+		sessions, err := i.sessionInter.Find(usecases.QueryContext{Filter: filter})
 		if err != nil {
 			return nil, err
 		}

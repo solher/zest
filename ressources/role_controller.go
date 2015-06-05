@@ -21,13 +21,13 @@ import (
 type AbstractRoleInter interface {
 	Create(roles []domain.Role) ([]domain.Role, error)
 	CreateOne(role *domain.Role) (*domain.Role, error)
-	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
-	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	Upsert(roles []domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.Role, error)
-	UpsertOne(role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	UpdateByID(id int, role *domain.Role, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.Role, error)
-	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Find(context usecases.QueryContext) ([]domain.Role, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.Role, error)
+	Upsert(roles []domain.Role, context usecases.QueryContext) ([]domain.Role, error)
+	UpsertOne(role *domain.Role, context usecases.QueryContext) (*domain.Role, error)
+	UpdateByID(id int, role *domain.Role, context usecases.QueryContext) (*domain.Role, error)
+	DeleteAll(context usecases.QueryContext) error
+	DeleteByID(id int, context usecases.QueryContext) error
 }
 
 type RoleCtrl struct {
@@ -105,7 +105,7 @@ func (c *RoleCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]str
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	roles, err := c.interactor.Find(filter, relations)
+	roles, err := c.interactor.Find(usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -133,7 +133,7 @@ func (c *RoleCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[s
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	role, err := c.interactor.FindByID(id, filter, relations)
+	role, err := c.interactor.FindByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
@@ -160,16 +160,16 @@ func (c *RoleCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]s
 
 	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
-	ownerRelations := interfaces.GetOwnerRelations(r)
+	relations := interfaces.GetOwnerRelations(r)
 
 	if roles == nil {
 		role.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
-		role, err = c.interactor.UpsertOne(role, filter, ownerRelations)
+		role, err = c.interactor.UpsertOne(role, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
 		for i := range roles {
 			(&roles[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		}
-		roles, err = c.interactor.Upsert(roles, filter, ownerRelations)
+		roles, err = c.interactor.Upsert(roles, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}
 
 	if err != nil {
@@ -210,10 +210,10 @@ func (c *RoleCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 
 	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
-	ownerRelations := interfaces.GetOwnerRelations(r)
+	relations := interfaces.GetOwnerRelations(r)
 
 	role.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
-	role, err = c.interactor.UpdateByID(id, role, filter, ownerRelations)
+	role, err = c.interactor.UpdateByID(id, role, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 
 	if err != nil {
 		switch err.(type) {
@@ -240,7 +240,7 @@ func (c *RoleCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[strin
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	err = c.interactor.DeleteAll(filter, relations)
+	err = c.interactor.DeleteAll(usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -257,9 +257,9 @@ func (c *RoleCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map
 	}
 
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
-	ownerRelations := interfaces.GetOwnerRelations(r)
+	relations := interfaces.GetOwnerRelations(r)
 
-	err = c.interactor.DeleteByID(id, filter, ownerRelations)
+	err = c.interactor.DeleteByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return

@@ -88,8 +88,8 @@ var createOne = &typewriter.Template{
 var find = &typewriter.Template{
 	Name: "Find",
 	Text: `
-	func (r *{{.Type}}Repo) Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
-		query, err := r.store.BuildQuery(filter, ownerRelations)
+	func (r *{{.Type}}Repo) Find(context usecases.QueryContext) ([]domain.{{.Type}}, error) {
+		query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
 		}
@@ -108,8 +108,8 @@ var find = &typewriter.Template{
 var findByID = &typewriter.Template{
 	Name: "FindByID",
 	Text: `
-	func (r *{{.Type}}Repo) FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
-		query, err := r.store.BuildQuery(filter, ownerRelations)
+	func (r *{{.Type}}Repo) FindByID(id int, context usecases.QueryContext) (*domain.{{.Type}}, error) {
+		query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
 		}
@@ -128,11 +128,11 @@ var findByID = &typewriter.Template{
 var update = &typewriter.Template{
 	Name: "Update",
 	Text: `
-	func (r *{{.Type}}Repo) Update({{.Name}}s []domain.{{.Type}}, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.{{.Type}}, error) {
+	func (r *{{.Type}}Repo) Update({{.Name}}s []domain.{{.Type}}, context usecases.QueryContext) ([]domain.{{.Type}}, error) {
 		db := r.store.GetDB()
 		transaction := db.Begin()
 
-		query, err := r.store.BuildQuery(filter, ownerRelations)
+		query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
 		}
@@ -161,9 +161,9 @@ var updateByID = &typewriter.Template{
 	Name: "UpdateByID",
 	Text: `
 	func (r *{{.Type}}Repo) UpdateByID(id int, {{.Name}} *domain.{{.Type}},
-		filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.{{.Type}}, error) {
+		context usecases.QueryContext) (*domain.{{.Type}}, error) {
 
-		query, err := r.store.BuildQuery(filter, ownerRelations)
+		query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 		if err != nil {
 			return nil, internalerrors.DatabaseError
 		}
@@ -186,8 +186,8 @@ var updateByID = &typewriter.Template{
 var deleteAll = &typewriter.Template{
 	Name: "DeleteAll",
 	Text: `
-	func (r *{{.Type}}Repo) DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error {
-		query, err := r.store.BuildQuery(filter, ownerRelations)
+	func (r *{{.Type}}Repo) DeleteAll(context usecases.QueryContext) error {
+		query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 		if err != nil {
 			return internalerrors.DatabaseError
 		}
@@ -204,8 +204,8 @@ var deleteAll = &typewriter.Template{
 var deleteByID = &typewriter.Template{
 	Name: "DeleteByID",
 	Text: `
-	func (r *{{.Type}}Repo) DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error {
-		query, err := r.store.BuildQuery(filter, ownerRelations)
+	func (r *{{.Type}}Repo) DeleteByID(id int, context usecases.QueryContext) error {
+		query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 		if err != nil {
 			return internalerrors.DatabaseError
 		}

@@ -21,13 +21,13 @@ import (
 type AbstractRoleMappingInter interface {
 	Create(rolemappings []domain.RoleMapping) ([]domain.RoleMapping, error)
 	CreateOne(rolemapping *domain.RoleMapping) (*domain.RoleMapping, error)
-	Find(filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
-	FindByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	Upsert(rolemappings []domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) ([]domain.RoleMapping, error)
-	UpsertOne(rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	UpdateByID(id int, rolemapping *domain.RoleMapping, filter *usecases.Filter, ownerRelations []domain.Relation) (*domain.RoleMapping, error)
-	DeleteAll(filter *usecases.Filter, ownerRelations []domain.Relation) error
-	DeleteByID(id int, filter *usecases.Filter, ownerRelations []domain.Relation) error
+	Find(context usecases.QueryContext) ([]domain.RoleMapping, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.RoleMapping, error)
+	Upsert(rolemappings []domain.RoleMapping, context usecases.QueryContext) ([]domain.RoleMapping, error)
+	UpsertOne(rolemapping *domain.RoleMapping, context usecases.QueryContext) (*domain.RoleMapping, error)
+	UpdateByID(id int, rolemapping *domain.RoleMapping, context usecases.QueryContext) (*domain.RoleMapping, error)
+	DeleteAll(context usecases.QueryContext) error
+	DeleteByID(id int, context usecases.QueryContext) error
 }
 
 type RoleMappingCtrl struct {
@@ -105,7 +105,7 @@ func (c *RoleMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[str
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	rolemappings, err := c.interactor.Find(filter, relations)
+	rolemappings, err := c.interactor.Find(usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -133,7 +133,7 @@ func (c *RoleMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, param
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	rolemapping, err := c.interactor.FindByID(id, filter, relations)
+	rolemapping, err := c.interactor.FindByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
@@ -160,16 +160,16 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 
 	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
-	ownerRelations := interfaces.GetOwnerRelations(r)
+	relations := interfaces.GetOwnerRelations(r)
 
 	if rolemappings == nil {
 		rolemapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
-		rolemapping, err = c.interactor.UpsertOne(rolemapping, filter, ownerRelations)
+		rolemapping, err = c.interactor.UpsertOne(rolemapping, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
 		for i := range rolemappings {
 			(&rolemappings[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		}
-		rolemappings, err = c.interactor.Upsert(rolemappings, filter, ownerRelations)
+		rolemappings, err = c.interactor.Upsert(rolemappings, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}
 
 	if err != nil {
@@ -210,10 +210,10 @@ func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, par
 
 	lastRessource := interfaces.GetLastRessource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
-	ownerRelations := interfaces.GetOwnerRelations(r)
+	relations := interfaces.GetOwnerRelations(r)
 
 	rolemapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
-	rolemapping, err = c.interactor.UpdateByID(id, rolemapping, filter, ownerRelations)
+	rolemapping, err = c.interactor.UpdateByID(id, rolemapping, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 
 	if err != nil {
 		switch err.(type) {
@@ -240,7 +240,7 @@ func (c *RoleMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ ma
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	err = c.interactor.DeleteAll(filter, relations)
+	err = c.interactor.DeleteAll(usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -257,9 +257,9 @@ func (c *RoleMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, par
 	}
 
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
-	ownerRelations := interfaces.GetOwnerRelations(r)
+	relations := interfaces.GetOwnerRelations(r)
 
-	err = c.interactor.DeleteByID(id, filter, ownerRelations)
+	err = c.interactor.DeleteByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		return
