@@ -21,6 +21,9 @@ func (m *Role) SetRelatedID(idKey string, id int) {
 }
 
 func (m *Role) ScopeModel() error {
+	m.AclMappings = []AclMapping{}
+	m.RoleMappings = []RoleMapping{}
+
 	return nil
 }
 

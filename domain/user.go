@@ -29,6 +29,8 @@ func (m *User) SetRelatedID(idKey string, id int) {
 }
 
 func (m *User) ScopeModel() error {
+	m.Account = Account{}
+
 	if m.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(m.Password), 0)
 		if err != nil {

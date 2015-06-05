@@ -20,6 +20,8 @@ func (m *Acl) SetRelatedID(idKey string, id int) {
 }
 
 func (m *Acl) ScopeModel() error {
+	m.AclMappings = []AclMapping{}
+
 	return nil
 }
 

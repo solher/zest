@@ -22,6 +22,10 @@ func (m *Account) SetRelatedID(idKey string, id int) {
 }
 
 func (m *Account) ScopeModel() error {
+	m.Users = []User{}
+	m.Sessions = []Session{}
+	m.RoleMappings = []RoleMapping{}
+
 	return nil
 }
 

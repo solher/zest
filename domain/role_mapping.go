@@ -28,6 +28,9 @@ func (m *RoleMapping) SetRelatedID(idKey string, id int) {
 }
 
 func (m *RoleMapping) ScopeModel() error {
+	m.Account = Account{}
+	m.Role = Role{}
+
 	return nil
 }
 

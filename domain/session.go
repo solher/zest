@@ -30,7 +30,9 @@ func (m *Session) SetRelatedID(idKey string, id int) {
 }
 
 func (m *Session) ScopeModel() error {
+	m.Account = Account{}
 	m.DeletedAt = time.Time{}
+
 	return nil
 }
 
