@@ -15,7 +15,6 @@ import (
 	"github.com/Solher/zest/interfaces"
 	"github.com/Solher/zest/internalerrors"
 	"github.com/Solher/zest/usecases"
-	"github.com/dimfeld/httptreemux"
 	"github.com/gorilla/context"
 )
 
@@ -279,7 +278,7 @@ func (c *RoleMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params
 	related := params["related"]
 	key := usecases.NewDirectoryKey(related)
 
-	var handler *httptreemux.HandlerFunc
+	var handler usecases.HandlerFunc
 	switch r.Method {
 	case "POST":
 		handler = c.routeDir.Get(key.For("Create")).EffectiveHandler
@@ -298,7 +297,7 @@ func (c *RoleMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params
 
 	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "rolemappingID", ID: pk})
 
-	(*handler)(w, r, params)
+	handler(w, r, params)
 }
 
 func (c *RoleMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
@@ -307,13 +306,13 @@ func (c *RoleMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, par
 	related := params["related"]
 	key := usecases.NewDirectoryKey(related)
 
-	var handler httptreemux.HandlerFunc
+	var handler usecases.HandlerFunc
 
 	switch r.Method {
 	case "GET":
-		handler = *c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
 	case "DELETE":
-		handler = *c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
+		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}
 
 	if handler == nil {

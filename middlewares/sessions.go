@@ -3,15 +3,19 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/Solher/zest/ressources"
+	"github.com/Solher/zest/domain"
 	"github.com/gorilla/context"
 )
 
-type Sessions struct {
-	interactor ressources.AbstractAccountInter
+type AbstractAccountInter interface {
+	CurrentSessionFromToken(authToken string) (*domain.Session, error)
 }
 
-func NewSessions(accountInteractor ressources.AbstractAccountInter) *Sessions {
+type Sessions struct {
+	interactor AbstractAccountInter
+}
+
+func NewSessions(accountInteractor AbstractAccountInter) *Sessions {
 	return &Sessions{interactor: accountInteractor}
 }
 

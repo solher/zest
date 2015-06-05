@@ -4,36 +4,24 @@
 
 package ressources
 
-import (
-	"github.com/Solher/zest/usecases"
-	"github.com/dimfeld/httptreemux"
-)
+import "github.com/Solher/zest/usecases"
 
 func setAclRoutes(routeDir *usecases.RouteDirectory, controller *AclCtrl) {
 	key := usecases.NewDirectoryKey("acls")
-	create := httptreemux.HandlerFunc(controller.Create)
-	find := httptreemux.HandlerFunc(controller.Find)
-	findByID := httptreemux.HandlerFunc(controller.FindByID)
-	upsert := httptreemux.HandlerFunc(controller.Upsert)
-	updateByID := httptreemux.HandlerFunc(controller.UpdateByID)
-	deleteAll := httptreemux.HandlerFunc(controller.DeleteAll)
-	deleteByID := httptreemux.HandlerFunc(controller.DeleteByID)
-	related := httptreemux.HandlerFunc(controller.Related)
-	relatedOne := httptreemux.HandlerFunc(controller.RelatedOne)
 
-	routeDir.Add(key.For("Create"), &usecases.Route{Method: "POST", Path: "/acls", Handler: &create, Visible: true, CheckPermissions: true})
-	routeDir.Add(key.For("Find"), &usecases.Route{Method: "GET", Path: "/acls", Handler: &find, Visible: true, CheckPermissions: true})
-	routeDir.Add(key.For("FindByID"), &usecases.Route{Method: "GET", Path: "/acls/:id", Handler: &findByID, Visible: true, CheckPermissions: true})
-	routeDir.Add(key.For("Upsert"), &usecases.Route{Method: "PUT", Path: "/acls", Handler: &upsert, Visible: true, CheckPermissions: true})
-	routeDir.Add(key.For("UpdateByID"), &usecases.Route{Method: "PUT", Path: "/acls/:id", Handler: &updateByID, Visible: true, CheckPermissions: true})
-	routeDir.Add(key.For("DeleteAll"), &usecases.Route{Method: "DELETE", Path: "/acls", Handler: &deleteAll, Visible: true, CheckPermissions: true})
-	routeDir.Add(key.For("DeleteByID"), &usecases.Route{Method: "DELETE", Path: "/acls/:id", Handler: &deleteByID, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("Create"), &usecases.Route{Method: "POST", Path: "/acls", Handler: controller.Create, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("Find"), &usecases.Route{Method: "GET", Path: "/acls", Handler: controller.Find, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("FindByID"), &usecases.Route{Method: "GET", Path: "/acls/:id", Handler: controller.FindByID, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("Upsert"), &usecases.Route{Method: "PUT", Path: "/acls", Handler: controller.Upsert, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("UpdateByID"), &usecases.Route{Method: "PUT", Path: "/acls/:id", Handler: controller.UpdateByID, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("DeleteAll"), &usecases.Route{Method: "DELETE", Path: "/acls", Handler: controller.DeleteAll, Visible: true, CheckPermissions: true})
+	routeDir.Add(key.For("DeleteByID"), &usecases.Route{Method: "DELETE", Path: "/acls/:id", Handler: controller.DeleteByID, Visible: true, CheckPermissions: true})
 
-	routeDir.Add(key.For("CreateRelated"), &usecases.Route{Method: "POST", Path: "/acls/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("FindRelated"), &usecases.Route{Method: "GET", Path: "/acls/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("FindByIDRelated"), &usecases.Route{Method: "GET", Path: "/acls/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/acls/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/acls/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("DeleteAllRelated"), &usecases.Route{Method: "DELETE", Path: "/acls/:pk/:related", Handler: &related, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("DeleteByIDRelated"), &usecases.Route{Method: "DELETE", Path: "/acls/:pk/:related/:fk", Handler: &relatedOne, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("CreateRelated"), &usecases.Route{Method: "POST", Path: "/acls/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("FindRelated"), &usecases.Route{Method: "GET", Path: "/acls/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("FindByIDRelated"), &usecases.Route{Method: "GET", Path: "/acls/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/acls/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/acls/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("DeleteAllRelated"), &usecases.Route{Method: "DELETE", Path: "/acls/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("DeleteByIDRelated"), &usecases.Route{Method: "DELETE", Path: "/acls/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
 }

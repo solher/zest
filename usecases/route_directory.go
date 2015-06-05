@@ -1,15 +1,17 @@
 package usecases
 
 import (
-	"errors"
+	"net/http"
 
 	"github.com/dimfeld/httptreemux"
 )
 
 type (
+	HandlerFunc func(w http.ResponseWriter, r *http.Request, params map[string]string)
+
 	Route struct {
 		Method, Path              string
-		Handler, EffectiveHandler *httptreemux.HandlerFunc
+		Handler, EffectiveHandler HandlerFunc
 		Visible, CheckPermissions bool
 	}
 
@@ -50,16 +52,6 @@ func (routeDir *RouteDirectory) Get(key *DirectoryKey) *Route {
 	return &route
 }
 
-func (routeDir *RouteDirectory) GetKey(handler *httptreemux.HandlerFunc) (*DirectoryKey, error) {
-	for key, route := range routeDir.routes {
-		if route.Handler == handler {
-			return &key, nil
-		}
-	}
-
-	return nil, errors.New("Handler not found.")
-}
-
 func (routeDir *RouteDirectory) Register(router *httptreemux.TreeMux) {
 	var keys []DirectoryKey
 	routes := routeDir.routes
@@ -72,17 +64,17 @@ func (routeDir *RouteDirectory) Register(router *httptreemux.TreeMux) {
 		route := routes[k]
 
 		if route.Visible {
-			handler := *route.Handler
+			handler := route.Handler
 
 			if route.CheckPermissions {
-				permissionGate := NewPermissionGate(routeDir.accountInter, route.Handler, routeDir, routeDir.render)
-				handler = httptreemux.HandlerFunc(permissionGate.Handler)
+				permissionGate := NewPermissionGate(k.Ressource, k.Method, routeDir.accountInter, routeDir.render, route.Handler)
+				handler = permissionGate.Handler
 			}
 
-			route.EffectiveHandler = &handler
+			route.EffectiveHandler = handler
 			routes[k] = route
 
-			router.Handle(route.Method, route.Path, handler)
+			router.Handle(route.Method, route.Path, httptreemux.HandlerFunc(handler))
 		}
 	}
 }

@@ -322,7 +322,7 @@ var related = &typewriter.Template{
 		related := params["related"]
 		key := usecases.NewDirectoryKey(related)
 
-		var handler *httptreemux.HandlerFunc
+		var handler usecases.HandlerFunc
 		switch r.Method {
 		case "POST":
 			handler = c.routeDir.Get(key.For("Create")).EffectiveHandler
@@ -341,7 +341,7 @@ var related = &typewriter.Template{
 
 		context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "{{.Name}}ID", ID: pk})
 
-		(*handler)(w, r, params)
+		handler(w, r, params)
 	}
 `}
 
@@ -354,13 +354,13 @@ var relatedOne = &typewriter.Template{
 		related := params["related"]
 		key := usecases.NewDirectoryKey(related)
 
-		var handler httptreemux.HandlerFunc
+		var handler usecases.HandlerFunc
 
 		switch r.Method {
 		case "GET":
-			handler = *c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+			handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
 		case "DELETE":
-			handler = *c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
+			handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 		}
 
 		if handler == nil {

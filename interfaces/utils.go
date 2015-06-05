@@ -43,7 +43,7 @@ func MockHTTPRequest(route usecases.Route, body, filter string, params map[strin
 	}
 
 	req, _ := http.NewRequest(route.Method, path, bytes.NewBufferString(body))
-	(*route.Handler)(w, req, params)
+	route.Handler(w, req, params)
 
 	return w.Body.String()
 }
