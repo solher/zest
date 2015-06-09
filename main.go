@@ -82,48 +82,86 @@ func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastr
 		panic("Could not connect to database.")
 	}
 
-	userRepo := ressources.NewUserRepo(store)
-	sessionRepo := ressources.NewSessionRepo(store)
-	accountRepo := ressources.NewAccountRepo(store)
-	roleMappingRepo := ressources.NewRoleMappingRepo(store)
-	roleRepo := ressources.NewRoleRepo(store)
-	aclMappingRepo := ressources.NewAclMappingRepo(store)
-	aclRepo := ressources.NewAclRepo(store)
+	dependencies := []interface{}{
+		store,
+		render,
+		lruCacheStore,
+		roleCacheStore,
+		aclCacheStore,
 
-	sessionCacheInter := usecases.NewSessionCacheInter(sessionRepo, lruCacheStore)
-	permissionCacheInter := usecases.NewPermissionCacheInter(accountRepo, aclRepo, roleCacheStore, aclCacheStore)
-	sessionCacheInter.Refresh()
-	permissionCacheInter.Refresh()
+		usecases.NewRouteDirectory,
+		usecases.NewSessionCacheInter,
+		usecases.NewPermissionCacheInter,
 
-	userInter := ressources.NewUserInter(userRepo)
-	sessionInter := ressources.NewSessionInter(sessionRepo)
-	accountInter := ressources.NewAccountInter(accountRepo, userInter, sessionInter, sessionCacheInter, permissionCacheInter)
-	roleMappingInter := ressources.NewRoleMappingInter(roleMappingRepo)
-	roleInter := ressources.NewRoleInter(roleRepo)
-	aclMappingInter := ressources.NewAclMappingInter(aclMappingRepo)
-	aclInter := ressources.NewAclInter(aclRepo)
+		ressources.NewUserRepo,
+		ressources.NewUserInter,
+		ressources.NewUserCtrl,
 
-	routeDir := usecases.NewRouteDirectory(accountInter, render)
+		ressources.NewSessionRepo,
+		ressources.NewSessionInter,
+		ressources.NewSessionCtrl,
 
-	ressources.NewUserCtrl(userInter, render, routeDir)
-	ressources.NewSessionCtrl(sessionInter, render, routeDir)
-	ressources.NewAccountCtrl(accountInter, render, routeDir)
-	ressources.NewRoleMappingCtrl(roleMappingInter, render, routeDir)
-	ressources.NewRoleCtrl(roleInter, render, routeDir)
-	ressources.NewAclMappingCtrl(aclMappingInter, render, routeDir)
-	ressources.NewAclCtrl(aclInter, render, routeDir)
+		ressources.NewAccountRepo,
+		ressources.NewAccountInter,
+		ressources.NewAccountCtrl,
 
-	routeDir.Register(router)
-	aclInter.RefreshFromRoutes(routeDir.Routes())
+		ressources.NewRoleMappingRepo,
+		ressources.NewRoleMappingInter,
+		ressources.NewRoleMappingCtrl,
 
-	app.Use(negroni.NewLogger())
-	app.Use(middlewares.NewRecovery(render))
-	app.Use(cors.Default())
-	app.Use(middlewares.NewSessions(accountInter))
+		ressources.NewRoleRepo,
+		ressources.NewRoleInter,
+		ressources.NewRoleCtrl,
 
-	app.UseHandler(router)
+		ressources.NewAclMappingRepo,
+		ressources.NewAclMappingInter,
+		ressources.NewAclMappingCtrl,
 
-	return routeDir.Routes()
+		ressources.NewAclRepo,
+		ressources.NewAclInter,
+		ressources.NewAclCtrl,
+	}
+
+	injector := infrastructure.NewInjector()
+	injector.RegisterMultiple(dependencies)
+	err = injector.Populate()
+
+	if err != nil {
+		panic(err)
+	} else {
+		type dependencies struct {
+			SessionCacheInter    *usecases.SessionCacheInter
+			PermissionCacheInter *usecases.PermissionCacheInter
+			AclInter             *ressources.AclInter
+			AccountInter         *ressources.AccountInter
+
+			RouteDir *usecases.RouteDirectory
+			Render   *infrastructure.Render
+		}
+
+		deps := &dependencies{}
+		err = injector.Get(deps)
+		if err != nil {
+			panic(err)
+		}
+
+		deps.SessionCacheInter.Refresh()
+		deps.PermissionCacheInter.Refresh()
+
+		deps.RouteDir.Register(router)
+		deps.AclInter.RefreshFromRoutes(deps.RouteDir.Routes())
+
+		app.Use(negroni.NewLogger())
+		app.Use(middlewares.NewRecovery(deps.Render))
+		app.Use(cors.Default())
+		app.Use(middlewares.NewSessions(deps.AccountInter))
+
+		app.UseHandler(router)
+
+		return deps.RouteDir.Routes()
+	}
+
+	return nil
 }
 
 func closeApp(store *infrastructure.GormStore) {
