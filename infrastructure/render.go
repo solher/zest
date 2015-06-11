@@ -3,7 +3,7 @@ package infrastructure
 import (
 	"net/http"
 
-	"github.com/Solher/zest/apierrors"
+	"github.com/solher/zest/apierrors"
 	"github.com/unrolled/render"
 )
 

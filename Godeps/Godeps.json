@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/Solher/zest",
+	"ImportPath": "github.com/solher/zest",
 	"GoVersion": "go1.4.2",
 	"Deps": [
 		{

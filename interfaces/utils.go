@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/Solher/zest/apierrors"
-	"github.com/Solher/zest/domain"
-	"github.com/Solher/zest/usecases"
+	"github.com/solher/zest/apierrors"
+	"github.com/solher/zest/domain"
+	"github.com/solher/zest/usecases"
 	"github.com/gorilla/context"
 )
 

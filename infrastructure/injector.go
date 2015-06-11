@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/Solher/zest/utils"
 	"github.com/codegangsta/inject"
 )
 
@@ -79,26 +78,20 @@ func (inj *Injector) Populate() error {
 			obj := dep.Object
 			kind := reflect.ValueOf(obj).Kind()
 
-			utils.Dump(kind)
-
 			switch kind {
 			case reflect.Func:
 				vals, err := injector.Invoke(obj)
 
 				if err != nil {
-					utils.Dump("Failed")
 				} else {
-					utils.Dump("Succeded")
 					failedDeps.Remove(dep)
 
 					for _, val := range vals {
-						utils.Dump("New dep from contructor added")
 						injector.Map(val.Interface())
 						values = append(values, val.Interface())
 					}
 				}
 			case reflect.Struct, reflect.Ptr:
-				utils.Dump("New struct/ptr dep added")
 				failedDeps.Remove(dep)
 				injector.Map(obj)
 				values = append(values, obj)

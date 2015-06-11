@@ -5,7 +5,7 @@ package infrastructure
 // 	"reflect"
 // 	"strings"
 //
-// 	"github.com/Solher/zest/utils"
+// 	"github.com/solher/zest/utils"
 // 	"github.com/codegangsta/inject"
 // )
 //

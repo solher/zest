@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Solher/zest/domain"
-	"github.com/Solher/zest/infrastructure"
-	"github.com/Solher/zest/ressources"
-	"github.com/Solher/zest/usecases"
+	"github.com/solher/zest/domain"
+	"github.com/solher/zest/infrastructure"
+	"github.com/solher/zest/ressources"
+	"github.com/solher/zest/usecases"
 )
 
 func updateDatabase(z *Zest) error {
@@ -44,6 +44,8 @@ func updateDatabase(z *Zest) error {
 		return errors.New("Could not refresh ACLs from routes.")
 	}
 
+	d.Store.Close()
+
 	fmt.Println("Done.")
 
 	return nil
@@ -75,6 +77,8 @@ func reinitDatabase(z *Zest) error {
 	if err != nil {
 		return errors.New("Could not reinit database: " + err.Error())
 	}
+
+	d.Store.Close()
 
 	fmt.Println("Done.")
 
@@ -163,6 +167,8 @@ func seedDatabase(z *Zest) error {
 	if err != nil {
 		return err
 	}
+
+	d.Store.Close()
 
 	return nil
 }

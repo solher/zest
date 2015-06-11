@@ -1,6 +1,6 @@
 package ressources
 
-import "github.com/Solher/zest/usecases"
+import "github.com/solher/zest/usecases"
 
 func setAccountRoutes(routeDir *usecases.RouteDirectory, controller *AccountCtrl) {
 	key := usecases.NewDirectoryKey("accounts")

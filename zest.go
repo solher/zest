@@ -3,14 +3,14 @@ package zest
 import (
 	"os"
 
-	"github.com/Solher/zest/infrastructure"
-	"github.com/Solher/zest/middlewares"
-	"github.com/Solher/zest/ressources"
-	"github.com/Solher/zest/usecases"
 	_ "github.com/clipperhouse/typewriter"
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 	"github.com/rs/cors"
+	"github.com/solher/zest/infrastructure"
+	"github.com/solher/zest/middlewares"
+	"github.com/solher/zest/ressources"
+	"github.com/solher/zest/usecases"
 )
 
 type Zest struct {
@@ -73,8 +73,6 @@ func (z *Zest) Run() {
 		panic(err)
 	}
 
-	defer z.CloseApp(z)
-
 	mustExit, err := z.HandleOsArgs(z)
 	if err != nil {
 		panic(err)
@@ -88,6 +86,7 @@ func (z *Zest) Run() {
 	if err != nil {
 		panic(err)
 	}
+	defer z.CloseApp(z)
 
 	z.app.Run(z.Port)
 }
@@ -116,24 +115,29 @@ func handleOsArgs(z *Zest) (bool, error) {
 		}
 	}
 
-	return true, nil
+	return false, nil
 }
 
 func buildApp(z *Zest) error {
 	deps := usecases.DependencyDirectory.Get()
 
+	store := infrastructure.NewGormStore()
+	accountRepo := ressources.NewAccountRepo(store)
+	aclRepo := ressources.NewAclRepo(store)
+	sessionRepo := ressources.NewSessionRepo(store)
+
 	deps = append(
 		deps,
-		httptreemux.New(),
-		infrastructure.NewGormStore(),
-		infrastructure.NewRender(),
-		infrastructure.NewLRUCacheStore(1024),
-		infrastructure.NewCacheStore(),
-		infrastructure.NewCacheStore(),
 
+		store,
+		accountRepo,
+		aclRepo,
+		sessionRepo,
+		httptreemux.New(),
+		infrastructure.NewRender(),
+		usecases.NewPermissionCacheInter(accountRepo, aclRepo, infrastructure.NewCacheStore(), infrastructure.NewCacheStore()),
+		usecases.NewSessionCacheInter(sessionRepo, infrastructure.NewLRUCacheStore(1024)),
 		usecases.NewRouteDirectory,
-		usecases.NewPermissionCacheInter,
-		usecases.NewSessionCacheInter,
 	)
 
 	z.injector.RegisterMultiple(deps)
@@ -148,14 +152,12 @@ func buildApp(z *Zest) error {
 
 func initApp(z *Zest) error {
 	type dependencies struct {
-		App    *negroni.Negroni
 		Router *httptreemux.TreeMux
 
 		Store *infrastructure.GormStore
 
 		SessionCacheInter    *usecases.SessionCacheInter
 		PermissionCacheInter *usecases.PermissionCacheInter
-		AclInter             *ressources.AclInter
 		AccountInter         *ressources.AccountInter
 
 		RouteDir *usecases.RouteDirectory
@@ -181,16 +183,15 @@ func initApp(z *Zest) error {
 	d.PermissionCacheInter.Refresh()
 
 	d.RouteDir.Register(d.Router)
-	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes())
 
-	d.App.Use(negroni.NewLogger())
-	d.App.Use(middlewares.NewRecovery(d.Render))
-	d.App.Use(cors.Default())
-	d.App.Use(middlewares.NewSessions(d.AccountInter))
+	z.app.Use(negroni.NewLogger())
+	z.app.Use(middlewares.NewRecovery(d.Render))
+	z.app.Use(cors.Default())
+	z.app.Use(middlewares.NewSessions(d.AccountInter))
 
 	d.Router.RedirectBehavior = httptreemux.UseHandler
 
-	d.App.UseHandler(d.Router)
+	z.app.UseHandler(d.Router)
 
 	return nil
 }

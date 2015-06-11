@@ -4,7 +4,7 @@
 
 package ressources
 
-import "github.com/Solher/zest/usecases"
+import "github.com/solher/zest/usecases"
 
 func setRoleRoutes(routeDir *usecases.RouteDirectory, controller *RoleCtrl) {
 	key := usecases.NewDirectoryKey("roles")

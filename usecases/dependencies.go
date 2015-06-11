@@ -3,8 +3,8 @@ package usecases
 import (
 	"net/http"
 
-	"github.com/Solher/zest/apierrors"
-	"github.com/Solher/zest/domain"
+	"github.com/solher/zest/apierrors"
+	"github.com/solher/zest/domain"
 )
 
 type AbstractCacheStore interface {

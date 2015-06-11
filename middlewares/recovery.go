@@ -6,8 +6,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/Solher/zest/apierrors"
-	"github.com/Solher/zest/internalerrors"
+	"github.com/solher/zest/apierrors"
+	"github.com/solher/zest/internalerrors"
 )
 
 type AbstractRender interface {

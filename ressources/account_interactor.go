@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/Solher/zest/domain"
-	"github.com/Solher/zest/usecases"
+	"github.com/solher/zest/domain"
+	"github.com/solher/zest/usecases"
 
-	"github.com/Solher/zest/internalerrors"
-	"github.com/Solher/zest/utils"
+	"github.com/solher/zest/internalerrors"
+	"github.com/solher/zest/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"github.com/Solher/zest/domain"
-	"github.com/Solher/zest/utils"
+	"github.com/solher/zest/domain"
+	"github.com/solher/zest/utils"
 )
 
 type AclCacheKey struct {

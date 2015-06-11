@@ -3,7 +3,7 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/Solher/zest/domain"
+	"github.com/solher/zest/domain"
 	"github.com/gorilla/context"
 )
 

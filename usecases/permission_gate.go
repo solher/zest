@@ -3,9 +3,9 @@ package usecases
 import (
 	"net/http"
 
-	"github.com/Solher/zest/apierrors"
-	"github.com/Solher/zest/domain"
-	"github.com/Solher/zest/internalerrors"
+	"github.com/solher/zest/apierrors"
+	"github.com/solher/zest/domain"
+	"github.com/solher/zest/internalerrors"
 	"github.com/gorilla/context"
 )
 

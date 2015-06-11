@@ -4,7 +4,7 @@
 
 package ressources
 
-import "github.com/Solher/zest/usecases"
+import "github.com/solher/zest/usecases"
 
 func setAclMappingRoutes(routeDir *usecases.RouteDirectory, controller *AclMappingCtrl) {
 	key := usecases.NewDirectoryKey("aclmappings")

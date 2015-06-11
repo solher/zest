@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Solher/zest/apierrors"
-	"github.com/Solher/zest/domain"
-	"github.com/Solher/zest/interfaces"
-	"github.com/Solher/zest/internalerrors"
-	"github.com/Solher/zest/usecases"
+	"github.com/solher/zest/apierrors"
+	"github.com/solher/zest/domain"
+	"github.com/solher/zest/interfaces"
+	"github.com/solher/zest/internalerrors"
+	"github.com/solher/zest/usecases"
 	"github.com/gorilla/context"
 )
 

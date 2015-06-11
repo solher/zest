@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"github.com/Solher/zest/ressources/templates"
+	"github.com/solher/zest/ressources/templates"
 	"github.com/clipperhouse/typewriter"
 )
 

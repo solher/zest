@@ -8,8 +8,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/Solher/zest/domain"
-	"github.com/Solher/zest/usecases"
+	"github.com/solher/zest/domain"
+	"github.com/solher/zest/usecases"
 )
 
 func init() {

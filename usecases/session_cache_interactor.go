@@ -1,6 +1,6 @@
 package usecases
 
-import "github.com/Solher/zest/domain"
+import "github.com/solher/zest/domain"
 
 type AbstractSessionRepo interface {
 	Find(context QueryContext) ([]domain.Session, error)
