@@ -7,6 +7,7 @@ import (
 	"github.com/Solher/zest/middlewares"
 	"github.com/Solher/zest/ressources"
 	"github.com/Solher/zest/usecases"
+	_ "github.com/clipperhouse/typewriter"
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 	"github.com/rs/cors"
@@ -15,31 +16,50 @@ import (
 type Zest struct {
 	Port, Environment, DatabaseURL string
 
-	injector *infrastructure.Injector
 	app      *negroni.Negroni
+	injector *infrastructure.Injector
 
+	HandleOsArgs   func(z *Zest) (bool, error)
+	BuildApp       func(z *Zest) error
 	InitApp        func(z *Zest) error
 	CloseApp       func(z *Zest) error
-	ResetDatabase  func(z *Zest) error
+	ReinitDatabase func(z *Zest) error
 	SeedDatabase   func(z *Zest) error
 	UpdateDatabase func(z *Zest) error
 }
 
+func New() *Zest {
+	return &Zest{
+		Environment: "development",
+		Port:        ":3000",
+		app:         negroni.New(),
+		injector:    infrastructure.NewInjector(),
+	}
+}
+
 func Classic() *Zest {
-	zest := &Zest{app: negroni.New()}
+	zest := &Zest{
+		Environment:    "development",
+		Port:           ":3000",
+		app:            negroni.New(),
+		injector:       infrastructure.NewInjector(),
+		HandleOsArgs:   handleOsArgs,
+		BuildApp:       buildApp,
+		InitApp:        initApp,
+		CloseApp:       closeApp,
+		ReinitDatabase: reinitDatabase,
+		SeedDatabase:   seedDatabase,
+		UpdateDatabase: updateDatabase,
+	}
 
 	env := os.Getenv("GOENV")
 	if env == "development" || env == "production" {
 		zest.Environment = env
-	} else {
-		zest.Environment = "development"
 	}
 
 	port := os.Getenv("PORT")
 	if port != "" {
 		zest.Port = ":" + os.Getenv("PORT")
-	} else {
-		zest.Port = ":3000"
 	}
 
 	zest.DatabaseURL = os.Getenv("DATABASE_URL")
@@ -48,14 +68,14 @@ func Classic() *Zest {
 }
 
 func (z *Zest) Run() {
-	err := z.InitApp(z)
+	err := z.BuildApp(z)
 	if err != nil {
 		panic(err)
 	}
 
 	defer z.CloseApp(z)
 
-	mustExit, err := z.handleOsArgs()
+	mustExit, err := z.HandleOsArgs(z)
 	if err != nil {
 		panic(err)
 	}
@@ -64,16 +84,25 @@ func (z *Zest) Run() {
 		return
 	}
 
+	err = z.InitApp(z)
+	if err != nil {
+		panic(err)
+	}
+
 	z.app.Run(z.Port)
 }
 
-func (z *Zest) handleOsArgs() (bool, error) {
+func handleOsArgs(z *Zest) (bool, error) {
 	var err error
 
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "resetDB":
-			err = z.ResetDatabase(z)
+			err = z.ReinitDatabase(z)
+			if err != nil {
+				return true, err
+			}
+			err = z.SeedDatabase(z)
 			if err != nil {
 				return true, err
 			}
@@ -90,7 +119,7 @@ func (z *Zest) handleOsArgs() (bool, error) {
 	return true, nil
 }
 
-func initApp(z *Zest) error {
+func buildApp(z *Zest) error {
 	deps := usecases.DependencyDirectory.Get()
 
 	deps = append(
@@ -114,6 +143,10 @@ func initApp(z *Zest) error {
 		return err
 	}
 
+	return nil
+}
+
+func initApp(z *Zest) error {
 	type dependencies struct {
 		App    *negroni.Negroni
 		Router *httptreemux.TreeMux
@@ -130,7 +163,7 @@ func initApp(z *Zest) error {
 	}
 
 	d := &dependencies{}
-	err = z.injector.Get(d)
+	err := z.injector.Get(d)
 	if err != nil {
 		return err
 	}
@@ -162,7 +195,7 @@ func initApp(z *Zest) error {
 	return nil
 }
 
-func closeApp(z *Zest) {
+func closeApp(z *Zest) error {
 	type dependencies struct {
 		Store *infrastructure.GormStore
 	}
@@ -170,8 +203,10 @@ func closeApp(z *Zest) {
 	d := &dependencies{}
 	err := z.injector.Get(d)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	d.Store.Close()
+
+	return nil
 }

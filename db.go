@@ -23,6 +23,15 @@ func updateDatabase(z *Zest) error {
 		return err
 	}
 
+	if z.DatabaseURL != "" {
+		err = d.Store.Connect("postgres", z.DatabaseURL)
+	} else {
+		err = d.Store.Connect("sqlite3", "database.db")
+	}
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("Updating database...")
 
 	err = d.Store.MigrateTables(domain.ModelDirectory.Models)
@@ -40,7 +49,7 @@ func updateDatabase(z *Zest) error {
 	return nil
 }
 
-func resetDatabase(z *Zest) error {
+func reinitDatabase(z *Zest) error {
 	type dependencies struct {
 		Store *infrastructure.GormStore
 	}
@@ -51,11 +60,20 @@ func resetDatabase(z *Zest) error {
 		return err
 	}
 
-	fmt.Println("Resetting database...")
+	if z.DatabaseURL != "" {
+		err = d.Store.Connect("postgres", z.DatabaseURL)
+	} else {
+		err = d.Store.Connect("sqlite3", "database.db")
+	}
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Reinitializing database...")
 
 	err = d.Store.ResetTables(domain.ModelDirectory.Models)
 	if err != nil {
-		return errors.New("Could not reset database: " + err.Error())
+		return errors.New("Could not reinit database: " + err.Error())
 	}
 
 	fmt.Println("Done.")
@@ -65,17 +83,26 @@ func resetDatabase(z *Zest) error {
 
 func seedDatabase(z *Zest) error {
 	type dependencies struct {
-		Store            *infrastructure.GormStore
-		AccountInter     *ressources.AccountInter
-		RoleInter        *ressources.RoleInter
-		RoleMappingInter *ressources.RoleMappingInter
-		AclInter         *ressources.AclInter
-		AclMappingInter  *ressources.AclMappingInter
-		RouteDir         *usecases.RouteDirectory
+		Store           *infrastructure.GormStore
+		AccountInter    *ressources.AccountInter
+		RoleRepo        *ressources.RoleRepo
+		RoleMappingRepo *ressources.RoleMappingRepo
+		AclInter        *ressources.AclInter
+		AclMappingRepo  *ressources.AclMappingRepo
+		RouteDir        *usecases.RouteDirectory
 	}
 
 	d := &dependencies{}
 	err := z.injector.Get(d)
+	if err != nil {
+		return err
+	}
+
+	if z.DatabaseURL != "" {
+		err = d.Store.Connect("postgres", z.DatabaseURL)
+	} else {
+		err = d.Store.Connect("sqlite3", "database.db")
+	}
 	if err != nil {
 		return err
 	}
@@ -102,7 +129,7 @@ func seedDatabase(z *Zest) error {
 		{Name: "Anyone"},
 	}
 
-	roles, err = d.RoleInter.Create(roles)
+	roles, err = d.RoleRepo.Create(roles)
 	if err != nil {
 		return err
 	}
@@ -111,7 +138,7 @@ func seedDatabase(z *Zest) error {
 		{AccountID: account.ID, RoleID: roles[0].ID},
 	}
 
-	roleMappings, err = d.RoleMappingInter.Create(roleMappings)
+	roleMappings, err = d.RoleMappingRepo.Create(roleMappings)
 	if err != nil {
 		return err
 	}
@@ -132,7 +159,7 @@ func seedDatabase(z *Zest) error {
 		}
 	}
 
-	aclMappings, err = d.AclMappingInter.Create(aclMappings)
+	aclMappings, err = d.AclMappingRepo.Create(aclMappings)
 	if err != nil {
 		return err
 	}

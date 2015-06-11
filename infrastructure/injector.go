@@ -37,8 +37,6 @@ func (inj *Injector) GetByType(obj interface{}) interface{} {
 }
 
 func (inj *Injector) Get(obj interface{}) error {
-	utils.Dump(len(inj.deps))
-
 	if reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return errors.New("Invalid param: is not a pointer to a struct")
 	}
