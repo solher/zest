@@ -30,6 +30,10 @@ var slice = typewriter.TemplateSlice{
 var controller = &typewriter.Template{
 	Name: "Controller",
 	Text: `
+	func init() {
+		usecases.DependencyDirectory.Register(New{{.Type}}Ctrl)
+	}
+
 	type Abstract{{.Type}}Inter interface {
 		Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
 		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)

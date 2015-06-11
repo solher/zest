@@ -30,6 +30,10 @@ var slice = typewriter.TemplateSlice{
 var interactor = &typewriter.Template{
 	Name: "Interactor",
 	Text: `
+	func init() {
+		usecases.DependencyDirectory.Register(New{{.Type}}Inter)
+	}
+
 	type Abstract{{.Type}}Repo interface {
 		Create({{.Name}}s []domain.{{.Type}}) ([]domain.{{.Type}}, error)
 		CreateOne({{.Name}} *domain.{{.Type}}) (*domain.{{.Type}}, error)

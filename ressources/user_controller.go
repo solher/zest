@@ -18,6 +18,10 @@ import (
 	"github.com/gorilla/context"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewUserCtrl)
+}
+
 type AbstractUserInter interface {
 	Create(users []domain.User) ([]domain.User, error)
 	CreateOne(user *domain.User) (*domain.User, error)

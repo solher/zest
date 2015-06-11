@@ -12,6 +12,10 @@ import (
 	"github.com/gorilla/context"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewAccountCtrl)
+}
+
 type Credentials struct {
 	Email      string `json:"email,omitempty"`
 	Password   string `json:"password,omitempty"`

@@ -18,6 +18,10 @@ import (
 	"github.com/gorilla/context"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewSessionCtrl)
+}
+
 type AbstractSessionInter interface {
 	Create(sessions []domain.Session) ([]domain.Session, error)
 	CreateOne(session *domain.Session) (*domain.Session, error)

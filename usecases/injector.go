@@ -1,4 +1,4 @@
-package infrastructure
+package usecases
 
 import (
 	"errors"
@@ -24,6 +24,7 @@ func (inj *Injector) Register(dependency interface{}) {
 
 func (inj *Injector) RegisterMultiple(dependencies []interface{}) {
 	inj.deps = append(inj.deps, dependencies...)
+	utils.Dump(len(inj.deps))
 }
 
 func (inj *Injector) GetByType(obj interface{}) interface{} {
@@ -37,6 +38,8 @@ func (inj *Injector) GetByType(obj interface{}) interface{} {
 }
 
 func (inj *Injector) Get(obj interface{}) error {
+	utils.Dump(len(inj.deps))
+
 	if reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return errors.New("Invalid param: is not a pointer to a struct")
 	}
@@ -101,6 +104,7 @@ func (inj *Injector) Populate() error {
 				utils.Dump("New struct/ptr dep added")
 				failedDeps.Remove(dep)
 				injector.Map(obj)
+				values = append(values, obj)
 			}
 		}
 	}

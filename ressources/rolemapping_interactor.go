@@ -12,6 +12,10 @@ import (
 	"github.com/Solher/zest/usecases"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewRoleMappingInter)
+}
+
 type AbstractRoleMappingRepo interface {
 	Create(roleMappings []domain.RoleMapping) ([]domain.RoleMapping, error)
 	CreateOne(roleMapping *domain.RoleMapping) (*domain.RoleMapping, error)

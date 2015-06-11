@@ -18,6 +18,10 @@ import (
 	"github.com/gorilla/context"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewRoleCtrl)
+}
+
 type AbstractRoleInter interface {
 	Create(roles []domain.Role) ([]domain.Role, error)
 	CreateOne(role *domain.Role) (*domain.Role, error)

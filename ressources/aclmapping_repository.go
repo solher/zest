@@ -14,6 +14,10 @@ import (
 	"github.com/Solher/zest/usecases"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewAclMappingRepo)
+}
+
 type AclMappingRepo struct {
 	store interfaces.AbstractGormStore
 }

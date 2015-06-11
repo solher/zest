@@ -12,6 +12,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewAccountInter)
+}
+
 type AbstractAccountRepo interface {
 	Create(accounts []domain.Account) ([]domain.Account, error)
 	CreateOne(account *domain.Account) (*domain.Account, error)

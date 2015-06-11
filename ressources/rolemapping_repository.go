@@ -14,6 +14,10 @@ import (
 	"github.com/Solher/zest/usecases"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewRoleMappingRepo)
+}
+
 type RoleMappingRepo struct {
 	store interfaces.AbstractGormStore
 }

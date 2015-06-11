@@ -12,6 +12,10 @@ import (
 	"github.com/Solher/zest/usecases"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewSessionInter)
+}
+
 type AbstractSessionRepo interface {
 	Create(sessions []domain.Session) ([]domain.Session, error)
 	CreateOne(session *domain.Session) (*domain.Session, error)

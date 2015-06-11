@@ -9,6 +9,8 @@ import (
 type (
 	HandlerFunc func(w http.ResponseWriter, r *http.Request, params map[string]string)
 
+	Routes map[DirectoryKey]Route
+
 	Route struct {
 		Method, Path              string
 		Handler, EffectiveHandler HandlerFunc

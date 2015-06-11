@@ -12,6 +12,10 @@ import (
 	"github.com/Solher/zest/usecases"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewAclMappingInter)
+}
+
 type AbstractAclMappingRepo interface {
 	Create(aclMappings []domain.AclMapping) ([]domain.AclMapping, error)
 	CreateOne(aclMapping *domain.AclMapping) (*domain.AclMapping, error)

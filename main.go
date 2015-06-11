@@ -40,14 +40,19 @@ func init() {
 func main() {
 	app := negroni.New()
 	router := httptreemux.New()
-	router.RedirectBehavior = httptreemux.UseHandler
-	render := infrastructure.NewRender()
 	store := infrastructure.NewGormStore()
-	sessionCache := infrastructure.NewLRUCacheStore(1024)
-	roleCache := infrastructure.NewCacheStore()
-	aclCache := infrastructure.NewCacheStore()
 
-	routes := initApp(app, router, render, store, sessionCache, roleCache, aclCache)
+	dependencies := []interface{}{
+		app,
+		router,
+		store,
+		infrastructure.NewRender(),
+		infrastructure.NewLRUCacheStore(1024),
+		infrastructure.NewCacheStore(),
+		infrastructure.NewCacheStore(),
+	}
+
+	routes := initApp(dependencies)
 	defer closeApp(store)
 
 	mustExit := handleOsArgs(routes)
@@ -73,95 +78,59 @@ func handleOsArgs(routes map[usecases.DirectoryKey]usecases.Route) bool {
 	return false
 }
 
-func initApp(app *negroni.Negroni, router *httptreemux.TreeMux, render *infrastructure.Render,
-	store *infrastructure.GormStore, lruCacheStore *infrastructure.LRUCacheStore,
-	roleCacheStore, aclCacheStore *infrastructure.CacheStore) map[usecases.DirectoryKey]usecases.Route {
+func initApp(dependencies []interface{}) usecases.Routes {
+	depDir := usecases.DependencyDirectory
+	depDir.RegisterMultiple(dependencies)
+	depDir.Register(usecases.NewRouteDirectory)
+	depDir.Register(usecases.NewPermissionCacheInter)
+	depDir.Register(usecases.NewSessionCacheInter)
 
-	err := connectDB(store)
-	if err != nil {
-		panic("Could not connect to database.")
-	}
-
-	dependencies := []interface{}{
-		store,
-		render,
-		lruCacheStore,
-		roleCacheStore,
-		aclCacheStore,
-
-		usecases.NewRouteDirectory,
-		usecases.NewSessionCacheInter,
-		usecases.NewPermissionCacheInter,
-
-		ressources.NewUserRepo,
-		ressources.NewUserInter,
-		ressources.NewUserCtrl,
-
-		ressources.NewSessionRepo,
-		ressources.NewSessionInter,
-		ressources.NewSessionCtrl,
-
-		ressources.NewAccountRepo,
-		ressources.NewAccountInter,
-		ressources.NewAccountCtrl,
-
-		ressources.NewRoleMappingRepo,
-		ressources.NewRoleMappingInter,
-		ressources.NewRoleMappingCtrl,
-
-		ressources.NewRoleRepo,
-		ressources.NewRoleInter,
-		ressources.NewRoleCtrl,
-
-		ressources.NewAclMappingRepo,
-		ressources.NewAclMappingInter,
-		ressources.NewAclMappingCtrl,
-
-		ressources.NewAclRepo,
-		ressources.NewAclInter,
-		ressources.NewAclCtrl,
-	}
-
-	injector := infrastructure.NewInjector()
-	injector.RegisterMultiple(dependencies)
-	err = injector.Populate()
-
+	err := depDir.Populate()
 	if err != nil {
 		panic(err)
-	} else {
-		type dependencies struct {
-			SessionCacheInter    *usecases.SessionCacheInter
-			PermissionCacheInter *usecases.PermissionCacheInter
-			AclInter             *ressources.AclInter
-			AccountInter         *ressources.AccountInter
-
-			RouteDir *usecases.RouteDirectory
-			Render   *infrastructure.Render
-		}
-
-		deps := &dependencies{}
-		err = injector.Get(deps)
-		if err != nil {
-			panic(err)
-		}
-
-		deps.SessionCacheInter.Refresh()
-		deps.PermissionCacheInter.Refresh()
-
-		deps.RouteDir.Register(router)
-		deps.AclInter.RefreshFromRoutes(deps.RouteDir.Routes())
-
-		app.Use(negroni.NewLogger())
-		app.Use(middlewares.NewRecovery(deps.Render))
-		app.Use(cors.Default())
-		app.Use(middlewares.NewSessions(deps.AccountInter))
-
-		app.UseHandler(router)
-
-		return deps.RouteDir.Routes()
 	}
 
-	return nil
+	type deps struct {
+		App    *negroni.Negroni
+		Router *httptreemux.TreeMux
+
+		Store *infrastructure.GormStore
+
+		SessionCacheInter    *usecases.SessionCacheInter
+		PermissionCacheInter *usecases.PermissionCacheInter
+		AclInter             *ressources.AclInter
+		AccountInter         *ressources.AccountInter
+
+		RouteDir *usecases.RouteDirectory
+		Render   *infrastructure.Render
+	}
+
+	d := &deps{}
+	err = depDir.Get(d)
+	if err != nil {
+		panic(err)
+	}
+
+	err = connectDB(d.Store)
+	if err != nil {
+		panic(err)
+	}
+
+	d.SessionCacheInter.Refresh()
+	d.PermissionCacheInter.Refresh()
+
+	d.RouteDir.Register(d.Router)
+	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes())
+
+	d.App.Use(negroni.NewLogger())
+	d.App.Use(middlewares.NewRecovery(d.Render))
+	d.App.Use(cors.Default())
+	d.App.Use(middlewares.NewSessions(d.AccountInter))
+
+	d.Router.RedirectBehavior = httptreemux.UseHandler
+	d.App.UseHandler(d.Router)
+
+	return d.RouteDir.Routes()
 }
 
 func closeApp(store *infrastructure.GormStore) {

@@ -12,6 +12,10 @@ import (
 	"github.com/Solher/zest/usecases"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewUserInter)
+}
+
 type AbstractUserRepo interface {
 	Create(users []domain.User) ([]domain.User, error)
 	CreateOne(user *domain.User) (*domain.User, error)

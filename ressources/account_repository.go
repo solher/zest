@@ -14,6 +14,10 @@ import (
 	"github.com/Solher/zest/usecases"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewAccountRepo)
+}
+
 type AccountRepo struct {
 	store interfaces.AbstractGormStore
 }

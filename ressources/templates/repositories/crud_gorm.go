@@ -30,6 +30,10 @@ var slice = typewriter.TemplateSlice{
 var repository = &typewriter.Template{
 	Name: "Repository",
 	Text: `
+	func init() {
+		usecases.DependencyDirectory.Register(New{{.Type}}Repo)
+	}
+
   type {{.Type}}Repo struct {
   	store interfaces.AbstractGormStore
   }

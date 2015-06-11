@@ -18,6 +18,10 @@ import (
 	"github.com/gorilla/context"
 )
 
+func init() {
+	usecases.DependencyDirectory.Register(NewAclCtrl)
+}
+
 type AbstractAclInter interface {
 	Create(acls []domain.Acl) ([]domain.Acl, error)
 	CreateOne(acl *domain.Acl) (*domain.Acl, error)
