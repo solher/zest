@@ -1,4 +1,4 @@
-package usecases
+package infrastructure
 
 import (
 	"errors"
@@ -24,7 +24,6 @@ func (inj *Injector) Register(dependency interface{}) {
 
 func (inj *Injector) RegisterMultiple(dependencies []interface{}) {
 	inj.deps = append(inj.deps, dependencies...)
-	utils.Dump(len(inj.deps))
 }
 
 func (inj *Injector) GetByType(obj interface{}) interface{} {

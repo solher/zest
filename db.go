@@ -1,82 +1,95 @@
-package main
+package zest
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Solher/zest/domain"
 	"github.com/Solher/zest/infrastructure"
 	"github.com/Solher/zest/ressources"
 	"github.com/Solher/zest/usecases"
-	"github.com/Solher/zest/utils"
 )
 
-func updateDatabase(routes map[usecases.DirectoryKey]usecases.Route) {
-	store := infrastructure.NewGormStore()
-
-	err := connectDB(store)
-	if err != nil {
-		panic("Could not connect to database.")
+func updateDatabase(z *Zest) error {
+	type dependencies struct {
+		Store    *infrastructure.GormStore
+		AclInter *ressources.AclInter
+		RouteDir *usecases.RouteDirectory
 	}
-	defer store.Close()
+
+	d := &dependencies{}
+	err := z.injector.Get(d)
+	if err != nil {
+		return err
+	}
 
 	fmt.Println("Updating database...")
 
-	err = store.MigrateTables(domain.ModelDirectory.Models)
+	err = d.Store.MigrateTables(domain.ModelDirectory.Models)
 	if err != nil {
-		panic("Could not migrate database.")
+		return errors.New("Could not migrate database.")
 	}
 
-	aclRepo := ressources.NewAclRepo(store)
-	ressources.NewAclInter(aclRepo).RefreshFromRoutes(routes)
+	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes())
 	if err != nil {
-		panic("Could not refresh ACLs from routes.")
+		return errors.New("Could not refresh ACLs from routes.")
 	}
 
 	fmt.Println("Done.")
+
+	return nil
 }
 
-func resetDatabase(routes map[usecases.DirectoryKey]usecases.Route) {
-	store := infrastructure.NewGormStore()
-
-	err := connectDB(store)
-	if err != nil {
-		panic("Could not connect to database: " + err.Error())
+func resetDatabase(z *Zest) error {
+	type dependencies struct {
+		Store *infrastructure.GormStore
 	}
-	defer store.Close()
+
+	d := &dependencies{}
+	err := z.injector.Get(d)
+	if err != nil {
+		return err
+	}
 
 	fmt.Println("Resetting database...")
 
-	err = store.ResetTables(domain.ModelDirectory.Models)
+	err = d.Store.ResetTables(domain.ModelDirectory.Models)
 	if err != nil {
-		panic("Could not reset database: " + err.Error())
-	}
-
-	err = seedDatabase(store, routes)
-	if err != nil {
-		panic("Could not seed database: " + err.Error())
+		return errors.New("Could not reset database: " + err.Error())
 	}
 
 	fmt.Println("Done.")
+
+	return nil
 }
 
-func seedDatabase(store *infrastructure.GormStore, routes map[usecases.DirectoryKey]usecases.Route) error {
-	fmt.Println("Seeding database...")
-
-	accounts := []domain.Account{
-		{
-			Users: []domain.User{
-				{
-					FirstName: "Fabien",
-					LastName:  "Herfray",
-					Password:  utils.QuickHashPassword("qwertyuiop"),
-					Email:     "fabien.herfray@me.com",
-				},
-			},
-		},
+func seedDatabase(z *Zest) error {
+	type dependencies struct {
+		Store            *infrastructure.GormStore
+		AccountInter     *ressources.AccountInter
+		RoleInter        *ressources.RoleInter
+		RoleMappingInter *ressources.RoleMappingInter
+		AclInter         *ressources.AclInter
+		AclMappingInter  *ressources.AclMappingInter
+		RouteDir         *usecases.RouteDirectory
 	}
 
-	accountRepo := ressources.NewAccountRepo(store)
-	accounts, err := accountRepo.Create(accounts)
+	d := &dependencies{}
+	err := z.injector.Get(d)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Seeding database...")
+
+	user := &domain.User{
+		FirstName: "Fabien",
+		LastName:  "Herfray",
+		Password:  "qwertyuiop",
+		Email:     "fabien.herfray@me.com",
+	}
+
+	account, err := d.AccountInter.Signup(user)
 	if err != nil {
 		return err
 	}
@@ -89,25 +102,22 @@ func seedDatabase(store *infrastructure.GormStore, routes map[usecases.Directory
 		{Name: "Anyone"},
 	}
 
-	roleRepo := ressources.NewRoleRepo(store)
-	roles, err = roleRepo.Create(roles)
+	roles, err = d.RoleInter.Create(roles)
 	if err != nil {
 		return err
 	}
 
 	roleMappings := []domain.RoleMapping{
-		{AccountID: 1, RoleID: 1},
+		{AccountID: account.ID, RoleID: roles[0].ID},
 	}
 
-	roleMappingRepo := ressources.NewRoleMappingRepo(store)
-	roleMappings, err = roleMappingRepo.Create(roleMappings)
+	roleMappings, err = d.RoleMappingInter.Create(roleMappings)
 	if err != nil {
 		return err
 	}
 
-	aclRepo := ressources.NewAclRepo(store)
-	ressources.NewAclInter(aclRepo).RefreshFromRoutes(routes)
-	acls, err := aclRepo.Find(usecases.QueryContext{})
+	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes())
+	acls, err := d.AclInter.Find(usecases.QueryContext{})
 	if err != nil {
 		return err
 	}
@@ -122,8 +132,7 @@ func seedDatabase(store *infrastructure.GormStore, routes map[usecases.Directory
 		}
 	}
 
-	aclMappingRepo := ressources.NewAclMappingRepo(store)
-	aclMappings, err = aclMappingRepo.Create(aclMappings)
+	aclMappings, err = d.AclMappingInter.Create(aclMappings)
 	if err != nil {
 		return err
 	}
