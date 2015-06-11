@@ -184,7 +184,7 @@ func initApp(z *Zest) error {
 
 	d.RouteDir.Register(d.Router)
 
-	z.app.Use(negroni.NewLogger())
+	z.app.Use(middlewares.NewLogger())
 	z.app.Use(middlewares.NewRecovery(d.Render))
 	z.app.Use(cors.Default())
 	z.app.Use(middlewares.NewSessions(d.AccountInter))
