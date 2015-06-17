@@ -61,7 +61,7 @@ func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
 	if err != nil {
-		return nil, err
+		return nil, internalerrors.RessourceNotFound
 	}
 
 	authToken := utils.RandStr(64, "alphanum")

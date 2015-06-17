@@ -135,6 +135,7 @@ func buildApp(z *Zest) error {
 		sessionRepo,
 		httptreemux.New(),
 		infrastructure.NewRender(),
+		infrastructure.NewCacheStore(),
 		usecases.NewPermissionCacheInter(accountRepo, aclRepo, infrastructure.NewCacheStore(), infrastructure.NewCacheStore()),
 		usecases.NewSessionCacheInter(sessionRepo, infrastructure.NewLRUCacheStore(1024)),
 		usecases.NewRouteDirectory,
