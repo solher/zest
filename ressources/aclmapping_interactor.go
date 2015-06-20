@@ -33,8 +33,8 @@ type AclMappingInter struct {
 	permissionCacheInter usecases.AbstractPermissionCacheInter
 }
 
-func NewAclMappingInter(repo AbstractAclMappingRepo) *AclMappingInter {
-	return &AclMappingInter{repo: repo}
+func NewAclMappingInter(repo AbstractAclMappingRepo, permissionCacheInter usecases.AbstractPermissionCacheInter) *AclMappingInter {
+	return &AclMappingInter{repo: repo, permissionCacheInter: permissionCacheInter}
 }
 
 func (i *AclMappingInter) BeforeSave(aclMapping *domain.AclMapping) error {

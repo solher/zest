@@ -88,7 +88,7 @@ func (r *AclMappingRepo) FindByID(id int, context usecases.QueryContext) (*domai
 
 	aclmapping := domain.AclMapping{}
 
-	err = query.Where("aclmappings.id = ?", id).First(&aclmapping).Error
+	err = query.Where("acl_mappings.id = ?", id).First(&aclmapping).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -109,7 +109,7 @@ func (r *AclMappingRepo) Update(aclmappings []domain.AclMapping, context usecase
 		queryCopy := *query
 		oldUser := domain.AclMapping{}
 
-		err := queryCopy.Where("aclmappings.id = ?", aclmapping.ID).First(&oldUser).Updates(aclmappings[i]).Error
+		err := queryCopy.Where("acl_mappings.id = ?", aclmapping.ID).First(&oldUser).Updates(aclmappings[i]).Error
 		if err != nil {
 			transaction.Rollback()
 
@@ -135,7 +135,7 @@ func (r *AclMappingRepo) UpdateByID(id int, aclmapping *domain.AclMapping,
 
 	oldUser := domain.AclMapping{}
 
-	err = query.Where("aclmappings.id = ?", id).First(&oldUser).Updates(aclmapping).Error
+	err = query.Where("acl_mappings.id = ?", id).First(&oldUser).Updates(aclmapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

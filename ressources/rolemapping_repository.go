@@ -88,7 +88,7 @@ func (r *RoleMappingRepo) FindByID(id int, context usecases.QueryContext) (*doma
 
 	rolemapping := domain.RoleMapping{}
 
-	err = query.Where("rolemappings.id = ?", id).First(&rolemapping).Error
+	err = query.Where("role_mappings.id = ?", id).First(&rolemapping).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
@@ -109,7 +109,7 @@ func (r *RoleMappingRepo) Update(rolemappings []domain.RoleMapping, context usec
 		queryCopy := *query
 		oldUser := domain.RoleMapping{}
 
-		err := queryCopy.Where("rolemappings.id = ?", rolemapping.ID).First(&oldUser).Updates(rolemappings[i]).Error
+		err := queryCopy.Where("role_mappings.id = ?", rolemapping.ID).First(&oldUser).Updates(rolemappings[i]).Error
 		if err != nil {
 			transaction.Rollback()
 
@@ -135,7 +135,7 @@ func (r *RoleMappingRepo) UpdateByID(id int, rolemapping *domain.RoleMapping,
 
 	oldUser := domain.RoleMapping{}
 
-	err = query.Where("rolemappings.id = ?", id).First(&oldUser).Updates(rolemapping).Error
+	err = query.Where("role_mappings.id = ?", id).First(&oldUser).Updates(rolemapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

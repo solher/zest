@@ -33,8 +33,8 @@ type RoleMappingInter struct {
 	permissionCacheInter usecases.AbstractPermissionCacheInter
 }
 
-func NewRoleMappingInter(repo AbstractRoleMappingRepo) *RoleMappingInter {
-	return &RoleMappingInter{repo: repo}
+func NewRoleMappingInter(repo AbstractRoleMappingRepo, permissionCacheInter usecases.AbstractPermissionCacheInter) *RoleMappingInter {
+	return &RoleMappingInter{repo: repo, permissionCacheInter: permissionCacheInter}
 }
 
 func (i *RoleMappingInter) BeforeSave(roleMapping *domain.RoleMapping) error {
