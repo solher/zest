@@ -3,10 +3,10 @@ package usecases
 import (
 	"net/http"
 
+	"github.com/gorilla/context"
 	"github.com/solher/zest/apierrors"
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/internalerrors"
-	"github.com/gorilla/context"
 )
 
 type PermissionGate struct {
@@ -43,6 +43,11 @@ func (p *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 	}
 
 	if len(roleNames) == 1 && roleNames[0] == "Owner" {
+		if context.Get(r, "lastRessource") == nil && (p.method == "Create" || p.method == "Upsert") {
+			p.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.InsufficentPermissions)
+			return
+		}
+
 		relations := domain.ModelDirectory.FindPathToOwner(p.ressource)
 		context.Set(r, "ownerRelations", relations)
 	}

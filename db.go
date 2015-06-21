@@ -148,25 +148,6 @@ func seedDatabase(z *Zest) error {
 	}
 
 	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes())
-	acls, err := d.AclInter.Find(usecases.QueryContext{})
-	if err != nil {
-		return err
-	}
-
-	aclMappings := make([]domain.AclMapping, len(acls))
-	for i, acl := range acls {
-		aclMappings[i].AclID = acl.ID
-		aclMappings[i].RoleID = 1
-
-		if acl.Ressource == "accounts" {
-			aclMappings = append(aclMappings, domain.AclMapping{AclID: acl.ID, RoleID: 5})
-		}
-	}
-
-	aclMappings, err = d.AclMappingRepo.Create(aclMappings)
-	if err != nil {
-		return err
-	}
 
 	d.Store.Close()
 

@@ -21,13 +21,13 @@ type Logger struct {
 
 // NewLogger returns a new Logger instance
 func NewLogger() *Logger {
-	return &Logger{log.New(os.Stdout, "[Zest] ", 0)}
+	return &Logger{log.New(os.Stdout, "\n[Zest] ", 0)}
 }
 
 func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	path := r.URL.Path
 	// Start timer
 	start := time.Now()
-	path := r.URL.Path
 
 	// Process request
 	next(rw, r)
@@ -43,12 +43,12 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	statusColor := colorForStatus(statusCode)
 	methodColor := colorForMethod(method)
 
-	l.Printf("%v |%s %3d %s| %13v | %s |%s  %s %-7s %s",
+	l.Printf("%v | %s %3d %s | %v | %s | %s %s %s %s",
 		end.Format("2006/01/02 - 15:04:05"),
 		statusColor, statusCode, reset,
 		latency,
 		clientIP,
-		methodColor, reset, method,
+		methodColor, method, reset,
 		path,
 	)
 }

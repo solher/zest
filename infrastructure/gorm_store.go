@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/usecases"
 	"github.com/solher/zest/utils"
-	"github.com/jinzhu/gorm"
-	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type GormStore struct {
@@ -438,34 +438,24 @@ func processNestedInclude(include interface{}, processedIncludes []interfaces.Go
 		includeMap := include.(map[string]interface{})
 		processedInclude := interfaces.GormInclude{}
 
-		for k := range includeMap {
-			key := strings.ToLower(k)
-			value := includeMap[key]
+		value := includeMap["relation"]
+		switch strValue := value.(type) {
+		case string:
+			processedInclude.Relation = parentModel + strings.Title(strValue)
+		}
 
-			switch key {
-			case "relation":
-				switch strValue := value.(type) {
-				case string:
-					processedInclude.Relation = parentModel + strings.Title(strValue)
-				}
+		value = includeMap["where"]
+		buffer := &bytes.Buffer{}
+		err := processCondition(buffer, "", andSql, "", value)
+		if err != nil {
+			return nil, err
+		}
+		processedInclude.Where = buffer.String()
 
-			case "where":
-				buffer := &bytes.Buffer{}
-
-				err := processCondition(buffer, "", andSql, "", value)
-				if err != nil {
-					return nil, err
-				}
-
-				processedInclude.Where = buffer.String()
-
-			case "include":
-				var err error
-				processedIncludes, err = processNestedInclude(value, processedIncludes, processedInclude.Relation+".")
-				if err != nil {
-					return nil, err
-				}
-			}
+		value = includeMap["include"]
+		processedIncludes, err = processNestedInclude(value, processedIncludes, processedInclude.Relation+".")
+		if err != nil {
+			return nil, err
 		}
 
 		processedIncludes = append(processedIncludes, processedInclude)

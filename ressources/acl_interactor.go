@@ -10,6 +10,7 @@ import (
 
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -29,11 +30,12 @@ type AbstractAclRepo interface {
 }
 
 type AclInter struct {
-	repo AbstractAclRepo
+	repo            AbstractAclRepo
+	aclMappingInter AbstractAclMappingInter
 }
 
-func NewAclInter(repo AbstractAclRepo) *AclInter {
-	return &AclInter{repo: repo}
+func NewAclInter(repo AbstractAclRepo, aclMappingInter AbstractAclMappingInter) *AclInter {
+	return &AclInter{repo: repo, aclMappingInter: aclMappingInter}
 }
 
 func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.Route) error {
@@ -55,7 +57,29 @@ func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.R
 		}
 
 		if len(acls) == 0 {
-			_, err := i.repo.CreateOne(&domain.Acl{Ressource: dirKey.Ressource, Method: dirKey.Method})
+			acl := &domain.Acl{Ressource: dirKey.Ressource, Method: dirKey.Method}
+
+			acl, err := i.repo.CreateOne(acl)
+			if err != nil {
+				return err
+			}
+
+			aclMappings := []domain.AclMapping{
+				{
+					AclID:  acl.ID,
+					RoleID: 1,
+				},
+			}
+
+			if !utils.ContainsStr([]string{"accounts", "sessions", "users", "acls", "aclMappings", "roles", "roleMappings"}, acl.Ressource) {
+				aclMappings = append(aclMappings, domain.AclMapping{AclID: acl.ID, RoleID: 3})
+			}
+
+			if acl.Ressource == "accounts" {
+				aclMappings = append(aclMappings, domain.AclMapping{AclID: acl.ID, RoleID: 5})
+			}
+
+			aclMappings, err = i.aclMappingInter.Create(aclMappings)
 			if err != nil {
 				return err
 			}
