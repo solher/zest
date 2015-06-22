@@ -46,7 +46,7 @@ func (md *modelDirectory) findPathToOwner(lastRessource, ressource string, relat
 
 	for _, relation := range relations {
 		if relation.Fk == "accountId" {
-			return append(relationPath, relation)
+			return relationPath
 		} else if !containsRessource(relationPath, relation.Related) {
 			relationPathTmp := relationPath
 			if relation.Fk != "" {
