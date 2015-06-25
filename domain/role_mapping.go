@@ -9,7 +9,6 @@ func init() {
 	ModelDirectory.Register(RoleMapping{}, "roleMappings", relations)
 }
 
-//+gen routes controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw"
 type RoleMapping struct {
 	GormModel
 	AccountID int     `json:"accountId,omitempty" sql:"index"`
@@ -20,21 +19,14 @@ type RoleMapping struct {
 
 func (m *RoleMapping) SetRelatedID(idKey string, id int) {
 	switch idKey {
-	case "roleID":
-		m.RoleID = id
 	case "accountID":
 		m.AccountID = id
+	case "roleID":
+		m.RoleID = id
 	}
 }
 
-func (m *RoleMapping) ScopeModel() error {
-	m.Account = Account{}
-	m.Role = Role{}
-
-	return nil
-}
-
 func (m *RoleMapping) BeforeRender() {
-	m.Role.BeforeRender()
 	m.Account.BeforeRender()
+	m.Role.BeforeRender()
 }

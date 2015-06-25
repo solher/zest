@@ -11,23 +11,23 @@ import (
 )
 
 func init() {
-	usecases.DependencyDirectory.Register(NewUserRepo)
+	usecases.DependencyDirectory.Register(NewAclMappingRepo)
 }
 
-type UserRepo struct {
+type AclMappingRepo struct {
 	store interfaces.AbstractGormStore
 }
 
-func NewUserRepo(store interfaces.AbstractGormStore) *UserRepo {
-	return &UserRepo{store: store}
+func NewAclMappingRepo(store interfaces.AbstractGormStore) *AclMappingRepo {
+	return &AclMappingRepo{store: store}
 }
 
-func (r *UserRepo) Create(users []domain.User) ([]domain.User, error) {
+func (r *AclMappingRepo) Create(aclMappings []domain.AclMapping) ([]domain.AclMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
-	for i, user := range users {
-		err := db.Create(&user).Error
+	for i, aclMapping := range aclMappings {
+		err := db.Create(&aclMapping).Error
 		if err != nil {
 			transaction.Rollback()
 
@@ -38,43 +38,43 @@ func (r *UserRepo) Create(users []domain.User) ([]domain.User, error) {
 			return nil, internalerrors.DatabaseError
 		}
 
-		users[i] = user
+		aclMappings[i] = aclMapping
 	}
 
 	transaction.Commit()
-	return users, nil
+	return aclMappings, nil
 }
 
-func (r *UserRepo) CreateOne(user *domain.User) (*domain.User, error) {
-	r.Create([]domain.User{*user})
-	return user, nil
+func (r *AclMappingRepo) CreateOne(aclMapping *domain.AclMapping) (*domain.AclMapping, error) {
+	r.Create([]domain.AclMapping{*aclMapping})
+	return aclMapping, nil
 }
 
-func (r *UserRepo) Find(context usecases.QueryContext) ([]domain.User, error) {
+func (r *AclMappingRepo) Find(context usecases.QueryContext) ([]domain.AclMapping, error) {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	users := []domain.User{}
+	aclMappings := []domain.AclMapping{}
 
-	err = query.Find(&users).Error
+	err = query.Find(&aclMappings).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	return users, nil
+	return aclMappings, nil
 }
 
-func (r *UserRepo) FindByID(id int, context usecases.QueryContext) (*domain.User, error) {
+func (r *AclMappingRepo) FindByID(id int, context usecases.QueryContext) (*domain.AclMapping, error) {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	user := domain.User{}
+	aclMapping := domain.AclMapping{}
 
-	err = query.Where("users.id = ?", id).First(&user).Error
+	err = query.Where("aclMappings.id = ?", id).First(&aclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -83,10 +83,10 @@ func (r *UserRepo) FindByID(id int, context usecases.QueryContext) (*domain.User
 		return nil, internalerrors.DatabaseError
 	}
 
-	return &user, nil
+	return &aclMapping, nil
 }
 
-func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([]domain.User, error) {
+func (r *AclMappingRepo) Update(aclMappings []domain.AclMapping, context usecases.QueryContext) ([]domain.AclMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -95,11 +95,11 @@ func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, user := range users {
+	for i, aclMapping := range aclMappings {
 		queryCopy := *query
-		oldUser := domain.User{}
+		oldAclMapping := domain.AclMapping{}
 
-		err := queryCopy.Where("users.id = ?", user.ID).First(&oldUser).Updates(users[i]).Error
+		err := queryCopy.Where("aclMappings.id = ?", aclMapping.ID).First(&oldAclMapping).Updates(aclMappings[i]).Error
 		if err != nil {
 			transaction.Rollback()
 
@@ -112,20 +112,20 @@ func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([
 	}
 
 	transaction.Commit()
-	return users, nil
+	return aclMappings, nil
 }
 
-func (r *UserRepo) UpdateByID(id int, user *domain.User,
-	context usecases.QueryContext) (*domain.User, error) {
+func (r *AclMappingRepo) UpdateByID(id int, aclMapping *domain.AclMapping,
+	context usecases.QueryContext) (*domain.AclMapping, error) {
 
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	oldUser := domain.User{}
+	oldAclMapping := domain.AclMapping{}
 
-	err = query.Where("users.id = ?", id).First(&oldUser).Updates(user).Error
+	err = query.Where("aclMappings.id = ?", id).First(&oldAclMapping).Updates(aclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -138,20 +138,20 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if user.ID == 0 {
+	if aclMapping.ID == 0 {
 		return nil, internalerrors.InsufficentPermissions
 	}
 
-	return user, nil
+	return aclMapping, nil
 }
 
-func (r *UserRepo) DeleteAll(context usecases.QueryContext) error {
+func (r *AclMappingRepo) DeleteAll(context usecases.QueryContext) error {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.User{}).Error
+	err = query.Delete(domain.AclMapping{}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -159,15 +159,15 @@ func (r *UserRepo) DeleteAll(context usecases.QueryContext) error {
 	return nil
 }
 
-func (r *UserRepo) DeleteByID(id int, context usecases.QueryContext) error {
+func (r *AclMappingRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
-	user := &domain.User{}
+	aclMapping := &domain.AclMapping{}
 
-	err = query.Where("users.id = ?", id).First(&user).Delete(domain.User{}).Error
+	err = query.Where("aclMappings.id = ?", id).First(&aclMapping).Delete(domain.AclMapping{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
@@ -179,7 +179,7 @@ func (r *UserRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	return nil
 }
 
-func (r *UserRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
+func (r *AclMappingRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
 	db := r.store.GetDB()
 
 	rows, err := db.Raw(query, values...).Rows()

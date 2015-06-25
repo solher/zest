@@ -18,7 +18,7 @@ func updateDatabase(z *Zest) error {
 	}
 
 	d := &dependencies{}
-	err := z.injector.Get(d)
+	err := z.Injector.Get(d)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func updateDatabase(z *Zest) error {
 		return errors.New("Could not migrate database.")
 	}
 
-	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes())
+	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
 	if err != nil {
 		return errors.New("Could not refresh ACLs from routes.")
 	}
@@ -57,7 +57,7 @@ func reinitDatabase(z *Zest) error {
 	}
 
 	d := &dependencies{}
-	err := z.injector.Get(d)
+	err := z.Injector.Get(d)
 	if err != nil {
 		return err
 	}
@@ -87,17 +87,17 @@ func reinitDatabase(z *Zest) error {
 
 func seedDatabase(z *Zest) error {
 	type dependencies struct {
-		Store           *infrastructure.GormStore
-		AccountInter    *ressources.AccountInter
-		RoleRepo        *ressources.RoleRepo
-		RoleMappingRepo *ressources.RoleMappingRepo
-		AclInter        *ressources.AclInter
-		AclMappingRepo  *ressources.AclMappingRepo
-		RouteDir        *usecases.RouteDirectory
+		Store             *infrastructure.GormStore
+		AccountGuestInter *ressources.AccountGuestInter
+		RoleRepo          *ressources.RoleRepo
+		RoleMappingRepo   *ressources.RoleMappingRepo
+		AclInter          *ressources.AclInter
+		AclMappingRepo    *ressources.AclMappingRepo
+		RouteDir          *usecases.RouteDirectory
 	}
 
 	d := &dependencies{}
-	err := z.injector.Get(d)
+	err := z.Injector.Get(d)
 	if err != nil {
 		return err
 	}
@@ -114,13 +114,13 @@ func seedDatabase(z *Zest) error {
 	fmt.Println("Seeding database...")
 
 	user := &domain.User{
-		FirstName: "Fabien",
-		LastName:  "Herfray",
-		Password:  "qwertyuiop",
-		Email:     "fabien.herfray@me.com",
+		FirstName: "Admin",
+		LastName:  "Admin",
+		Password:  "admin",
+		Email:     "admin",
 	}
 
-	account, err := d.AccountInter.Signup(user)
+	account, err := d.AccountGuestInter.Signup(user)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func seedDatabase(z *Zest) error {
 		return err
 	}
 
-	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes())
+	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
 
 	d.Store.Close()
 

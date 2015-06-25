@@ -4,36 +4,28 @@ import "time"
 
 func init() {
 	relations := []DBRelation{
-		{Related: "accounts", Fk: "accountId"},
+		{Related: "Accounts", Fk: "AccountId"},
 	}
 
 	ModelDirectory.Register(Session{}, "sessions", relations)
 }
 
-//+gen routes controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw"
 type Session struct {
 	GormModel
-	AccountID int       `json:"accountId,omitempty" sql:"index"`
-	Account   Account   `json:"account,omitempty"`
 	AuthToken string    `json:"authToken,omitempty"`
 	IP        string    `json:"ip,omitempty"`
 	Agent     string    `json:"agent,omitempty"`
 	ValidTo   time.Time `json:"validTo,omitempty"`
 	DeletedAt time.Time `json:"deletedAt,omitempty"`
+	AccountID int       `json:"AccountId,omitempty" sql:"index"`
+	Account   Account   `json:"Account,omitempty"`
 }
 
 func (m *Session) SetRelatedID(idKey string, id int) {
 	switch idKey {
-	case "accountID":
+	case "AccountID":
 		m.AccountID = id
 	}
-}
-
-func (m *Session) ScopeModel() error {
-	m.Account = Account{}
-	m.DeletedAt = time.Time{}
-
-	return nil
 }
 
 func (m *Session) BeforeRender() {

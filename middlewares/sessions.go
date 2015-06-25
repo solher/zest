@@ -3,8 +3,8 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/solher/zest/domain"
 	"github.com/gorilla/context"
+	"github.com/solher/zest/domain"
 )
 
 type AbstractAccountInter interface {

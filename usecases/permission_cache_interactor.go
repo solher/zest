@@ -37,12 +37,12 @@ func (i *PermissionCacheInter) GetPermissionRoles(accountID int, ressource, meth
 
 	cachedAccountRoles, err := i.roleCache.Get(accountID)
 	if err != nil {
-		return nil, err
+		cachedAccountRoles = []string{}
 	}
 
 	cachedAclRoles, err := i.aclCache.Get(AclCacheKey{Ressource: ressource, Method: method})
 	if err != nil {
-		return nil, err
+		cachedAclRoles = []string{}
 	}
 
 	accountRoles := cachedAccountRoles.([]string)

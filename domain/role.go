@@ -2,40 +2,31 @@ package domain
 
 func init() {
 	relations := []DBRelation{
-		{Related: "roleMappings"},
-		{Related: "aclMappings"},
+		{Related: "RoleMappings"},
+		{Related: "AclMappings"},
 	}
 
 	ModelDirectory.Register(Role{}, "roles", relations)
 }
 
-//+gen routes controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw" interactor:"Create,CreateOne,Find,FindByID,Upsert,UpsertOne,UpdateByID,DeleteAll,DeleteByID"
 type Role struct {
 	GormModel
 	Name         string        `json:"name,omitempty"`
-	RoleMappings []RoleMapping `json:"roleMappings,omitempty"`
-	AclMappings  []AclMapping  `json:"aclMappings,omitempty"`
+	RoleMappings []RoleMapping `json:"RoleMappings,omitempty"`
+	AclMappings  []AclMapping  `json:"AclMappings,omitempty"`
 }
 
 func (m *Role) SetRelatedID(idKey string, id int) {
-}
-
-func (m *Role) ScopeModel() error {
-	m.AclMappings = []AclMapping{}
-	m.RoleMappings = []RoleMapping{}
-
-	return nil
+	switch idKey {
+	}
 }
 
 func (m *Role) BeforeRender() {
-	roleMappings := m.RoleMappings
-	aclMappings := m.AclMappings
-
-	for i := range roleMappings {
-		(&roleMappings[i]).BeforeRender()
+	for i := range m.RoleMappings {
+		(&m.RoleMappings[i]).BeforeRender()
 	}
 
-	for i := range aclMappings {
-		(&aclMappings[i]).BeforeRender()
+	for i := range m.AclMappings {
+		(&m.AclMappings[i]).BeforeRender()
 	}
 }

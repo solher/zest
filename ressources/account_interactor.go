@@ -2,107 +2,221 @@ package ressources
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/usecases"
-
-	"github.com/solher/zest/internalerrors"
-	"github.com/solher/zest/utils"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func init() {
 	usecases.DependencyDirectory.Register(NewAccountInter)
+	usecases.DependencyDirectory.Register(PopulateAccountInter)
 }
 
 type AbstractAccountRepo interface {
 	Create(accounts []domain.Account) ([]domain.Account, error)
 	CreateOne(account *domain.Account) (*domain.Account, error)
-	Find(queryContext usecases.QueryContext) ([]domain.Account, error)
-	FindByID(id int, queryContext usecases.QueryContext) (*domain.Account, error)
-	Update(accounts []domain.Account, queryContext usecases.QueryContext) ([]domain.Account, error)
-	UpdateByID(id int, account *domain.Account, queryContext usecases.QueryContext) (*domain.Account, error)
-	DeleteAll(queryContext usecases.QueryContext) error
-	DeleteByID(id int, queryContext usecases.QueryContext) error
+	Find(context usecases.QueryContext) ([]domain.Account, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.Account, error)
+	Update(accounts []domain.Account, context usecases.QueryContext) ([]domain.Account, error)
+	UpdateByID(id int, account *domain.Account, context usecases.QueryContext) (*domain.Account, error)
+	DeleteAll(context usecases.QueryContext) error
+	DeleteByID(id int, context usecases.QueryContext) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)
 }
 
 type AccountInter struct {
-	repo                 AbstractAccountRepo
-	userInter            AbstractUserInter
-	sessionInter         AbstractSessionInter
-	sessionCacheInter    usecases.AbstractSessionCacheInter
-	permissionCacheInter usecases.AbstractPermissionCacheInter
+	repo             AbstractAccountRepo
+	userInter        AbstractUserInter
+	sessionInter     AbstractSessionInter
+	roleMappingInter AbstractRoleMappingInter
 }
 
-func NewAccountInter(repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter,
-	sessionCacheInter *usecases.SessionCacheInter, permissionCacheInter *usecases.PermissionCacheInter) *AccountInter {
-
-	return &AccountInter{repo: repo, userInter: userInter, sessionInter: sessionInter,
-		sessionCacheInter: sessionCacheInter, permissionCacheInter: permissionCacheInter}
+func NewAccountInter(repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter, roleMappingInter AbstractRoleMappingInter) *AccountInter {
+	return &AccountInter{repo: repo, userInter: userInter, sessionInter: sessionInter, roleMappingInter: roleMappingInter}
 }
 
-func (i *AccountInter) Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error) {
-	filter := &usecases.Filter{
-		Limit: 1,
-		Where: map[string]interface{}{"email": credentials.Email},
+func PopulateAccountInter(accountInter *AccountInter, repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter, roleMappingInter AbstractRoleMappingInter) {
+	if accountInter.repo == nil {
+		accountInter.repo = repo
 	}
 
-	users, err := i.userInter.Find(usecases.QueryContext{Filter: filter})
+	if accountInter.userInter == nil {
+		accountInter.userInter = userInter
+	}
+
+	if accountInter.sessionInter == nil {
+		accountInter.sessionInter = sessionInter
+	}
+
+	if accountInter.roleMappingInter == nil {
+		accountInter.roleMappingInter = roleMappingInter
+	}
+}
+
+func (i *AccountInter) Create(accounts []domain.Account) ([]domain.Account, error) {
+	accounts, err := i.BeforeCreate(accounts)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(users) == 0 {
-		return nil, internalerrors.RessourceNotFound
-	}
-	user := users[0]
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
-	if err != nil {
-		return nil, internalerrors.RessourceNotFound
-	}
-
-	authToken := utils.RandStr(64, "alphanum")
-
-	var validTo time.Time
-	if credentials.RememberMe == true {
-		validTo = time.Now().Add(365 * 24 * time.Hour)
-	} else {
-		validTo = time.Now().Add(24 * time.Hour)
-	}
-
-	session := &domain.Session{
-		AccountID: user.AccountID,
-		AuthToken: authToken,
-		IP:        ip,
-		Agent:     userAgent,
-		ValidTo:   validTo,
-	}
-
-	session, err = i.sessionInter.CreateOne(session)
+	accounts, err = i.repo.Create(accounts)
 	if err != nil {
 		return nil, err
 	}
 
-	err = i.sessionCacheInter.Add(session.AuthToken, *session)
+	accounts, err = i.AfterCreate(accounts)
 	if err != nil {
 		return nil, err
 	}
 
-	return session, nil
+	return accounts, nil
 }
 
-func (i *AccountInter) Signout(currentSession *domain.Session) error {
-	authToken := currentSession.AuthToken
+func (i *AccountInter) CreateOne(account *domain.Account) (*domain.Account, error) {
+	accounts, err := i.Create([]domain.Account{*account})
+	if err != nil {
+		return nil, err
+	}
 
-	err := i.sessionInter.DeleteByID(currentSession.ID, usecases.QueryContext{})
+	return &accounts[0], nil
+}
+
+func (i *AccountInter) Find(context usecases.QueryContext) ([]domain.Account, error) {
+	accounts, err := i.repo.Find(context)
+	if err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+func (i *AccountInter) FindByID(id int, context usecases.QueryContext) (*domain.Account, error) {
+	account, err := i.repo.FindByID(id, context)
+	if err != nil {
+		return nil, err
+	}
+
+	return account, nil
+}
+
+func (i *AccountInter) Upsert(accounts []domain.Account, context usecases.QueryContext) ([]domain.Account, error) {
+	accountsToUpdate := []domain.Account{}
+	accountsToCreate := []domain.Account{}
+
+	for k := range accounts {
+		if accounts[k].ID != 0 {
+			accountsToUpdate = append(accountsToUpdate, accounts[k])
+		} else {
+			accountsToCreate = append(accountsToCreate, accounts[k])
+		}
+	}
+
+	accountsToUpdate, err := i.BeforeUpdate(accountsToUpdate)
+	if err != nil {
+		return nil, err
+	}
+
+	accountsToUpdate, err = i.repo.Update(accountsToUpdate, context)
+	if err != nil {
+		return nil, err
+	}
+
+	accountsToUpdate, err = i.AfterUpdate(accountsToUpdate)
+	if err != nil {
+		return nil, err
+	}
+
+	accountsToCreate, err = i.BeforeCreate(accountsToCreate)
+	if err != nil {
+		return nil, err
+	}
+
+	accountsToCreate, err = i.repo.Create(accountsToCreate)
+	if err != nil {
+		return nil, err
+	}
+
+	accountsToCreate, err = i.AfterCreate(accountsToCreate)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(accountsToUpdate, accountsToCreate...), nil
+}
+
+func (i *AccountInter) UpsertOne(account *domain.Account, context usecases.QueryContext) (*domain.Account, error) {
+	accounts, err := i.Upsert([]domain.Account{*account}, context)
+	if err != nil {
+		return nil, err
+	}
+
+	return &accounts[0], nil
+}
+
+func (i *AccountInter) UpdateByID(id int, account *domain.Account,
+	context usecases.QueryContext) (*domain.Account, error) {
+
+	accounts, err := i.BeforeUpdate([]domain.Account{*account})
+	if err != nil {
+		return nil, err
+	}
+
+	account = &accounts[0]
+
+	account, err = i.repo.UpdateByID(id, account, context)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts, err = i.AfterUpdate([]domain.Account{*account})
+	if err != nil {
+		return nil, err
+	}
+
+	return &accounts[0], nil
+}
+
+func (i *AccountInter) DeleteAll(context usecases.QueryContext) error {
+	accounts, err := i.repo.Find(context)
 	if err != nil {
 		return err
 	}
 
-	err = i.sessionCacheInter.Remove(authToken)
+	accounts, err = i.BeforeDelete(accounts)
+	if err != nil {
+		return err
+	}
+
+	err = i.repo.DeleteAll(context)
+	if err != nil {
+		return err
+	}
+
+	_, err = i.AfterDelete(accounts)
+	if err != nil {
+		return err
+	}
+
+	accountIds := []int{}
+	for _, account := range accounts {
+		accountIds = append(accountIds, account.ID)
+	}
+
+	filter := &usecases.Filter{
+		Where: map[string]interface{}{"accountId": accountIds},
+	}
+
+	err = i.userInter.DeleteAll(usecases.QueryContext{Filter: filter})
+	if err != nil {
+		return err
+	}
+
+	err = i.sessionInter.DeleteAll(usecases.QueryContext{Filter: filter})
+	if err != nil {
+		return err
+	}
+
+	err = i.roleMappingInter.DeleteAll(usecases.QueryContext{Filter: filter})
 	if err != nil {
 		return err
 	}
@@ -110,138 +224,47 @@ func (i *AccountInter) Signout(currentSession *domain.Session) error {
 	return nil
 }
 
-func (i *AccountInter) Signup(user *domain.User) (*domain.Account, error) {
-	account, err := i.repo.CreateOne(&domain.Account{})
+func (i *AccountInter) DeleteByID(id int, context usecases.QueryContext) error {
+	account, err := i.repo.FindByID(id, context)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	user.AccountID = account.ID
-
-	user, err = i.userInter.CreateOne(user)
+	accounts, err := i.BeforeDelete([]domain.Account{*account})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	account.Users = []domain.User{*user}
+	account = &accounts[0]
 
-	return account, nil
-}
+	err = i.repo.DeleteByID(id, context)
+	if err != nil {
+		return err
+	}
 
-func (i *AccountInter) Current(currentSession *domain.Session) (*domain.Account, error) {
+	_, err = i.AfterDelete([]domain.Account{*account})
+	if err != nil {
+		return err
+	}
+
 	filter := &usecases.Filter{
-		Include: []interface{}{"users"},
+		Where: map[string]interface{}{"accountId": id},
 	}
 
-	account, err := i.repo.FindByID(currentSession.AccountID, usecases.QueryContext{Filter: filter})
+	err = i.userInter.DeleteAll(usecases.QueryContext{Filter: filter})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	currentSession.Account = domain.Account{}
-	account.Sessions = []domain.Session{*currentSession}
-
-	return account, nil
-}
-
-func (i *AccountInter) CurrentSessionFromToken(authToken string) (*domain.Session, error) {
-	session, err := i.sessionCacheInter.Get(authToken)
-
+	err = i.sessionInter.DeleteAll(usecases.QueryContext{Filter: filter})
 	if err != nil {
-		filter := &usecases.Filter{
-			Limit: 1,
-			Where: map[string]interface{}{"authToken": authToken},
-		}
-
-		sessions, err := i.sessionInter.Find(usecases.QueryContext{Filter: filter})
-		if err != nil {
-			return nil, err
-		}
-
-		if len(sessions) == 1 {
-			session = sessions[0]
-
-			err = i.sessionCacheInter.Add(session.AuthToken, session)
-			if err != nil {
-				return nil, err
-			}
-		}
+		return err
 	}
 
-	if session.ValidTo.After(time.Now()) {
-		return &session, nil
-	}
-
-	return nil, nil
-}
-
-func (i *AccountInter) GetGrantedRoles(accountID int, ressource, method string) ([]string, error) {
-	var rows *sql.Rows
-
-	roleNames, err := i.permissionCacheInter.GetPermissionRoles(accountID, ressource, method)
-
+	err = i.roleMappingInter.DeleteAll(usecases.QueryContext{Filter: filter})
 	if err != nil {
-		if accountID == 0 {
-			rows, err = i.repo.Raw(`
-				SELECT DISTINCT roles.name
-				FROM roles
-				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id
-				INNER JOIN acls ON acls.id = acl_mappings.acl_id
-				WHERE roles.name IN ('Guest', 'Anyone') AND acls.ressource = ? AND acls.method = ?
-				`, ressource, method)
-		} else {
-			rows, err = i.repo.Raw(`
-				SELECT DISTINCT roles.name
-				FROM roles
-				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id
-				INNER JOIN acls ON acls.id = acl_mappings.acl_id
-				WHERE roles.name IN ('Authenticated', 'Owner', 'Anyone') AND acls.ressource = ? AND acls.method = ?
-				`, ressource, method)
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		for rows.Next() {
-			var roleName string
-			rows.Scan(&roleName)
-			roleNames = append(roleNames, roleName)
-		}
-
-		err = rows.Close()
-		if err != nil {
-			return nil, err
-		}
-
-		if accountID != 0 {
-			if len(roleNames) == 0 {
-				rows, err = i.repo.Raw(`
-				SELECT DISTINCT roles.name
-				FROM roles
-				INNER JOIN role_mappings ON role_mappings.role_id = roles.id
-				INNER JOIN acl_mappings ON acl_mappings.role_id = roles.id
-				INNER JOIN acls ON acls.id = acl_mappings.acl_id
-				WHERE role_mappings.account_id = ? AND acls.ressource = ? AND acls.method = ?
-				`, accountID, ressource, method)
-			}
-
-			if err != nil {
-				return nil, err
-			}
-
-			for rows.Next() {
-				var roleName string
-				rows.Scan(&roleName)
-				roleNames = append(roleNames, roleName)
-			}
-
-			err = rows.Close()
-			if err != nil {
-				return nil, err
-			}
-		}
+		return err
 	}
 
-	return roleNames, nil
+	return nil
 }

@@ -2,33 +2,26 @@ package domain
 
 func init() {
 	relations := []DBRelation{
-		{Related: "aclMappings"},
+		{Related: "AclMappings"},
 	}
 
 	ModelDirectory.Register(Acl{}, "acls", relations)
 }
 
-//+gen routes controller:"Create,Find,FindByID,Upsert,UpdateByID,DeleteAll,DeleteByID,Related,RelatedOne" repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw"
 type Acl struct {
 	GormModel
 	Ressource   string       `json:"ressource,omitempty"`
 	Method      string       `json:"method,omitempty"`
-	AclMappings []AclMapping `json:"aclMappings,omitempty"`
+	AclMappings []AclMapping `json:"AclMappings,omitempty"`
 }
 
 func (m *Acl) SetRelatedID(idKey string, id int) {
-}
-
-func (m *Acl) ScopeModel() error {
-	m.AclMappings = []AclMapping{}
-
-	return nil
+	switch idKey {
+	}
 }
 
 func (m *Acl) BeforeRender() {
-	aclMappings := m.AclMappings
-
-	for i := range aclMappings {
-		(&aclMappings[i]).BeforeRender()
+	for i := range m.AclMappings {
+		(&m.AclMappings[i]).BeforeRender()
 	}
 }

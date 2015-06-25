@@ -3,7 +3,6 @@ package zest
 import (
 	"os"
 
-	_ "github.com/clipperhouse/typewriter"
 	"github.com/codegangsta/negroni"
 	"github.com/dimfeld/httptreemux"
 	"github.com/rs/cors"
@@ -16,13 +15,15 @@ import (
 type Zest struct {
 	Port, Environment, DatabaseURL string
 
-	app      *negroni.Negroni
-	injector *infrastructure.Injector
+	App      *negroni.Negroni
+	Injector *infrastructure.Injector
 
 	HandleOsArgs   func(z *Zest) (bool, error)
-	BuildApp       func(z *Zest) error
-	InitApp        func(z *Zest) error
-	CloseApp       func(z *Zest) error
+	Build          func(z *Zest) error
+	AfterBuild     func(z *Zest) error
+	Init           func(z *Zest) error
+	AfterInit      func(z *Zest) error
+	Close          func(z *Zest) error
 	ReinitDatabase func(z *Zest) error
 	SeedDatabase   func(z *Zest) error
 	UpdateDatabase func(z *Zest) error
@@ -32,8 +33,8 @@ func New() *Zest {
 	return &Zest{
 		Environment: "development",
 		Port:        ":3000",
-		app:         negroni.New(),
-		injector:    infrastructure.NewInjector(),
+		App:         negroni.New(),
+		Injector:    infrastructure.NewInjector(),
 	}
 }
 
@@ -41,12 +42,14 @@ func Classic() *Zest {
 	zest := &Zest{
 		Environment:    "development",
 		Port:           ":3000",
-		app:            negroni.New(),
-		injector:       infrastructure.NewInjector(),
+		App:            negroni.New(),
+		Injector:       infrastructure.NewInjector(),
 		HandleOsArgs:   handleOsArgs,
-		BuildApp:       buildApp,
-		InitApp:        initApp,
-		CloseApp:       closeApp,
+		Build:          buildApp,
+		AfterBuild:     func(z *Zest) error { return nil },
+		Init:           initApp,
+		AfterInit:      func(z *Zest) error { return nil },
+		Close:          closeApp,
 		ReinitDatabase: reinitDatabase,
 		SeedDatabase:   seedDatabase,
 		UpdateDatabase: updateDatabase,
@@ -68,7 +71,7 @@ func Classic() *Zest {
 }
 
 func (z *Zest) Run() {
-	err := z.BuildApp(z)
+	err := z.Build(z)
 	if err != nil {
 		panic(err)
 	}
@@ -82,13 +85,23 @@ func (z *Zest) Run() {
 		return
 	}
 
-	err = z.InitApp(z)
+	err = z.AfterBuild(z)
 	if err != nil {
 		panic(err)
 	}
-	defer z.CloseApp(z)
 
-	z.app.Run(z.Port)
+	err = z.Init(z)
+	if err != nil {
+		panic(err)
+	}
+	defer z.Close(z)
+
+	err = z.AfterInit(z)
+	if err != nil {
+		panic(err)
+	}
+
+	z.App.Run(z.Port)
 }
 
 func handleOsArgs(z *Zest) (bool, error) {
@@ -141,9 +154,9 @@ func buildApp(z *Zest) error {
 		usecases.NewRouteDirectory,
 	)
 
-	z.injector.RegisterMultiple(deps)
+	z.Injector.RegisterMultiple(deps)
 
-	err := z.injector.Populate()
+	err := z.Injector.Populate()
 	if err != nil {
 		return err
 	}
@@ -159,14 +172,14 @@ func initApp(z *Zest) error {
 
 		SessionCacheInter    *usecases.SessionCacheInter
 		PermissionCacheInter *usecases.PermissionCacheInter
-		AccountInter         *ressources.AccountInter
+		AccountGuestInter    *ressources.AccountGuestInter
 
 		RouteDir *usecases.RouteDirectory
 		Render   *infrastructure.Render
 	}
 
 	d := &dependencies{}
-	err := z.injector.Get(d)
+	err := z.Injector.Get(d)
 	if err != nil {
 		return err
 	}
@@ -185,14 +198,14 @@ func initApp(z *Zest) error {
 
 	d.RouteDir.Register(d.Router)
 
-	z.app.Use(middlewares.NewLogger())
-	z.app.Use(middlewares.NewRecovery(d.Render))
-	z.app.Use(cors.Default())
-	z.app.Use(middlewares.NewSessions(d.AccountInter))
+	z.App.Use(middlewares.NewLogger())
+	z.App.Use(middlewares.NewRecovery(d.Render))
+	z.App.Use(cors.Default())
+	z.App.Use(middlewares.NewSessions(d.AccountGuestInter))
 
 	d.Router.RedirectBehavior = httptreemux.UseHandler
 
-	z.app.UseHandler(d.Router)
+	z.App.UseHandler(d.Router)
 
 	return nil
 }
@@ -203,7 +216,7 @@ func closeApp(z *Zest) error {
 	}
 
 	d := &dependencies{}
-	err := z.injector.Get(d)
+	err := z.Injector.Get(d)
 	if err != nil {
 		return err
 	}

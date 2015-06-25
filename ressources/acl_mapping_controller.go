@@ -15,46 +15,46 @@ import (
 )
 
 func init() {
-	usecases.DependencyDirectory.Register(NewSessionCtrl)
+	usecases.DependencyDirectory.Register(NewAclMappingCtrl)
 }
 
-type AbstractSessionInter interface {
-	Create(sessions []domain.Session) ([]domain.Session, error)
-	CreateOne(session *domain.Session) (*domain.Session, error)
-	Find(context usecases.QueryContext) ([]domain.Session, error)
-	FindByID(id int, context usecases.QueryContext) (*domain.Session, error)
-	Upsert(sessions []domain.Session, context usecases.QueryContext) ([]domain.Session, error)
-	UpsertOne(session *domain.Session, context usecases.QueryContext) (*domain.Session, error)
-	UpdateByID(id int, session *domain.Session, context usecases.QueryContext) (*domain.Session, error)
+type AbstractAclMappingInter interface {
+	Create(aclMappings []domain.AclMapping) ([]domain.AclMapping, error)
+	CreateOne(aclMapping *domain.AclMapping) (*domain.AclMapping, error)
+	Find(context usecases.QueryContext) ([]domain.AclMapping, error)
+	FindByID(id int, context usecases.QueryContext) (*domain.AclMapping, error)
+	Upsert(aclMappings []domain.AclMapping, context usecases.QueryContext) ([]domain.AclMapping, error)
+	UpsertOne(aclMapping *domain.AclMapping, context usecases.QueryContext) (*domain.AclMapping, error)
+	UpdateByID(id int, aclMapping *domain.AclMapping, context usecases.QueryContext) (*domain.AclMapping, error)
 	DeleteAll(context usecases.QueryContext) error
 	DeleteByID(id int, context usecases.QueryContext) error
 }
 
-type SessionCtrl struct {
-	interactor AbstractSessionInter
+type AclMappingCtrl struct {
+	interactor AbstractAclMappingInter
 	render     interfaces.AbstractRender
 	routeDir   *usecases.RouteDirectory
 }
 
-func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *SessionCtrl {
-	controller := &SessionCtrl{interactor: interactor, render: render, routeDir: routeDir}
+func NewAclMappingCtrl(interactor AbstractAclMappingInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *AclMappingCtrl {
+	controller := &AclMappingCtrl{interactor: interactor, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
-		setSessionRoutes(routeDir, controller)
+		setAclMappingRoutes(routeDir, controller)
 	}
 
 	return controller
 }
 
-func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	session := &domain.Session{}
-	var sessions []domain.Session
+func (c *AclMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	aclMapping := &domain.AclMapping{}
+	var aclMappings []domain.AclMapping
 
 	buffer, _ := ioutil.ReadAll(r.Body)
 
-	err := json.Unmarshal(buffer, session)
+	err := json.Unmarshal(buffer, aclMapping)
 	if err != nil {
-		err := json.Unmarshal(buffer, &sessions)
+		err := json.Unmarshal(buffer, &aclMappings)
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
 			return
@@ -63,14 +63,14 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 
 	lastRessource := interfaces.GetLastRessource(r)
 
-	if sessions == nil {
-		session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
-		session, err = c.interactor.CreateOne(session)
+	if aclMappings == nil {
+		aclMapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		aclMapping, err = c.interactor.CreateOne(aclMapping)
 	} else {
-		for i := range sessions {
-			(&sessions[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		for i := range aclMappings {
+			(&aclMappings[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		}
-		sessions, err = c.interactor.Create(sessions)
+		aclMappings, err = c.interactor.Create(aclMappings)
 	}
 
 	if err != nil {
@@ -83,18 +83,18 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 		return
 	}
 
-	if sessions == nil {
-		session.BeforeRender()
-		c.render.JSON(w, http.StatusCreated, session)
+	if aclMappings == nil {
+		aclMapping.BeforeRender()
+		c.render.JSON(w, http.StatusCreated, aclMapping)
 	} else {
-		for i := range sessions {
-			(&sessions[i]).BeforeRender()
+		for i := range aclMappings {
+			(&aclMappings[i]).BeforeRender()
 		}
-		c.render.JSON(w, http.StatusCreated, sessions)
+		c.render.JSON(w, http.StatusCreated, aclMappings)
 	}
 }
 
-func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+func (c *AclMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
@@ -105,19 +105,19 @@ func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	sessions, err := c.interactor.Find(usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+	aclMappings, err := c.interactor.Find(usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
 	}
 
-	for i := range sessions {
-		(&sessions[i]).BeforeRender()
+	for i := range aclMappings {
+		(&aclMappings[i]).BeforeRender()
 	}
-	c.render.JSON(w, http.StatusOK, sessions)
+	c.render.JSON(w, http.StatusOK, aclMappings)
 }
 
-func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AclMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -133,7 +133,7 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
-	session, err := c.interactor.FindByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+	aclMapping, err := c.interactor.FindByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		switch err {
 		case internalerrors.InsufficentPermissions:
@@ -144,19 +144,19 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 		return
 	}
 
-	session.BeforeRender()
-	c.render.JSON(w, http.StatusOK, session)
+	aclMapping.BeforeRender()
+	c.render.JSON(w, http.StatusOK, aclMapping)
 }
 
-func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	session := &domain.Session{}
-	var sessions []domain.Session
+func (c *AclMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	aclMapping := &domain.AclMapping{}
+	var aclMappings []domain.AclMapping
 
 	buffer, _ := ioutil.ReadAll(r.Body)
 
-	err := json.Unmarshal(buffer, session)
+	err := json.Unmarshal(buffer, aclMapping)
 	if err != nil {
-		err := json.Unmarshal(buffer, &sessions)
+		err := json.Unmarshal(buffer, &aclMappings)
 		if err != nil {
 			c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
 			return
@@ -167,14 +167,14 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
-	if sessions == nil {
-		session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
-		session, err = c.interactor.UpsertOne(session, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+	if aclMappings == nil {
+		aclMapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		aclMapping, err = c.interactor.UpsertOne(aclMapping, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
-		for i := range sessions {
-			(&sessions[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		for i := range aclMappings {
+			(&aclMappings[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
 		}
-		sessions, err = c.interactor.Upsert(sessions, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+		aclMappings, err = c.interactor.Upsert(aclMappings, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}
 
 	if err != nil {
@@ -193,27 +193,27 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 		return
 	}
 
-	if sessions == nil {
-		session.BeforeRender()
-		c.render.JSON(w, http.StatusCreated, session)
+	if aclMappings == nil {
+		aclMapping.BeforeRender()
+		c.render.JSON(w, http.StatusCreated, aclMapping)
 	} else {
-		for i := range sessions {
-			(&sessions[i]).BeforeRender()
+		for i := range aclMappings {
+			(&aclMappings[i]).BeforeRender()
 		}
-		c.render.JSON(w, http.StatusCreated, sessions)
+		c.render.JSON(w, http.StatusCreated, aclMappings)
 	}
 }
 
-func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AclMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return
 	}
 
-	session := &domain.Session{}
+	aclMapping := &domain.AclMapping{}
 
-	err = json.NewDecoder(r.Body).Decode(session)
+	err = json.NewDecoder(r.Body).Decode(aclMapping)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
 		return
@@ -223,8 +223,8 @@ func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
-	session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
-	session, err = c.interactor.UpdateByID(id, session, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+	aclMapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+	aclMapping, err = c.interactor.UpdateByID(id, aclMapping, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 
 	if err != nil {
 		switch err {
@@ -236,11 +236,11 @@ func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	session.BeforeRender()
-	c.render.JSON(w, http.StatusCreated, session)
+	aclMapping.BeforeRender()
+	c.render.JSON(w, http.StatusCreated, aclMapping)
 }
 
-func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+func (c *AclMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.FilterDecodingError, err)
@@ -260,7 +260,7 @@ func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
-func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AclMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -284,7 +284,7 @@ func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
-func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AclMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -311,12 +311,12 @@ func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "sessionID", ID: pk})
+	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "aclMappingID", ID: pk})
 
 	handler(w, r, params)
 }
 
-func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AclMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	params["id"] = params["fk"]
 
 	related := params["related"]

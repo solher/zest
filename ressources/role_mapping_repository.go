@@ -11,23 +11,23 @@ import (
 )
 
 func init() {
-	usecases.DependencyDirectory.Register(NewUserRepo)
+	usecases.DependencyDirectory.Register(NewRoleMappingRepo)
 }
 
-type UserRepo struct {
+type RoleMappingRepo struct {
 	store interfaces.AbstractGormStore
 }
 
-func NewUserRepo(store interfaces.AbstractGormStore) *UserRepo {
-	return &UserRepo{store: store}
+func NewRoleMappingRepo(store interfaces.AbstractGormStore) *RoleMappingRepo {
+	return &RoleMappingRepo{store: store}
 }
 
-func (r *UserRepo) Create(users []domain.User) ([]domain.User, error) {
+func (r *RoleMappingRepo) Create(roleMappings []domain.RoleMapping) ([]domain.RoleMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
-	for i, user := range users {
-		err := db.Create(&user).Error
+	for i, roleMapping := range roleMappings {
+		err := db.Create(&roleMapping).Error
 		if err != nil {
 			transaction.Rollback()
 
@@ -38,43 +38,43 @@ func (r *UserRepo) Create(users []domain.User) ([]domain.User, error) {
 			return nil, internalerrors.DatabaseError
 		}
 
-		users[i] = user
+		roleMappings[i] = roleMapping
 	}
 
 	transaction.Commit()
-	return users, nil
+	return roleMappings, nil
 }
 
-func (r *UserRepo) CreateOne(user *domain.User) (*domain.User, error) {
-	r.Create([]domain.User{*user})
-	return user, nil
+func (r *RoleMappingRepo) CreateOne(roleMapping *domain.RoleMapping) (*domain.RoleMapping, error) {
+	r.Create([]domain.RoleMapping{*roleMapping})
+	return roleMapping, nil
 }
 
-func (r *UserRepo) Find(context usecases.QueryContext) ([]domain.User, error) {
+func (r *RoleMappingRepo) Find(context usecases.QueryContext) ([]domain.RoleMapping, error) {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	users := []domain.User{}
+	roleMappings := []domain.RoleMapping{}
 
-	err = query.Find(&users).Error
+	err = query.Find(&roleMappings).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	return users, nil
+	return roleMappings, nil
 }
 
-func (r *UserRepo) FindByID(id int, context usecases.QueryContext) (*domain.User, error) {
+func (r *RoleMappingRepo) FindByID(id int, context usecases.QueryContext) (*domain.RoleMapping, error) {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	user := domain.User{}
+	roleMapping := domain.RoleMapping{}
 
-	err = query.Where("users.id = ?", id).First(&user).Error
+	err = query.Where("roleMappings.id = ?", id).First(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -83,10 +83,10 @@ func (r *UserRepo) FindByID(id int, context usecases.QueryContext) (*domain.User
 		return nil, internalerrors.DatabaseError
 	}
 
-	return &user, nil
+	return &roleMapping, nil
 }
 
-func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([]domain.User, error) {
+func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usecases.QueryContext) ([]domain.RoleMapping, error) {
 	db := r.store.GetDB()
 	transaction := db.Begin()
 
@@ -95,11 +95,11 @@ func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, user := range users {
+	for i, roleMapping := range roleMappings {
 		queryCopy := *query
-		oldUser := domain.User{}
+		oldRoleMapping := domain.RoleMapping{}
 
-		err := queryCopy.Where("users.id = ?", user.ID).First(&oldUser).Updates(users[i]).Error
+		err := queryCopy.Where("roleMappings.id = ?", roleMapping.ID).First(&oldRoleMapping).Updates(roleMappings[i]).Error
 		if err != nil {
 			transaction.Rollback()
 
@@ -112,20 +112,20 @@ func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([
 	}
 
 	transaction.Commit()
-	return users, nil
+	return roleMappings, nil
 }
 
-func (r *UserRepo) UpdateByID(id int, user *domain.User,
-	context usecases.QueryContext) (*domain.User, error) {
+func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
+	context usecases.QueryContext) (*domain.RoleMapping, error) {
 
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError
 	}
 
-	oldUser := domain.User{}
+	oldRoleMapping := domain.RoleMapping{}
 
-	err = query.Where("users.id = ?", id).First(&oldUser).Updates(user).Error
+	err = query.Where("roleMappings.id = ?", id).First(&oldRoleMapping).Updates(roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -138,20 +138,20 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if user.ID == 0 {
+	if roleMapping.ID == 0 {
 		return nil, internalerrors.InsufficentPermissions
 	}
 
-	return user, nil
+	return roleMapping, nil
 }
 
-func (r *UserRepo) DeleteAll(context usecases.QueryContext) error {
+func (r *RoleMappingRepo) DeleteAll(context usecases.QueryContext) error {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.User{}).Error
+	err = query.Delete(domain.RoleMapping{}).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -159,15 +159,15 @@ func (r *UserRepo) DeleteAll(context usecases.QueryContext) error {
 	return nil
 }
 
-func (r *UserRepo) DeleteByID(id int, context usecases.QueryContext) error {
+func (r *RoleMappingRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
-	user := &domain.User{}
+	roleMapping := &domain.RoleMapping{}
 
-	err = query.Where("users.id = ?", id).First(&user).Delete(domain.User{}).Error
+	err = query.Where("roleMappings.id = ?", id).First(&roleMapping).Delete(domain.RoleMapping{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
@@ -179,7 +179,7 @@ func (r *UserRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	return nil
 }
 
-func (r *UserRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
+func (r *RoleMappingRepo) Raw(query string, values ...interface{}) (*sql.Rows, error) {
 	db := r.store.GetDB()
 
 	rows, err := db.Raw(query, values...).Rows()

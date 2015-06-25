@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"strings"
 
+	"github.com/gorilla/context"
 	"github.com/solher/zest/apierrors"
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/usecases"
-	"github.com/gorilla/context"
 )
 
 func GetQueryFilter(r *http.Request) (*usecases.Filter, error) {

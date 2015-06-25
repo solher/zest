@@ -23,7 +23,7 @@ type (
 
 	RouteDirectory struct {
 		accountInter AbstractAccountInter
-		routes       map[DirectoryKey]Route
+		Routes       map[DirectoryKey]Route
 		render       AbstractRender
 	}
 )
@@ -38,25 +38,21 @@ func (k *DirectoryKey) For(method string) *DirectoryKey {
 }
 
 func NewRouteDirectory(accountInter AbstractAccountInter, render AbstractRender) *RouteDirectory {
-	return &RouteDirectory{accountInter: accountInter, routes: make(map[DirectoryKey]Route), render: render}
-}
-
-func (routeDir *RouteDirectory) Routes() map[DirectoryKey]Route {
-	return routeDir.routes
+	return &RouteDirectory{accountInter: accountInter, Routes: make(map[DirectoryKey]Route), render: render}
 }
 
 func (routeDir *RouteDirectory) Add(key *DirectoryKey, route *Route) {
-	routeDir.routes[*key] = *route
+	routeDir.Routes[*key] = *route
 }
 
 func (routeDir *RouteDirectory) Get(key *DirectoryKey) *Route {
-	route := routeDir.routes[*key]
+	route := routeDir.Routes[*key]
 	return &route
 }
 
 func (routeDir *RouteDirectory) Register(router *httptreemux.TreeMux) {
 	var keys []DirectoryKey
-	routes := routeDir.routes
+	routes := routeDir.Routes
 
 	for k := range routes {
 		keys = append(keys, k)

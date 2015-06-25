@@ -10,7 +10,6 @@ func init() {
 	ModelDirectory.Register(Account{}, "accounts", relations)
 }
 
-//+gen repository:"Create,CreateOne,Find,FindByID,Update,UpdateByID,DeleteAll,DeleteByID,Raw"
 type Account struct {
 	GormModel
 	Users        []User        `json:"users,omitempty"`
@@ -19,30 +18,20 @@ type Account struct {
 }
 
 func (m *Account) SetRelatedID(idKey string, id int) {
-}
-
-func (m *Account) ScopeModel() error {
-	m.Users = []User{}
-	m.Sessions = []Session{}
-	m.RoleMappings = []RoleMapping{}
-
-	return nil
+	switch idKey {
+	}
 }
 
 func (m *Account) BeforeRender() {
-	users := m.Users
-	sessions := m.Sessions
-	roleMappings := m.RoleMappings
-
-	for i := range users {
-		(&users[i]).BeforeRender()
+	for i := range m.Users {
+		(&m.Users[i]).BeforeRender()
 	}
 
-	for i := range sessions {
-		(&sessions[i]).BeforeRender()
+	for i := range m.Sessions {
+		(&m.Sessions[i]).BeforeRender()
 	}
 
-	for i := range roleMappings {
-		(&roleMappings[i]).BeforeRender()
+	for i := range m.RoleMappings {
+		(&m.RoleMappings[i]).BeforeRender()
 	}
 }

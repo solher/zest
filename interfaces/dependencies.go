@@ -3,10 +3,10 @@ package interfaces
 import (
 	"net/http"
 
+	"github.com/jinzhu/gorm"
 	"github.com/solher/zest/apierrors"
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/usecases"
-	"github.com/jinzhu/gorm"
 )
 
 type (
