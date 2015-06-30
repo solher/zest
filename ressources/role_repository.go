@@ -8,6 +8,7 @@ import (
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -74,7 +75,7 @@ func (r *RoleRepo) FindByID(id int, context usecases.QueryContext) (*domain.Role
 
 	role := domain.Role{}
 
-	err = query.Where("roles.id = ?", id).First(&role).Error
+	err = query.Where(utils.ToDBName("roles")+".id = ?", id).First(&role).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -95,14 +96,21 @@ func (r *RoleRepo) Update(roles []domain.Role, context usecases.QueryContext) ([
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, role := range roles {
+	for _, role := range roles {
 		queryCopy := *query
 		oldRole := domain.Role{}
 
-		err := queryCopy.Where("roles.id = ?", role.ID).First(&oldRole).Updates(roles[i]).Error
+		err = queryCopy.Where(utils.ToDBName("roles")+".id = ?", role.ID).First(&oldRole).Error
 		if err != nil {
-			transaction.Rollback()
+			if strings.Contains(err.Error(), "record not found") {
+				return nil, internalerrors.InsufficentPermissions
+			}
 
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.store.GetDB().Model(&oldRole).Updates(&role).Error
+		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
@@ -125,12 +133,8 @@ func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
 
 	oldRole := domain.Role{}
 
-	err = query.Where("roles.id = ?", id).First(&oldRole).Updates(role).Error
+	err = query.Where(utils.ToDBName("roles")+".id = ?", id).First(&oldRole).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "constraint") {
-			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		}
-
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
 		}
@@ -138,8 +142,13 @@ func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if role.ID == 0 {
-		return nil, internalerrors.InsufficentPermissions
+	err = r.store.GetDB().Model(&oldRole).Updates(&role).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return role, nil
@@ -151,7 +160,18 @@ func (r *RoleRepo) DeleteAll(context usecases.QueryContext) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.Role{}).Error
+	roles := []domain.Role{}
+	err = query.Find(&roles).Error
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
+	roleIDs := []int{}
+	for _, role := range roles {
+		roleIDs = append(roleIDs, role.ID)
+	}
+
+	err = r.store.GetDB().Delete(&roles, utils.ToDBName("roles")+".id IN (?)", roleIDs).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -167,12 +187,17 @@ func (r *RoleRepo) DeleteByID(id int, context usecases.QueryContext) error {
 
 	role := &domain.Role{}
 
-	err = query.Where("roles.id = ?", id).First(&role).Delete(domain.Role{}).Error
+	err = query.Where(utils.ToDBName("roles")+".id = ?", id).First(&role).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
 		}
 
+		return internalerrors.DatabaseError
+	}
+
+	err = r.store.GetDB().Where(utils.ToDBName("roles")+".id = ?", role.ID).Delete(domain.Role{}).Error
+	if err != nil {
 		return internalerrors.DatabaseError
 	}
 

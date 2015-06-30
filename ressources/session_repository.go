@@ -8,6 +8,7 @@ import (
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -74,7 +75,7 @@ func (r *SessionRepo) FindByID(id int, context usecases.QueryContext) (*domain.S
 
 	session := domain.Session{}
 
-	err = query.Where("sessions.id = ?", id).First(&session).Error
+	err = query.Where(utils.ToDBName("sessions")+".id = ?", id).First(&session).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -95,14 +96,21 @@ func (r *SessionRepo) Update(sessions []domain.Session, context usecases.QueryCo
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, session := range sessions {
+	for _, session := range sessions {
 		queryCopy := *query
 		oldSession := domain.Session{}
 
-		err := queryCopy.Where("sessions.id = ?", session.ID).First(&oldSession).Updates(sessions[i]).Error
+		err = queryCopy.Where(utils.ToDBName("sessions")+".id = ?", session.ID).First(&oldSession).Error
 		if err != nil {
-			transaction.Rollback()
+			if strings.Contains(err.Error(), "record not found") {
+				return nil, internalerrors.InsufficentPermissions
+			}
 
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.store.GetDB().Model(&oldSession).Updates(&session).Error
+		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
@@ -125,12 +133,8 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 
 	oldSession := domain.Session{}
 
-	err = query.Where("sessions.id = ?", id).First(&oldSession).Updates(session).Error
+	err = query.Where(utils.ToDBName("sessions")+".id = ?", id).First(&oldSession).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "constraint") {
-			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		}
-
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
 		}
@@ -138,8 +142,13 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if session.ID == 0 {
-		return nil, internalerrors.InsufficentPermissions
+	err = r.store.GetDB().Model(&oldSession).Updates(&session).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return session, nil
@@ -151,7 +160,18 @@ func (r *SessionRepo) DeleteAll(context usecases.QueryContext) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.Session{}).Error
+	sessions := []domain.Session{}
+	err = query.Find(&sessions).Error
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
+	sessionIDs := []int{}
+	for _, session := range sessions {
+		sessionIDs = append(sessionIDs, session.ID)
+	}
+
+	err = r.store.GetDB().Delete(&sessions, utils.ToDBName("sessions")+".id IN (?)", sessionIDs).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -167,12 +187,17 @@ func (r *SessionRepo) DeleteByID(id int, context usecases.QueryContext) error {
 
 	session := &domain.Session{}
 
-	err = query.Where("sessions.id = ?", id).First(&session).Delete(domain.Session{}).Error
+	err = query.Where(utils.ToDBName("sessions")+".id = ?", id).First(&session).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
 		}
 
+		return internalerrors.DatabaseError
+	}
+
+	err = r.store.GetDB().Where(utils.ToDBName("sessions")+".id = ?", session.ID).Delete(domain.Session{}).Error
+	if err != nil {
 		return internalerrors.DatabaseError
 	}
 

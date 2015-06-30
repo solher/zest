@@ -8,6 +8,7 @@ import (
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -74,7 +75,7 @@ func (r *RoleMappingRepo) FindByID(id int, context usecases.QueryContext) (*doma
 
 	roleMapping := domain.RoleMapping{}
 
-	err = query.Where("roleMappings.id = ?", id).First(&roleMapping).Error
+	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -95,14 +96,21 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, roleMapping := range roleMappings {
+	for _, roleMapping := range roleMappings {
 		queryCopy := *query
 		oldRoleMapping := domain.RoleMapping{}
 
-		err := queryCopy.Where("roleMappings.id = ?", roleMapping.ID).First(&oldRoleMapping).Updates(roleMappings[i]).Error
+		err = queryCopy.Where(utils.ToDBName("roleMappings")+".id = ?", roleMapping.ID).First(&oldRoleMapping).Error
 		if err != nil {
-			transaction.Rollback()
+			if strings.Contains(err.Error(), "record not found") {
+				return nil, internalerrors.InsufficentPermissions
+			}
 
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.store.GetDB().Model(&oldRoleMapping).Updates(&roleMapping).Error
+		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
@@ -125,12 +133,8 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 
 	oldRoleMapping := domain.RoleMapping{}
 
-	err = query.Where("roleMappings.id = ?", id).First(&oldRoleMapping).Updates(roleMapping).Error
+	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&oldRoleMapping).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "constraint") {
-			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		}
-
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
 		}
@@ -138,8 +142,13 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if roleMapping.ID == 0 {
-		return nil, internalerrors.InsufficentPermissions
+	err = r.store.GetDB().Model(&oldRoleMapping).Updates(&roleMapping).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return roleMapping, nil
@@ -151,7 +160,18 @@ func (r *RoleMappingRepo) DeleteAll(context usecases.QueryContext) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.RoleMapping{}).Error
+	roleMappings := []domain.RoleMapping{}
+	err = query.Find(&roleMappings).Error
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
+	roleMappingIDs := []int{}
+	for _, roleMapping := range roleMappings {
+		roleMappingIDs = append(roleMappingIDs, roleMapping.ID)
+	}
+
+	err = r.store.GetDB().Delete(&roleMappings, utils.ToDBName("roleMappings")+".id IN (?)", roleMappingIDs).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -167,12 +187,17 @@ func (r *RoleMappingRepo) DeleteByID(id int, context usecases.QueryContext) erro
 
 	roleMapping := &domain.RoleMapping{}
 
-	err = query.Where("roleMappings.id = ?", id).First(&roleMapping).Delete(domain.RoleMapping{}).Error
+	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
 		}
 
+		return internalerrors.DatabaseError
+	}
+
+	err = r.store.GetDB().Where(utils.ToDBName("roleMappings")+".id = ?", roleMapping.ID).Delete(domain.RoleMapping{}).Error
+	if err != nil {
 		return internalerrors.DatabaseError
 	}
 

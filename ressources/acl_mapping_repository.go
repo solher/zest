@@ -8,6 +8,7 @@ import (
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -74,7 +75,7 @@ func (r *AclMappingRepo) FindByID(id int, context usecases.QueryContext) (*domai
 
 	aclMapping := domain.AclMapping{}
 
-	err = query.Where("aclMappings.id = ?", id).First(&aclMapping).Error
+	err = query.Where(utils.ToDBName("aclMappings")+".id = ?", id).First(&aclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -95,14 +96,21 @@ func (r *AclMappingRepo) Update(aclMappings []domain.AclMapping, context usecase
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, aclMapping := range aclMappings {
+	for _, aclMapping := range aclMappings {
 		queryCopy := *query
 		oldAclMapping := domain.AclMapping{}
 
-		err := queryCopy.Where("aclMappings.id = ?", aclMapping.ID).First(&oldAclMapping).Updates(aclMappings[i]).Error
+		err = queryCopy.Where(utils.ToDBName("aclMappings")+".id = ?", aclMapping.ID).First(&oldAclMapping).Error
 		if err != nil {
-			transaction.Rollback()
+			if strings.Contains(err.Error(), "record not found") {
+				return nil, internalerrors.InsufficentPermissions
+			}
 
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.store.GetDB().Model(&oldAclMapping).Updates(&aclMapping).Error
+		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
@@ -125,12 +133,8 @@ func (r *AclMappingRepo) UpdateByID(id int, aclMapping *domain.AclMapping,
 
 	oldAclMapping := domain.AclMapping{}
 
-	err = query.Where("aclMappings.id = ?", id).First(&oldAclMapping).Updates(aclMapping).Error
+	err = query.Where(utils.ToDBName("aclMappings")+".id = ?", id).First(&oldAclMapping).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "constraint") {
-			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		}
-
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
 		}
@@ -138,8 +142,13 @@ func (r *AclMappingRepo) UpdateByID(id int, aclMapping *domain.AclMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if aclMapping.ID == 0 {
-		return nil, internalerrors.InsufficentPermissions
+	err = r.store.GetDB().Model(&oldAclMapping).Updates(&aclMapping).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return aclMapping, nil
@@ -151,7 +160,18 @@ func (r *AclMappingRepo) DeleteAll(context usecases.QueryContext) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.AclMapping{}).Error
+	aclMappings := []domain.AclMapping{}
+	err = query.Find(&aclMappings).Error
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
+	aclMappingIDs := []int{}
+	for _, aclMapping := range aclMappings {
+		aclMappingIDs = append(aclMappingIDs, aclMapping.ID)
+	}
+
+	err = r.store.GetDB().Delete(&aclMappings, utils.ToDBName("aclMappings")+".id IN (?)", aclMappingIDs).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -167,12 +187,17 @@ func (r *AclMappingRepo) DeleteByID(id int, context usecases.QueryContext) error
 
 	aclMapping := &domain.AclMapping{}
 
-	err = query.Where("aclMappings.id = ?", id).First(&aclMapping).Delete(domain.AclMapping{}).Error
+	err = query.Where(utils.ToDBName("aclMappings")+".id = ?", id).First(&aclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
 		}
 
+		return internalerrors.DatabaseError
+	}
+
+	err = r.store.GetDB().Where(utils.ToDBName("aclMappings")+".id = ?", aclMapping.ID).Delete(domain.AclMapping{}).Error
+	if err != nil {
 		return internalerrors.DatabaseError
 	}
 

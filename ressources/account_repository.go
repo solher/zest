@@ -8,6 +8,7 @@ import (
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -74,7 +75,7 @@ func (r *AccountRepo) FindByID(id int, context usecases.QueryContext) (*domain.A
 
 	account := domain.Account{}
 
-	err = query.Where("accounts.id = ?", id).First(&account).Error
+	err = query.Where(utils.ToDBName("accounts")+".id = ?", id).First(&account).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -95,14 +96,21 @@ func (r *AccountRepo) Update(accounts []domain.Account, context usecases.QueryCo
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, account := range accounts {
+	for _, account := range accounts {
 		queryCopy := *query
 		oldAccount := domain.Account{}
 
-		err := queryCopy.Where("accounts.id = ?", account.ID).First(&oldAccount).Updates(accounts[i]).Error
+		err = queryCopy.Where(utils.ToDBName("accounts")+".id = ?", account.ID).First(&oldAccount).Error
 		if err != nil {
-			transaction.Rollback()
+			if strings.Contains(err.Error(), "record not found") {
+				return nil, internalerrors.InsufficentPermissions
+			}
 
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.store.GetDB().Model(&oldAccount).Updates(&account).Error
+		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
@@ -125,12 +133,8 @@ func (r *AccountRepo) UpdateByID(id int, account *domain.Account,
 
 	oldAccount := domain.Account{}
 
-	err = query.Where("accounts.id = ?", id).First(&oldAccount).Updates(account).Error
+	err = query.Where(utils.ToDBName("accounts")+".id = ?", id).First(&oldAccount).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "constraint") {
-			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		}
-
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
 		}
@@ -138,8 +142,13 @@ func (r *AccountRepo) UpdateByID(id int, account *domain.Account,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if account.ID == 0 {
-		return nil, internalerrors.InsufficentPermissions
+	err = r.store.GetDB().Model(&oldAccount).Updates(&account).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return account, nil
@@ -151,7 +160,18 @@ func (r *AccountRepo) DeleteAll(context usecases.QueryContext) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.Account{}).Error
+	accounts := []domain.Account{}
+	err = query.Find(&accounts).Error
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
+	accountIDs := []int{}
+	for _, account := range accounts {
+		accountIDs = append(accountIDs, account.ID)
+	}
+
+	err = r.store.GetDB().Delete(&accounts, utils.ToDBName("accounts")+".id IN (?)", accountIDs).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -167,12 +187,17 @@ func (r *AccountRepo) DeleteByID(id int, context usecases.QueryContext) error {
 
 	account := &domain.Account{}
 
-	err = query.Where("accounts.id = ?", id).First(&account).Delete(domain.Account{}).Error
+	err = query.Where(utils.ToDBName("accounts")+".id = ?", id).First(&account).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
 		}
 
+		return internalerrors.DatabaseError
+	}
+
+	err = r.store.GetDB().Where(utils.ToDBName("accounts")+".id = ?", account.ID).Delete(domain.Account{}).Error
+	if err != nil {
 		return internalerrors.DatabaseError
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -74,7 +75,7 @@ func (r *AclRepo) FindByID(id int, context usecases.QueryContext) (*domain.Acl, 
 
 	acl := domain.Acl{}
 
-	err = query.Where("acls.id = ?", id).First(&acl).Error
+	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&acl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
@@ -95,14 +96,21 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 		return nil, internalerrors.DatabaseError
 	}
 
-	for i, acl := range acls {
+	for _, acl := range acls {
 		queryCopy := *query
 		oldAcl := domain.Acl{}
 
-		err := queryCopy.Where("acls.id = ?", acl.ID).First(&oldAcl).Updates(acls[i]).Error
+		err = queryCopy.Where(utils.ToDBName("acls")+".id = ?", acl.ID).First(&oldAcl).Error
 		if err != nil {
-			transaction.Rollback()
+			if strings.Contains(err.Error(), "record not found") {
+				return nil, internalerrors.InsufficentPermissions
+			}
 
+			return nil, internalerrors.DatabaseError
+		}
+
+		err = r.store.GetDB().Model(&oldAcl).Updates(&acl).Error
+		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
 			}
@@ -125,12 +133,8 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 
 	oldAcl := domain.Acl{}
 
-	err = query.Where("acls.id = ?", id).First(&oldAcl).Updates(acl).Error
+	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&oldAcl).Error
 	if err != nil {
-		if strings.Contains(err.Error(), "constraint") {
-			return nil, internalerrors.NewViolatedConstraint(err.Error())
-		}
-
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.InsufficentPermissions
 		}
@@ -138,8 +142,13 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 		return nil, internalerrors.DatabaseError
 	}
 
-	if acl.ID == 0 {
-		return nil, internalerrors.InsufficentPermissions
+	err = r.store.GetDB().Model(&oldAcl).Updates(&acl).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
 	}
 
 	return acl, nil
@@ -151,7 +160,18 @@ func (r *AclRepo) DeleteAll(context usecases.QueryContext) error {
 		return internalerrors.DatabaseError
 	}
 
-	err = query.Delete(domain.Acl{}).Error
+	acls := []domain.Acl{}
+	err = query.Find(&acls).Error
+	if err != nil {
+		return internalerrors.DatabaseError
+	}
+
+	aclIDs := []int{}
+	for _, acl := range acls {
+		aclIDs = append(aclIDs, acl.ID)
+	}
+
+	err = r.store.GetDB().Delete(&acls, utils.ToDBName("acls")+".id IN (?)", aclIDs).Error
 	if err != nil {
 		return internalerrors.DatabaseError
 	}
@@ -167,12 +187,17 @@ func (r *AclRepo) DeleteByID(id int, context usecases.QueryContext) error {
 
 	acl := &domain.Acl{}
 
-	err = query.Where("acls.id = ?", id).First(&acl).Delete(domain.Acl{}).Error
+	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&acl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return internalerrors.InsufficentPermissions
 		}
 
+		return internalerrors.DatabaseError
+	}
+
+	err = r.store.GetDB().Where(utils.ToDBName("acls")+".id = ?", acl.ID).Delete(domain.Acl{}).Error
+	if err != nil {
 		return internalerrors.DatabaseError
 	}
 
