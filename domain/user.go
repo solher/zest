@@ -26,5 +26,6 @@ func (m *User) SetRelatedID(idKey string, id int) {
 }
 
 func (m *User) BeforeRender() {
+	m.Password = ""
 	m.Account.BeforeRender()
 }

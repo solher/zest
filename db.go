@@ -36,12 +36,12 @@ func updateDatabase(z *Zest) error {
 
 	err = d.Store.MigrateTables(domain.ModelDirectory.Models)
 	if err != nil {
-		return errors.New("Could not migrate database.")
+		return errors.New("Could not migrate database: " + err.Error())
 	}
 
-	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
+	err = d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
 	if err != nil {
-		return errors.New("Could not refresh ACLs from routes.")
+		return errors.New("Could not refresh ACLs from routes: " + err.Error())
 	}
 
 	d.Store.Close()
@@ -147,7 +147,10 @@ func seedDatabase(z *Zest) error {
 		return err
 	}
 
-	d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
+	err = d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
+	if err != nil {
+		return err
+	}
 
 	d.Store.Close()
 
