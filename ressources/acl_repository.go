@@ -47,8 +47,12 @@ func (r *AclRepo) Create(acls []domain.Acl) ([]domain.Acl, error) {
 }
 
 func (r *AclRepo) CreateOne(acl *domain.Acl) (*domain.Acl, error) {
-	r.Create([]domain.Acl{*acl})
-	return acl, nil
+	acls, err := r.Create([]domain.Acl{*acl})
+	if err != nil {
+		return nil, err
+	}
+
+	return &acls[0], nil
 }
 
 func (r *AclRepo) Find(context usecases.QueryContext) ([]domain.Acl, error) {
@@ -78,7 +82,7 @@ func (r *AclRepo) FindByID(id int, context usecases.QueryContext) (*domain.Acl, 
 	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&acl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -103,7 +107,7 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 		err = queryCopy.Where(utils.ToDBName("acls")+".id = ?", acl.ID).First(&oldAcl).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
-				return nil, internalerrors.InsufficentPermissions
+				return nil, internalerrors.NotFound
 			}
 
 			return nil, internalerrors.DatabaseError
@@ -136,7 +140,7 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&oldAcl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -190,7 +194,7 @@ func (r *AclRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&acl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return internalerrors.InsufficentPermissions
+			return internalerrors.NotFound
 		}
 
 		return internalerrors.DatabaseError

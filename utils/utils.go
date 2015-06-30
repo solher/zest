@@ -112,5 +112,6 @@ func Dump(obj interface{}) {
 }
 
 func DumpPanic(obj interface{}) {
-	panic(fmt.Sprintf("Dump:", obj))
+	fmt.Println("Dump:", obj)
+	panic("")
 }

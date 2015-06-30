@@ -136,7 +136,7 @@ func (c *RoleMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, param
 	roleMapping, err := c.interactor.FindByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -184,7 +184,7 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 		}
 
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -228,7 +228,7 @@ func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, par
 
 	if err != nil {
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -273,7 +273,7 @@ func (c *RoleMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, par
 	err = c.interactor.DeleteByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)

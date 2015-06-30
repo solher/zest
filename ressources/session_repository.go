@@ -47,8 +47,12 @@ func (r *SessionRepo) Create(sessions []domain.Session) ([]domain.Session, error
 }
 
 func (r *SessionRepo) CreateOne(session *domain.Session) (*domain.Session, error) {
-	r.Create([]domain.Session{*session})
-	return session, nil
+	sessions, err := r.Create([]domain.Session{*session})
+	if err != nil {
+		return nil, err
+	}
+
+	return &sessions[0], nil
 }
 
 func (r *SessionRepo) Find(context usecases.QueryContext) ([]domain.Session, error) {
@@ -78,7 +82,7 @@ func (r *SessionRepo) FindByID(id int, context usecases.QueryContext) (*domain.S
 	err = query.Where(utils.ToDBName("sessions")+".id = ?", id).First(&session).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -103,7 +107,7 @@ func (r *SessionRepo) Update(sessions []domain.Session, context usecases.QueryCo
 		err = queryCopy.Where(utils.ToDBName("sessions")+".id = ?", session.ID).First(&oldSession).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
-				return nil, internalerrors.InsufficentPermissions
+				return nil, internalerrors.NotFound
 			}
 
 			return nil, internalerrors.DatabaseError
@@ -136,7 +140,7 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 	err = query.Where(utils.ToDBName("sessions")+".id = ?", id).First(&oldSession).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -190,7 +194,7 @@ func (r *SessionRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	err = query.Where(utils.ToDBName("sessions")+".id = ?", id).First(&session).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return internalerrors.InsufficentPermissions
+			return internalerrors.NotFound
 		}
 
 		return internalerrors.DatabaseError

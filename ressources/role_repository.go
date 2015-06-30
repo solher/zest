@@ -47,8 +47,12 @@ func (r *RoleRepo) Create(roles []domain.Role) ([]domain.Role, error) {
 }
 
 func (r *RoleRepo) CreateOne(role *domain.Role) (*domain.Role, error) {
-	r.Create([]domain.Role{*role})
-	return role, nil
+	roles, err := r.Create([]domain.Role{*role})
+	if err != nil {
+		return nil, err
+	}
+
+	return &roles[0], nil
 }
 
 func (r *RoleRepo) Find(context usecases.QueryContext) ([]domain.Role, error) {
@@ -78,7 +82,7 @@ func (r *RoleRepo) FindByID(id int, context usecases.QueryContext) (*domain.Role
 	err = query.Where(utils.ToDBName("roles")+".id = ?", id).First(&role).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -103,7 +107,7 @@ func (r *RoleRepo) Update(roles []domain.Role, context usecases.QueryContext) ([
 		err = queryCopy.Where(utils.ToDBName("roles")+".id = ?", role.ID).First(&oldRole).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
-				return nil, internalerrors.InsufficentPermissions
+				return nil, internalerrors.NotFound
 			}
 
 			return nil, internalerrors.DatabaseError
@@ -136,7 +140,7 @@ func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
 	err = query.Where(utils.ToDBName("roles")+".id = ?", id).First(&oldRole).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -190,7 +194,7 @@ func (r *RoleRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	err = query.Where(utils.ToDBName("roles")+".id = ?", id).First(&role).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return internalerrors.InsufficentPermissions
+			return internalerrors.NotFound
 		}
 
 		return internalerrors.DatabaseError

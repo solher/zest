@@ -38,13 +38,13 @@ func (p *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 	}
 
 	if len(roleNames) == 0 {
-		p.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.InsufficentPermissions)
+		p.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.NotFound)
 		return
 	}
 
 	if len(roleNames) == 1 && roleNames[0] == "Owner" {
 		if context.Get(r, "lastRessource") == nil && (p.method == "Create" || p.method == "Upsert") {
-			p.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.InsufficentPermissions)
+			p.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, internalerrors.NotFound)
 			return
 		}
 

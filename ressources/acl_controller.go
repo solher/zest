@@ -136,7 +136,7 @@ func (c *AclCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[st
 	acl, err := c.interactor.FindByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -184,7 +184,7 @@ func (c *AclCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]st
 		}
 
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -228,7 +228,7 @@ func (c *AclCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[
 
 	if err != nil {
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
@@ -273,7 +273,7 @@ func (c *AclCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[
 	err = c.interactor.DeleteByID(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	if err != nil {
 		switch err {
-		case internalerrors.InsufficentPermissions:
+		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)

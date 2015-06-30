@@ -44,25 +44,6 @@ func PopulateAclInter(aclInter *AclInter, repo AbstractAclRepo, aclMappingInter 
 	}
 }
 
-func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
-	acls, err := i.BeforeCreate(acls)
-	if err != nil {
-		return nil, err
-	}
-
-	acls, err = i.repo.Create(acls)
-	if err != nil {
-		return nil, err
-	}
-
-	acls, err = i.AfterCreate(acls)
-	if err != nil {
-		return nil, err
-	}
-
-	return acls, nil
-}
-
 func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.Route) error {
 	for dirKey, route := range routes {
 		if !route.CheckPermissions {
@@ -112,6 +93,25 @@ func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.R
 	}
 
 	return nil
+}
+
+func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {
+	acls, err := i.BeforeCreate(acls)
+	if err != nil {
+		return nil, err
+	}
+
+	acls, err = i.repo.Create(acls)
+	if err != nil {
+		return nil, err
+	}
+
+	acls, err = i.AfterCreate(acls)
+	if err != nil {
+		return nil, err
+	}
+
+	return acls, nil
 }
 
 func (i *AclInter) CreateOne(acl *domain.Acl) (*domain.Acl, error) {

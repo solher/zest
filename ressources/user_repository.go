@@ -47,8 +47,12 @@ func (r *UserRepo) Create(users []domain.User) ([]domain.User, error) {
 }
 
 func (r *UserRepo) CreateOne(user *domain.User) (*domain.User, error) {
-	r.Create([]domain.User{*user})
-	return user, nil
+	users, err := r.Create([]domain.User{*user})
+	if err != nil {
+		return nil, err
+	}
+
+	return &users[0], nil
 }
 
 func (r *UserRepo) Find(context usecases.QueryContext) ([]domain.User, error) {
@@ -78,7 +82,7 @@ func (r *UserRepo) FindByID(id int, context usecases.QueryContext) (*domain.User
 	err = query.Where(utils.ToDBName("users")+".id = ?", id).First(&user).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -103,7 +107,7 @@ func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([
 		err = queryCopy.Where(utils.ToDBName("users")+".id = ?", user.ID).First(&oldUser).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
-				return nil, internalerrors.InsufficentPermissions
+				return nil, internalerrors.NotFound
 			}
 
 			return nil, internalerrors.DatabaseError
@@ -136,7 +140,7 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 	err = query.Where(utils.ToDBName("users")+".id = ?", id).First(&oldUser).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -190,7 +194,7 @@ func (r *UserRepo) DeleteByID(id int, context usecases.QueryContext) error {
 	err = query.Where(utils.ToDBName("users")+".id = ?", id).First(&user).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return internalerrors.InsufficentPermissions
+			return internalerrors.NotFound
 		}
 
 		return internalerrors.DatabaseError

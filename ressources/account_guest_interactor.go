@@ -42,13 +42,13 @@ func (i *AccountGuestInter) Signin(ip, userAgent string, credentials *Credential
 	}
 
 	if len(users) == 0 {
-		return nil, internalerrors.RessourceNotFound
+		return nil, internalerrors.NotFound
 	}
 	user := users[0]
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
 	if err != nil {
-		return nil, internalerrors.RessourceNotFound
+		return nil, internalerrors.NotFound
 	}
 
 	authToken := utils.RandStr(64, "alphanum")

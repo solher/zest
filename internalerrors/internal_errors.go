@@ -9,10 +9,9 @@ func (internalError *InternalError) Error() string {
 }
 
 var (
-	RessourceNotFound      = &InternalError{Description: "The specified ressource was not found."}
-	DatabaseError          = &InternalError{Description: "A database error occured."}
-	InsufficentPermissions = &InternalError{Description: "You do not have sufficient permissions."}
-	Undefined              = &InternalError{Description: "Undefined error."}
+	DatabaseError = &InternalError{Description: "A database error occured."}
+	NotFound      = &InternalError{Description: "The specified ressource was not found or you do not have sufficient permissions."}
+	Undefined     = &InternalError{Description: "Undefined error."}
 )
 
 type ViolatedConstraint struct {

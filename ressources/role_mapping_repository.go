@@ -47,8 +47,12 @@ func (r *RoleMappingRepo) Create(roleMappings []domain.RoleMapping) ([]domain.Ro
 }
 
 func (r *RoleMappingRepo) CreateOne(roleMapping *domain.RoleMapping) (*domain.RoleMapping, error) {
-	r.Create([]domain.RoleMapping{*roleMapping})
-	return roleMapping, nil
+	roleMappings, err := r.Create([]domain.RoleMapping{*roleMapping})
+	if err != nil {
+		return nil, err
+	}
+
+	return &roleMappings[0], nil
 }
 
 func (r *RoleMappingRepo) Find(context usecases.QueryContext) ([]domain.RoleMapping, error) {
@@ -78,7 +82,7 @@ func (r *RoleMappingRepo) FindByID(id int, context usecases.QueryContext) (*doma
 	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -103,7 +107,7 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 		err = queryCopy.Where(utils.ToDBName("roleMappings")+".id = ?", roleMapping.ID).First(&oldRoleMapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
-				return nil, internalerrors.InsufficentPermissions
+				return nil, internalerrors.NotFound
 			}
 
 			return nil, internalerrors.DatabaseError
@@ -136,7 +140,7 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&oldRoleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -190,7 +194,7 @@ func (r *RoleMappingRepo) DeleteByID(id int, context usecases.QueryContext) erro
 	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return internalerrors.InsufficentPermissions
+			return internalerrors.NotFound
 		}
 
 		return internalerrors.DatabaseError

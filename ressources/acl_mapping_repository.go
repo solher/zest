@@ -47,8 +47,12 @@ func (r *AclMappingRepo) Create(aclMappings []domain.AclMapping) ([]domain.AclMa
 }
 
 func (r *AclMappingRepo) CreateOne(aclMapping *domain.AclMapping) (*domain.AclMapping, error) {
-	r.Create([]domain.AclMapping{*aclMapping})
-	return aclMapping, nil
+	aclMappings, err := r.Create([]domain.AclMapping{*aclMapping})
+	if err != nil {
+		return nil, err
+	}
+
+	return &aclMappings[0], nil
 }
 
 func (r *AclMappingRepo) Find(context usecases.QueryContext) ([]domain.AclMapping, error) {
@@ -78,7 +82,7 @@ func (r *AclMappingRepo) FindByID(id int, context usecases.QueryContext) (*domai
 	err = query.Where(utils.ToDBName("aclMappings")+".id = ?", id).First(&aclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -103,7 +107,7 @@ func (r *AclMappingRepo) Update(aclMappings []domain.AclMapping, context usecase
 		err = queryCopy.Where(utils.ToDBName("aclMappings")+".id = ?", aclMapping.ID).First(&oldAclMapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
-				return nil, internalerrors.InsufficentPermissions
+				return nil, internalerrors.NotFound
 			}
 
 			return nil, internalerrors.DatabaseError
@@ -136,7 +140,7 @@ func (r *AclMappingRepo) UpdateByID(id int, aclMapping *domain.AclMapping,
 	err = query.Where(utils.ToDBName("aclMappings")+".id = ?", id).First(&oldAclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, internalerrors.InsufficentPermissions
+			return nil, internalerrors.NotFound
 		}
 
 		return nil, internalerrors.DatabaseError
@@ -190,7 +194,7 @@ func (r *AclMappingRepo) DeleteByID(id int, context usecases.QueryContext) error
 	err = query.Where(utils.ToDBName("aclMappings")+".id = ?", id).First(&aclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return internalerrors.InsufficentPermissions
+			return internalerrors.NotFound
 		}
 
 		return internalerrors.DatabaseError
