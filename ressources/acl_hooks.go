@@ -7,7 +7,6 @@ import (
 )
 
 func (i *AclInter) scopeModel(acl *domain.Acl) error {
-	acl.ID = 0
 	acl.CreatedAt = time.Time{}
 	acl.UpdatedAt = time.Time{}
 	acl.AclMappings = []domain.AclMapping{}
@@ -17,6 +16,7 @@ func (i *AclInter) scopeModel(acl *domain.Acl) error {
 
 func (i *AclInter) BeforeCreate(acls []domain.Acl) ([]domain.Acl, error) {
 	for k := range acls {
+		acls[k].ID = 0
 		err := i.scopeModel(&acls[k])
 		if err != nil {
 			return nil, err
@@ -30,6 +30,12 @@ func (i *AclInter) AfterCreate(acls []domain.Acl) ([]domain.Acl, error) {
 }
 
 func (i *AclInter) BeforeUpdate(acls []domain.Acl) ([]domain.Acl, error) {
+	for k := range acls {
+		err := i.scopeModel(&acls[k])
+		if err != nil {
+			return nil, err
+		}
+	}
 	return acls, nil
 }
 

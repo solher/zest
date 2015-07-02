@@ -2,8 +2,8 @@ package domain
 
 func init() {
 	relations := []DBRelation{
-		{Related: "RoleMappings"},
-		{Related: "AclMappings"},
+		{Related: "roleMappings"},
+		{Related: "aclMappings"},
 	}
 
 	ModelDirectory.Register(Role{}, "roles", relations)
@@ -11,9 +11,9 @@ func init() {
 
 type Role struct {
 	GormModel
-	Name         string        `json:"name,omitempty"`
-	RoleMappings []RoleMapping `json:"RoleMappings,omitempty"`
-	AclMappings  []AclMapping  `json:"AclMappings,omitempty"`
+	Name         string        `json:"name"`
+	RoleMappings []RoleMapping `json:"roleMappings,omitempty"`
+	AclMappings  []AclMapping  `json:"aclMappings,omitempty"`
 }
 
 func (m *Role) SetRelatedID(idKey string, id int) {

@@ -7,7 +7,6 @@ import (
 )
 
 func (i *SessionInter) scopeModel(session *domain.Session) error {
-	session.ID = 0
 	session.CreatedAt = time.Time{}
 	session.UpdatedAt = time.Time{}
 	session.Account = domain.Account{}
@@ -33,6 +32,7 @@ func (i *SessionInter) removeFromCache(session *domain.Session) error {
 
 func (i *SessionInter) BeforeCreate(sessions []domain.Session) ([]domain.Session, error) {
 	for k := range sessions {
+		sessions[k].ID = 0
 		err := i.scopeModel(&sessions[k])
 		if err != nil {
 			return nil, err
@@ -52,6 +52,12 @@ func (i *SessionInter) AfterCreate(sessions []domain.Session) ([]domain.Session,
 }
 
 func (i *SessionInter) BeforeUpdate(sessions []domain.Session) ([]domain.Session, error) {
+	for k := range sessions {
+		err := i.scopeModel(&sessions[k])
+		if err != nil {
+			return nil, err
+		}
+	}
 	return sessions, nil
 }
 

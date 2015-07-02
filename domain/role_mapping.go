@@ -11,9 +11,9 @@ func init() {
 
 type RoleMapping struct {
 	GormModel
-	AccountID int     `json:"accountId,omitempty" sql:"index"`
+	AccountID int     `json:"accountId" sql:"index"`
 	Account   Account `json:"account,omitempty"`
-	RoleID    int     `json:"roleId,omitempty" sql:"index"`
+	RoleID    int     `json:"roleId" sql:"index"`
 	Role      Role    `json:"role,omitempty"`
 }
 

@@ -7,7 +7,6 @@ import (
 )
 
 func (i *RoleMappingInter) scopeModel(roleMapping *domain.RoleMapping) error {
-	roleMapping.ID = 0
 	roleMapping.CreatedAt = time.Time{}
 	roleMapping.UpdatedAt = time.Time{}
 	roleMapping.Account = domain.Account{}
@@ -27,6 +26,7 @@ func (i *RoleMappingInter) refreshCache(roleMappings *domain.RoleMapping) error 
 
 func (i *RoleMappingInter) BeforeCreate(roleMappings []domain.RoleMapping) ([]domain.RoleMapping, error) {
 	for k := range roleMappings {
+		roleMappings[k].ID = 0
 		err := i.scopeModel(&roleMappings[k])
 		if err != nil {
 			return nil, err
@@ -46,6 +46,12 @@ func (i *RoleMappingInter) AfterCreate(roleMappings []domain.RoleMapping) ([]dom
 }
 
 func (i *RoleMappingInter) BeforeUpdate(roleMappings []domain.RoleMapping) ([]domain.RoleMapping, error) {
+	for k := range roleMappings {
+		err := i.scopeModel(&roleMappings[k])
+		if err != nil {
+			return nil, err
+		}
+	}
 	return roleMappings, nil
 }
 

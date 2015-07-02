@@ -317,6 +317,12 @@ func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 }
 
 func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	pk, err := strconv.Atoi(params["pk"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
 	params["id"] = params["fk"]
 
 	related := params["related"]
@@ -335,6 +341,8 @@ func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 		c.render.JSON(w, http.StatusNotFound, nil)
 		return
 	}
+
+	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "sessionID", ID: pk})
 
 	handler(w, r, params)
 }

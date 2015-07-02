@@ -509,6 +509,27 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 }
 
 func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	var (
+		pk  int
+		err error
+	)
+
+	if params["pk"] == "me" {
+		sessionCtx := context.Get(r, "currentSession")
+		if sessionCtx == nil {
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+			return
+		}
+
+		pk = sessionCtx.(domain.Session).AccountID
+	} else {
+		pk, err = strconv.Atoi(params["pk"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
+	}
+
 	params["id"] = params["fk"]
 
 	related := params["related"]
@@ -521,12 +542,16 @@ func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
 	case "DELETE":
 		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("UpdateByID")).EffectiveHandler
 	}
 
 	if handler == nil {
 		c.render.JSON(w, http.StatusNotFound, nil)
 		return
 	}
+
+	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "accountID", ID: pk})
 
 	handler(w, r, params)
 }

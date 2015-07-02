@@ -4,7 +4,7 @@ import "time"
 
 func init() {
 	relations := []DBRelation{
-		{Related: "Accounts", Fk: "AccountId"},
+		{Related: "accounts", Fk: "accountId"},
 	}
 
 	ModelDirectory.Register(Session{}, "sessions", relations)
@@ -12,18 +12,18 @@ func init() {
 
 type Session struct {
 	GormModel
-	AuthToken string    `json:"authToken,omitempty"`
-	IP        string    `json:"ip,omitempty"`
-	Agent     string    `json:"agent,omitempty"`
-	ValidTo   time.Time `json:"validTo,omitempty"`
-	DeletedAt time.Time `json:"deletedAt,omitempty"`
-	AccountID int       `json:"AccountId,omitempty" sql:"index"`
-	Account   Account   `json:"Account,omitempty"`
+	AuthToken string    `json:"authToken"`
+	IP        string    `json:"ip"`
+	Agent     string    `json:"agent"`
+	ValidTo   time.Time `json:"validTo"`
+	DeletedAt time.Time `json:"deletedAt"`
+	AccountID int       `json:"accountId" sql:"index"`
+	Account   Account   `json:"account,omitempty"`
 }
 
 func (m *Session) SetRelatedID(idKey string, id int) {
 	switch idKey {
-	case "AccountID":
+	case "accountID":
 		m.AccountID = id
 	}
 }

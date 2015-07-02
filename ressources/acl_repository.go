@@ -102,9 +102,8 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 
 	for _, acl := range acls {
 		queryCopy := *query
-		oldAcl := domain.Acl{}
 
-		err = queryCopy.Where(utils.ToDBName("acls")+".id = ?", acl.ID).First(&oldAcl).Error
+		err = queryCopy.Where(utils.ToDBName("acls")+".id = ?", acl.ID).First(&domain.Acl{}).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -113,7 +112,7 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Model(&oldAcl).Updates(&acl).Error
+		err = r.store.GetDB().Model(&domain.Acl{}).Updates(&acl).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -135,9 +134,7 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 		return nil, internalerrors.DatabaseError
 	}
 
-	oldAcl := domain.Acl{}
-
-	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&oldAcl).Error
+	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&domain.Acl{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -146,7 +143,7 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Model(&oldAcl).Updates(&acl).Error
+	err = r.store.GetDB().Model(&domain.Acl{}).Updates(&acl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

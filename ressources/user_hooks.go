@@ -9,7 +9,6 @@ import (
 )
 
 func (i *UserInter) scopeModel(user *domain.User) error {
-	user.ID = 0
 	user.CreatedAt = time.Time{}
 	user.UpdatedAt = time.Time{}
 	user.Account = domain.Account{}
@@ -28,6 +27,7 @@ func (i *UserInter) scopeModel(user *domain.User) error {
 
 func (i *UserInter) BeforeCreate(users []domain.User) ([]domain.User, error) {
 	for k := range users {
+		users[k].ID = 0
 		err := i.scopeModel(&users[k])
 		if err != nil {
 			return nil, err
@@ -41,6 +41,12 @@ func (i *UserInter) AfterCreate(users []domain.User) ([]domain.User, error) {
 }
 
 func (i *UserInter) BeforeUpdate(users []domain.User) ([]domain.User, error) {
+	for k := range users {
+		err := i.scopeModel(&users[k])
+		if err != nil {
+			return nil, err
+		}
+	}
 	return users, nil
 }
 

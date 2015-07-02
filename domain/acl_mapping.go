@@ -11,9 +11,9 @@ func init() {
 
 type AclMapping struct {
 	GormModel
-	AclID  int  `json:"aclId,omitempty" sql:"index"`
+	AclID  int  `json:"aclId" sql:"index"`
 	Acl    Acl  `json:"acl,omitempty"`
-	RoleID int  `json:"roleId,omitempty" sql:"index"`
+	RoleID int  `json:"roleId" sql:"index"`
 	Role   Role `json:"role,omitempty"`
 }
 

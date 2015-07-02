@@ -102,9 +102,8 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 
 	for _, roleMapping := range roleMappings {
 		queryCopy := *query
-		oldRoleMapping := domain.RoleMapping{}
 
-		err = queryCopy.Where(utils.ToDBName("roleMappings")+".id = ?", roleMapping.ID).First(&oldRoleMapping).Error
+		err = queryCopy.Where(utils.ToDBName("roleMappings")+".id = ?", roleMapping.ID).First(&domain.RoleMapping{}).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -113,7 +112,7 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Model(&oldRoleMapping).Updates(&roleMapping).Error
+		err = r.store.GetDB().Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -135,9 +134,7 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	oldRoleMapping := domain.RoleMapping{}
-
-	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&oldRoleMapping).Error
+	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&domain.RoleMapping{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -146,7 +143,7 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Model(&oldRoleMapping).Updates(&roleMapping).Error
+	err = r.store.GetDB().Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

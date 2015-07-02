@@ -30,7 +30,7 @@ func (md *modelDirectory) Register(model interface{}, ressource string, relation
 func (md *modelDirectory) FindPathToOwner(ressource string) []DBRelation {
 	relationPath := []DBRelation{}
 
-	if ressource == "accounts"{
+	if ressource == "accounts" {
 		return relationPath
 	}
 

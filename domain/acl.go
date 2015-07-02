@@ -2,7 +2,7 @@ package domain
 
 func init() {
 	relations := []DBRelation{
-		{Related: "AclMappings"},
+		{Related: "aclMappings"},
 	}
 
 	ModelDirectory.Register(Acl{}, "acls", relations)
@@ -10,9 +10,9 @@ func init() {
 
 type Acl struct {
 	GormModel
-	Ressource   string       `json:"ressource,omitempty"`
-	Method      string       `json:"method,omitempty"`
-	AclMappings []AclMapping `json:"AclMappings,omitempty"`
+	Ressource   string       `json:"ressource"`
+	Method      string       `json:"method"`
+	AclMappings []AclMapping `json:"aclMappings,omitempty"`
 }
 
 func (m *Acl) SetRelatedID(idKey string, id int) {
