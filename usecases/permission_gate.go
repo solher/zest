@@ -52,5 +52,8 @@ func (p *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 		context.Set(r, "ownerRelations", relations)
 	}
 
+	context.Set(r, "method", p.method)
+	context.Set(r, "ressource", p.ressource)
+
 	p.next(w, r, params)
 }

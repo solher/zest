@@ -6,12 +6,14 @@ import (
 	"github.com/solher/zest/domain"
 )
 
-func (i *AclMappingInter) scopeModel(aclMapping *domain.AclMapping) {
+func (i *AclMappingInter) scopeModel(aclMapping *domain.AclMapping) error {
 	aclMapping.ID = 0
 	aclMapping.CreatedAt = time.Time{}
 	aclMapping.UpdatedAt = time.Time{}
 	aclMapping.Acl = domain.Acl{}
 	aclMapping.Role = domain.Role{}
+
+	return nil
 }
 
 func (i *AclMappingInter) refreshCache(aclMapping *domain.AclMapping) error {
@@ -25,7 +27,10 @@ func (i *AclMappingInter) refreshCache(aclMapping *domain.AclMapping) error {
 
 func (i *AclMappingInter) BeforeCreate(aclMappings []domain.AclMapping) ([]domain.AclMapping, error) {
 	for k := range aclMappings {
-		i.scopeModel(&aclMappings[k])
+		err := i.scopeModel(&aclMappings[k])
+		if err != nil {
+			return nil, err
+		}
 	}
 	return aclMappings, nil
 }
@@ -41,9 +46,6 @@ func (i *AclMappingInter) AfterCreate(aclMappings []domain.AclMapping) ([]domain
 }
 
 func (i *AclMappingInter) BeforeUpdate(aclMappings []domain.AclMapping) ([]domain.AclMapping, error) {
-	for k := range aclMappings {
-		i.scopeModel(&aclMappings[k])
-	}
 	return aclMappings, nil
 }
 

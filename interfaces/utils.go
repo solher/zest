@@ -70,15 +70,21 @@ func FilterIfOwnerRelations(r *http.Request, filter *usecases.Filter) *usecases.
 	if ownerRelationsCtx != nil {
 		currentSession := context.Get(r, "currentSession").(domain.Session)
 
+		idKey := "accountId"
+
+		if context.Get(r, "ressource").(string) == "accounts" {
+			idKey = "id"
+		}
+
 		if filter == nil {
 			filter = &usecases.Filter{
-				Where: map[string]interface{}{"accountId": currentSession.AccountID},
+				Where: map[string]interface{}{idKey: currentSession.AccountID},
 			}
 		} else {
 			if filter.Where == nil {
-				filter.Where = map[string]interface{}{"accountId": currentSession.AccountID}
+				filter.Where = map[string]interface{}{idKey: currentSession.AccountID}
 			} else {
-				filter.Where["accountId"] = currentSession.AccountID
+				filter.Where[idKey] = currentSession.AccountID
 			}
 		}
 	}

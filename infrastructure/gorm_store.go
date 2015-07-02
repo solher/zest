@@ -292,6 +292,13 @@ func processUnaryCondition(buffer *bytes.Buffer, attribute, operator string, con
 
 func processOperation(buffer *bytes.Buffer, attribute, operator, sign string, condition interface{}) error {
 	switch condition.(type) {
+	case bool:
+		if condition.(bool) {
+			processSimpleOperationStr(buffer, attribute, sign, "1")
+		} else {
+			processSimpleOperationStr(buffer, attribute, sign, "0")
+		}
+
 	case string:
 		processSimpleOperationStr(buffer, attribute, sign, condition.(string))
 

@@ -12,9 +12,9 @@ import (
 
 func updateDatabase(z *Zest) error {
 	type dependencies struct {
-		Store    *infrastructure.GormStore
-		AclInter *ressources.AclInter
-		RouteDir *usecases.RouteDirectory
+		Store           *infrastructure.GormStore
+		PermissionInter *usecases.PermissionInter
+		RouteDir        *usecases.RouteDirectory
 	}
 
 	d := &dependencies{}
@@ -39,7 +39,7 @@ func updateDatabase(z *Zest) error {
 		return errors.New("Could not migrate database: " + err.Error())
 	}
 
-	err = d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
+	err = d.PermissionInter.RefreshFromRoutes(d.RouteDir.Routes)
 	if err != nil {
 		return errors.New("Could not refresh ACLs from routes: " + err.Error())
 	}
@@ -89,10 +89,8 @@ func seedDatabase(z *Zest) error {
 	type dependencies struct {
 		Store             *infrastructure.GormStore
 		AccountGuestInter *ressources.AccountGuestInter
-		RoleRepo          *ressources.RoleRepo
-		RoleMappingRepo   *ressources.RoleMappingRepo
-		AclInter          *ressources.AclInter
-		AclMappingRepo    *ressources.AclMappingRepo
+		PermissionInter   *usecases.PermissionInter
+		RoleInter         *ressources.RoleInter
 		RouteDir          *usecases.RouteDirectory
 	}
 
@@ -113,6 +111,46 @@ func seedDatabase(z *Zest) error {
 
 	fmt.Println("Seeding database...")
 
+	roles := []domain.Role{
+		{Name: "Admin"},
+		{Name: "Authenticated"},
+		{Name: "Owner"},
+		{Name: "Guest"},
+		{Name: "Anyone"},
+	}
+
+	roles, err = d.RoleInter.Create(roles)
+	if err != nil {
+		return err
+	}
+
+	err = d.PermissionInter.RefreshFromRoutes(d.RouteDir.Routes)
+	if err != nil {
+		return err
+	}
+
+	err = z.UserSeedDatabase(z)
+	if err != nil {
+		return err
+	}
+
+	d.Store.Close()
+
+	return nil
+}
+
+func userSeedDatabase(z *Zest) error {
+	type dependencies struct {
+		AccountGuestInter *ressources.AccountGuestInter
+		PermissionInter   *usecases.PermissionInter
+	}
+
+	d := &dependencies{}
+	err := z.Injector.Get(d)
+	if err != nil {
+		return err
+	}
+
 	user := &domain.User{
 		FirstName: "Admin",
 		LastName:  "Admin",
@@ -125,34 +163,10 @@ func seedDatabase(z *Zest) error {
 		return err
 	}
 
-	roles := []domain.Role{
-		{Name: "Admin"},
-		{Name: "Authenticated"},
-		{Name: "Owner"},
-		{Name: "Guest"},
-		{Name: "Anyone"},
-	}
-
-	roles, err = d.RoleRepo.Create(roles)
+	err = d.PermissionInter.SetRole(account.ID, "Admin")
 	if err != nil {
 		return err
 	}
-
-	roleMappings := []domain.RoleMapping{
-		{AccountID: account.ID, RoleID: roles[0].ID},
-	}
-
-	roleMappings, err = d.RoleMappingRepo.Create(roleMappings)
-	if err != nil {
-		return err
-	}
-
-	err = d.AclInter.RefreshFromRoutes(d.RouteDir.Routes)
-	if err != nil {
-		return err
-	}
-
-	d.Store.Close()
 
 	return nil
 }

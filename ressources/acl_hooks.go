@@ -6,16 +6,21 @@ import (
 	"github.com/solher/zest/domain"
 )
 
-func (i *AclInter) scopeModel(acl *domain.Acl) {
+func (i *AclInter) scopeModel(acl *domain.Acl) error {
 	acl.ID = 0
 	acl.CreatedAt = time.Time{}
 	acl.UpdatedAt = time.Time{}
 	acl.AclMappings = []domain.AclMapping{}
+
+	return nil
 }
 
 func (i *AclInter) BeforeCreate(acls []domain.Acl) ([]domain.Acl, error) {
 	for k := range acls {
-		i.scopeModel(&acls[k])
+		err := i.scopeModel(&acls[k])
+		if err != nil {
+			return nil, err
+		}
 	}
 	return acls, nil
 }
@@ -25,9 +30,6 @@ func (i *AclInter) AfterCreate(acls []domain.Acl) ([]domain.Acl, error) {
 }
 
 func (i *AclInter) BeforeUpdate(acls []domain.Acl) ([]domain.Acl, error) {
-	for k := range acls {
-		i.scopeModel(&acls[k])
-	}
 	return acls, nil
 }
 

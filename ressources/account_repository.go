@@ -72,6 +72,9 @@ func (r *AccountRepo) Find(context usecases.QueryContext) ([]domain.Account, err
 }
 
 func (r *AccountRepo) FindByID(id int, context usecases.QueryContext) (*domain.Account, error) {
+	utils.Dump(context.Filter)
+	utils.Dump(context.OwnerRelations)
+
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {
 		return nil, internalerrors.DatabaseError

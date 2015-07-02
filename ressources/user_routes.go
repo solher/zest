@@ -17,7 +17,7 @@ func setUserRoutes(routeDir *usecases.RouteDirectory, controller *UserCtrl) {
 	routeDir.Add(key.For("FindRelated"), &usecases.Route{Method: "GET", Path: "/users/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("FindByIDRelated"), &usecases.Route{Method: "GET", Path: "/users/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/users/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/users/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("UpdateByIDRelated"), &usecases.Route{Method: "PUT", Path: "/users/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("DeleteAllRelated"), &usecases.Route{Method: "DELETE", Path: "/users/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("DeleteByIDRelated"), &usecases.Route{Method: "DELETE", Path: "/users/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
 }

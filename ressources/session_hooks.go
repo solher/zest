@@ -6,11 +6,13 @@ import (
 	"github.com/solher/zest/domain"
 )
 
-func (i *SessionInter) scopeModel(session *domain.Session) {
+func (i *SessionInter) scopeModel(session *domain.Session) error {
 	session.ID = 0
 	session.CreatedAt = time.Time{}
 	session.UpdatedAt = time.Time{}
 	session.Account = domain.Account{}
+
+	return nil
 }
 
 func (i *SessionInter) refreshCache(session *domain.Session) error {
@@ -31,7 +33,10 @@ func (i *SessionInter) removeFromCache(session *domain.Session) error {
 
 func (i *SessionInter) BeforeCreate(sessions []domain.Session) ([]domain.Session, error) {
 	for k := range sessions {
-		i.scopeModel(&sessions[k])
+		err := i.scopeModel(&sessions[k])
+		if err != nil {
+			return nil, err
+		}
 	}
 	return sessions, nil
 }
@@ -47,9 +52,6 @@ func (i *SessionInter) AfterCreate(sessions []domain.Session) ([]domain.Session,
 }
 
 func (i *SessionInter) BeforeUpdate(sessions []domain.Session) ([]domain.Session, error) {
-	for k := range sessions {
-		i.scopeModel(&sessions[k])
-	}
 	return sessions, nil
 }
 

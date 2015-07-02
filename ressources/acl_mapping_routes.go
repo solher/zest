@@ -17,7 +17,7 @@ func setAclMappingRoutes(routeDir *usecases.RouteDirectory, controller *AclMappi
 	routeDir.Add(key.For("FindRelated"), &usecases.Route{Method: "GET", Path: "/aclMappings/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("FindByIDRelated"), &usecases.Route{Method: "GET", Path: "/aclMappings/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/aclMappings/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
-	routeDir.Add(key.For("UpsertRelated"), &usecases.Route{Method: "PUT", Path: "/aclMappings/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
+	routeDir.Add(key.For("UpdateByIDRelated"), &usecases.Route{Method: "PUT", Path: "/aclMappings/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("DeleteAllRelated"), &usecases.Route{Method: "DELETE", Path: "/aclMappings/:pk/:related", Handler: controller.Related, Visible: true, CheckPermissions: false})
 	routeDir.Add(key.For("DeleteByIDRelated"), &usecases.Route{Method: "DELETE", Path: "/aclMappings/:pk/:related/:fk", Handler: controller.RelatedOne, Visible: true, CheckPermissions: false})
 }

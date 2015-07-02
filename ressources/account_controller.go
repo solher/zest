@@ -250,10 +250,25 @@ func (c *AccountCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 }
 
 func (c *AccountCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
-		return
+	var (
+		id  int
+		err error
+	)
+
+	if params["id"] == "me" {
+		sessionCtx := context.Get(r, "currentSession")
+		if sessionCtx == nil {
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+			return
+		}
+
+		id = sessionCtx.(domain.Session).AccountID
+	} else {
+		id, err = strconv.Atoi(params["id"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
 	}
 
 	filter, err := interfaces.GetQueryFilter(r)
@@ -337,10 +352,25 @@ func (c *AccountCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 }
 
 func (c *AccountCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
-		return
+	var (
+		id  int
+		err error
+	)
+
+	if params["id"] == "me" {
+		sessionCtx := context.Get(r, "currentSession")
+		if sessionCtx == nil {
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+			return
+		}
+
+		id = sessionCtx.(domain.Session).AccountID
+	} else {
+		id, err = strconv.Atoi(params["id"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
 	}
 
 	account := &domain.Account{}
@@ -393,10 +423,25 @@ func (c *AccountCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 }
 
 func (c *AccountCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
-		return
+	var (
+		id  int
+		err error
+	)
+
+	if params["id"] == "me" {
+		sessionCtx := context.Get(r, "currentSession")
+		if sessionCtx == nil {
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+			return
+		}
+
+		id = sessionCtx.(domain.Session).AccountID
+	} else {
+		id, err = strconv.Atoi(params["id"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
 	}
 
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
@@ -417,10 +462,25 @@ func (c *AccountCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 }
 
 func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	pk, err := strconv.Atoi(params["pk"])
-	if err != nil {
-		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
-		return
+	var (
+		pk  int
+		err error
+	)
+
+	if params["pk"] == "me" {
+		sessionCtx := context.Get(r, "currentSession")
+		if sessionCtx == nil {
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+			return
+		}
+
+		pk = sessionCtx.(domain.Session).AccountID
+	} else {
+		pk, err = strconv.Atoi(params["pk"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
 	}
 
 	related := params["related"]

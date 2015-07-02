@@ -41,12 +41,6 @@ func (i *UserInter) AfterCreate(users []domain.User) ([]domain.User, error) {
 }
 
 func (i *UserInter) BeforeUpdate(users []domain.User) ([]domain.User, error) {
-	for k := range users {
-		err := i.scopeModel(&users[k])
-		if err != nil {
-			return nil, err
-		}
-	}
 	return users, nil
 }
 

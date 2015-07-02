@@ -5,7 +5,6 @@ import (
 
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/usecases"
-	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -42,57 +41,6 @@ func PopulateAclInter(aclInter *AclInter, repo AbstractAclRepo, aclMappingInter 
 	if aclInter.aclMappingInter == nil {
 		aclInter.aclMappingInter = aclMappingInter
 	}
-}
-
-func (i *AclInter) RefreshFromRoutes(routes map[usecases.DirectoryKey]usecases.Route) error {
-	for dirKey, route := range routes {
-		if !route.CheckPermissions {
-			continue
-		}
-
-		filter := &usecases.Filter{
-			Where: map[string]interface{}{
-				"ressource": dirKey.Ressource,
-				"method":    dirKey.Method,
-			},
-		}
-
-		acls, err := i.repo.Find(usecases.QueryContext{Filter: filter})
-		if err != nil {
-			return err
-		}
-
-		if len(acls) == 0 {
-			acl := &domain.Acl{Ressource: dirKey.Ressource, Method: dirKey.Method}
-
-			acl, err := i.repo.CreateOne(acl)
-			if err != nil {
-				return err
-			}
-
-			aclMappings := []domain.AclMapping{
-				{
-					AclID:  acl.ID,
-					RoleID: 1,
-				},
-			}
-
-			if !utils.ContainsStr([]string{"accounts", "sessions", "users", "acls", "aclMappings", "roles", "roleMappings"}, acl.Ressource) {
-				aclMappings = append(aclMappings, domain.AclMapping{AclID: acl.ID, RoleID: 3})
-			}
-
-			if acl.Ressource == "accounts" {
-				aclMappings = append(aclMappings, domain.AclMapping{AclID: acl.ID, RoleID: 5})
-			}
-
-			aclMappings, err = i.aclMappingInter.Create(aclMappings)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
 
 func (i *AclInter) Create(acls []domain.Acl) ([]domain.Acl, error) {

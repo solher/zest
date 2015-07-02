@@ -6,12 +6,14 @@ import (
 	"github.com/solher/zest/domain"
 )
 
-func (i *RoleMappingInter) scopeModel(roleMapping *domain.RoleMapping) {
+func (i *RoleMappingInter) scopeModel(roleMapping *domain.RoleMapping) error {
 	roleMapping.ID = 0
 	roleMapping.CreatedAt = time.Time{}
 	roleMapping.UpdatedAt = time.Time{}
 	roleMapping.Account = domain.Account{}
 	roleMapping.Role = domain.Role{}
+
+	return nil
 }
 
 func (i *RoleMappingInter) refreshCache(roleMappings *domain.RoleMapping) error {
@@ -25,7 +27,10 @@ func (i *RoleMappingInter) refreshCache(roleMappings *domain.RoleMapping) error 
 
 func (i *RoleMappingInter) BeforeCreate(roleMappings []domain.RoleMapping) ([]domain.RoleMapping, error) {
 	for k := range roleMappings {
-		i.scopeModel(&roleMappings[k])
+		err := i.scopeModel(&roleMappings[k])
+		if err != nil {
+			return nil, err
+		}
 	}
 	return roleMappings, nil
 }
@@ -41,9 +46,6 @@ func (i *RoleMappingInter) AfterCreate(roleMappings []domain.RoleMapping) ([]dom
 }
 
 func (i *RoleMappingInter) BeforeUpdate(roleMappings []domain.RoleMapping) ([]domain.RoleMapping, error) {
-	for k := range roleMappings {
-		i.scopeModel(&roleMappings[k])
-	}
 	return roleMappings, nil
 }
 

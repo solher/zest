@@ -18,15 +18,16 @@ type Zest struct {
 	App      *negroni.Negroni
 	Injector *infrastructure.Injector
 
-	HandleOsArgs   func(z *Zest) (bool, error)
-	Build          func(z *Zest) error
-	AfterBuild     func(z *Zest) error
-	Init           func(z *Zest) error
-	AfterInit      func(z *Zest) error
-	Close          func(z *Zest) error
-	ReinitDatabase func(z *Zest) error
-	SeedDatabase   func(z *Zest) error
-	UpdateDatabase func(z *Zest) error
+	HandleOsArgs     func(z *Zest) (bool, error)
+	Build            func(z *Zest) error
+	AfterBuild       func(z *Zest) error
+	Init             func(z *Zest) error
+	AfterInit        func(z *Zest) error
+	Close            func(z *Zest) error
+	ReinitDatabase   func(z *Zest) error
+	SeedDatabase     func(z *Zest) error
+	UserSeedDatabase func(z *Zest) error
+	UpdateDatabase   func(z *Zest) error
 }
 
 func New() *Zest {
@@ -40,19 +41,20 @@ func New() *Zest {
 
 func Classic() *Zest {
 	zest := &Zest{
-		Environment:    "development",
-		Port:           ":3000",
-		App:            negroni.New(),
-		Injector:       infrastructure.NewInjector(),
-		HandleOsArgs:   handleOsArgs,
-		Build:          buildApp,
-		AfterBuild:     func(z *Zest) error { return nil },
-		Init:           initApp,
-		AfterInit:      func(z *Zest) error { return nil },
-		Close:          closeApp,
-		ReinitDatabase: reinitDatabase,
-		SeedDatabase:   seedDatabase,
-		UpdateDatabase: updateDatabase,
+		Environment:      "development",
+		Port:             ":3000",
+		App:              negroni.New(),
+		Injector:         infrastructure.NewInjector(),
+		HandleOsArgs:     handleOsArgs,
+		Build:            buildApp,
+		AfterBuild:       func(z *Zest) error { return nil },
+		Init:             initApp,
+		AfterInit:        func(z *Zest) error { return nil },
+		Close:            closeApp,
+		ReinitDatabase:   reinitDatabase,
+		SeedDatabase:     seedDatabase,
+		UserSeedDatabase: userSeedDatabase,
+		UpdateDatabase:   updateDatabase,
 	}
 
 	env := os.Getenv("GOENV")
@@ -152,6 +154,7 @@ func buildApp(z *Zest) error {
 		usecases.NewPermissionCacheInter(accountRepo, aclRepo, infrastructure.NewCacheStore(), infrastructure.NewCacheStore()),
 		usecases.NewSessionCacheInter(sessionRepo, infrastructure.NewLRUCacheStore(1024)),
 		usecases.NewRouteDirectory,
+		usecases.NewPermissionInter,
 	)
 
 	z.Injector.RegisterMultiple(deps)
