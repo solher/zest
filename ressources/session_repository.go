@@ -61,11 +61,15 @@ func (r *SessionRepo) Find(context usecases.QueryContext) ([]domain.Session, err
 		return nil, internalerrors.DatabaseError
 	}
 
-	sessions := []domain.Session{}
+	var sessions []domain.Session
 
 	err = query.Find(&sessions).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
+	}
+
+	if len(sessions) == 0 {
+		sessions = []domain.Session{}
 	}
 
 	return sessions, nil
@@ -103,7 +107,9 @@ func (r *SessionRepo) Update(sessions []domain.Session, context usecases.QueryCo
 	for _, session := range sessions {
 		queryCopy := *query
 
-		err = queryCopy.Where(utils.ToDBName("sessions")+".id = ?", session.ID).First(&domain.Session{}).Error
+		dbName := utils.ToDBName("sessions")
+
+		err = queryCopy.Where(dbName+".id = ?", session.ID).First(&domain.Session{}).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -112,7 +118,7 @@ func (r *SessionRepo) Update(sessions []domain.Session, context usecases.QueryCo
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Model(&domain.Session{}).Updates(&session).Error
+		err = r.store.GetDB().Where(dbName+".id = ?", session.ID).Model(&domain.Session{}).Updates(&session).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -134,7 +140,9 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = query.Where(utils.ToDBName("sessions")+".id = ?", id).First(&domain.Session{}).Error
+	dbName := utils.ToDBName("sessions")
+
+	err = query.Where(dbName+".id = ?", id).First(&domain.Session{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -143,7 +151,7 @@ func (r *SessionRepo) UpdateByID(id int, session *domain.Session,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Model(&domain.Session{}).Updates(&session).Error
+	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.Session{}).Updates(&session).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

@@ -61,11 +61,15 @@ func (r *RoleRepo) Find(context usecases.QueryContext) ([]domain.Role, error) {
 		return nil, internalerrors.DatabaseError
 	}
 
-	roles := []domain.Role{}
+	var roles []domain.Role
 
 	err = query.Find(&roles).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
+	}
+
+	if len(roles) == 0 {
+		roles = []domain.Role{}
 	}
 
 	return roles, nil
@@ -103,7 +107,9 @@ func (r *RoleRepo) Update(roles []domain.Role, context usecases.QueryContext) ([
 	for _, role := range roles {
 		queryCopy := *query
 
-		err = queryCopy.Where(utils.ToDBName("roles")+".id = ?", role.ID).First(&domain.Role{}).Error
+		dbName := utils.ToDBName("roles")
+
+		err = queryCopy.Where(dbName+".id = ?", role.ID).First(&domain.Role{}).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -112,7 +118,7 @@ func (r *RoleRepo) Update(roles []domain.Role, context usecases.QueryContext) ([
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Model(&domain.Role{}).Updates(&role).Error
+		err = r.store.GetDB().Where(dbName+".id = ?", role.ID).Model(&domain.Role{}).Updates(&role).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -134,7 +140,9 @@ func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = query.Where(utils.ToDBName("roles")+".id = ?", id).First(&domain.Role{}).Error
+	dbName := utils.ToDBName("roles")
+
+	err = query.Where(dbName+".id = ?", id).First(&domain.Role{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -143,7 +151,7 @@ func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Model(&domain.Role{}).Updates(&role).Error
+	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.Role{}).Updates(&role).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

@@ -317,7 +317,7 @@ func (c *AclMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params 
 }
 
 func (c *AclMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	pk, err = strconv.Atoi(params["pk"])
+	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
 		return

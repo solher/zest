@@ -61,11 +61,15 @@ func (r *AclMappingRepo) Find(context usecases.QueryContext) ([]domain.AclMappin
 		return nil, internalerrors.DatabaseError
 	}
 
-	aclMappings := []domain.AclMapping{}
+	var aclMappings []domain.AclMapping
 
 	err = query.Find(&aclMappings).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
+	}
+
+	if len(aclMappings) == 0 {
+		aclMappings = []domain.AclMapping{}
 	}
 
 	return aclMappings, nil
@@ -103,7 +107,9 @@ func (r *AclMappingRepo) Update(aclMappings []domain.AclMapping, context usecase
 	for _, aclMapping := range aclMappings {
 		queryCopy := *query
 
-		err = queryCopy.Where(utils.ToDBName("aclMappings")+".id = ?", aclMapping.ID).First(&domain.AclMapping{}).Error
+		dbName := utils.ToDBName("aclMappings")
+
+		err = queryCopy.Where(dbName+".id = ?", aclMapping.ID).First(&domain.AclMapping{}).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -112,7 +118,7 @@ func (r *AclMappingRepo) Update(aclMappings []domain.AclMapping, context usecase
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Model(&domain.AclMapping{}).Updates(&aclMapping).Error
+		err = r.store.GetDB().Where(dbName+".id = ?", aclMapping.ID).Model(&domain.AclMapping{}).Updates(&aclMapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -134,7 +140,9 @@ func (r *AclMappingRepo) UpdateByID(id int, aclMapping *domain.AclMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = query.Where(utils.ToDBName("aclMappings")+".id = ?", id).First(&domain.AclMapping{}).Error
+	dbName := utils.ToDBName("aclMappings")
+
+	err = query.Where(dbName+".id = ?", id).First(&domain.AclMapping{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -143,7 +151,7 @@ func (r *AclMappingRepo) UpdateByID(id int, aclMapping *domain.AclMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Model(&domain.AclMapping{}).Updates(&aclMapping).Error
+	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.AclMapping{}).Updates(&aclMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

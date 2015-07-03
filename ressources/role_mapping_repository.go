@@ -61,11 +61,15 @@ func (r *RoleMappingRepo) Find(context usecases.QueryContext) ([]domain.RoleMapp
 		return nil, internalerrors.DatabaseError
 	}
 
-	roleMappings := []domain.RoleMapping{}
+	var roleMappings []domain.RoleMapping
 
 	err = query.Find(&roleMappings).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
+	}
+
+	if len(roleMappings) == 0 {
+		roleMappings = []domain.RoleMapping{}
 	}
 
 	return roleMappings, nil
@@ -103,7 +107,9 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 	for _, roleMapping := range roleMappings {
 		queryCopy := *query
 
-		err = queryCopy.Where(utils.ToDBName("roleMappings")+".id = ?", roleMapping.ID).First(&domain.RoleMapping{}).Error
+		dbName := utils.ToDBName("roleMappings")
+
+		err = queryCopy.Where(dbName+".id = ?", roleMapping.ID).First(&domain.RoleMapping{}).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -112,7 +118,7 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
+		err = r.store.GetDB().Where(dbName+".id = ?", roleMapping.ID).Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -134,7 +140,9 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = query.Where(utils.ToDBName("roleMappings")+".id = ?", id).First(&domain.RoleMapping{}).Error
+	dbName := utils.ToDBName("roleMappings")
+
+	err = query.Where(dbName+".id = ?", id).First(&domain.RoleMapping{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -143,7 +151,7 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
+	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

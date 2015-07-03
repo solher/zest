@@ -61,11 +61,15 @@ func (r *AclRepo) Find(context usecases.QueryContext) ([]domain.Acl, error) {
 		return nil, internalerrors.DatabaseError
 	}
 
-	acls := []domain.Acl{}
+	var acls []domain.Acl
 
 	err = query.Find(&acls).Error
 	if err != nil {
 		return nil, internalerrors.DatabaseError
+	}
+
+	if len(acls) == 0 {
+		acls = []domain.Acl{}
 	}
 
 	return acls, nil
@@ -103,7 +107,9 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 	for _, acl := range acls {
 		queryCopy := *query
 
-		err = queryCopy.Where(utils.ToDBName("acls")+".id = ?", acl.ID).First(&domain.Acl{}).Error
+		dbName := utils.ToDBName("acls")
+
+		err = queryCopy.Where(dbName+".id = ?", acl.ID).First(&domain.Acl{}).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -112,7 +118,7 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Model(&domain.Acl{}).Updates(&acl).Error
+		err = r.store.GetDB().Where(dbName+".id = ?", acl.ID).Model(&domain.Acl{}).Updates(&acl).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -134,7 +140,9 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = query.Where(utils.ToDBName("acls")+".id = ?", id).First(&domain.Acl{}).Error
+	dbName := utils.ToDBName("acls")
+
+	err = query.Where(dbName+".id = ?", id).First(&domain.Acl{}).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -143,7 +151,7 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Model(&domain.Acl{}).Updates(&acl).Error
+	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.Acl{}).Updates(&acl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
