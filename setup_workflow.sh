@@ -11,7 +11,7 @@ COL_MAGENTA=$ESC_SEQ"35;01m"
 COL_CYAN=$ESC_SEQ"36;01m"
 
 echo -e "$COL_BLUE""Installing code generator...$COL_RESET"
-go get -v github.com/clipperhouse/gen
+
 
 echo -e "$COL_BLUE""Installing live code reloader...$COL_RESET"
 go get -v github.com/codegangsta/gin

@@ -1,2 +1,0 @@
-web: zest
-worker: worker
