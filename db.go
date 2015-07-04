@@ -6,7 +6,7 @@ import (
 
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/infrastructure"
-	"github.com/solher/zest/ressources"
+	"github.com/solher/zest/resources"
 	"github.com/solher/zest/usecases"
 )
 
@@ -88,9 +88,9 @@ func reinitDatabase(z *Zest) error {
 func seedDatabase(z *Zest) error {
 	type dependencies struct {
 		Store             *infrastructure.GormStore
-		AccountGuestInter *ressources.AccountGuestInter
+		AccountGuestInter *resources.AccountGuestInter
 		PermissionInter   *usecases.PermissionInter
-		RoleInter         *ressources.RoleInter
+		RoleInter         *resources.RoleInter
 		RouteDir          *usecases.RouteDirectory
 	}
 
@@ -141,7 +141,7 @@ func seedDatabase(z *Zest) error {
 
 func userSeedDatabase(z *Zest) error {
 	type dependencies struct {
-		AccountGuestInter *ressources.AccountGuestInter
+		AccountGuestInter *resources.AccountGuestInter
 		PermissionInter   *usecases.PermissionInter
 	}
 

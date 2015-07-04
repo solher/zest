@@ -10,7 +10,7 @@ func (internalError *InternalError) Error() string {
 
 var (
 	DatabaseError = &InternalError{Description: "A database error occured."}
-	NotFound      = &InternalError{Description: "The specified ressource was not found or you do not have sufficient permissions."}
+	NotFound      = &InternalError{Description: "The specified resource was not found or you do not have sufficient permissions."}
 	Undefined     = &InternalError{Description: "Undefined error."}
 )
 

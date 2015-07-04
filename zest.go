@@ -8,7 +8,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/solher/zest/infrastructure"
 	"github.com/solher/zest/middlewares"
-	"github.com/solher/zest/ressources"
+	"github.com/solher/zest/resources"
 	"github.com/solher/zest/usecases"
 )
 
@@ -137,9 +137,9 @@ func buildApp(z *Zest) error {
 	deps := usecases.DependencyDirectory.Get()
 
 	store := infrastructure.NewGormStore()
-	accountRepo := ressources.NewAccountRepo(store)
-	aclRepo := ressources.NewAclRepo(store)
-	sessionRepo := ressources.NewSessionRepo(store)
+	accountRepo := resources.NewAccountRepo(store)
+	aclRepo := resources.NewAclRepo(store)
+	sessionRepo := resources.NewSessionRepo(store)
 
 	deps = append(
 		deps,
@@ -175,7 +175,7 @@ func initApp(z *Zest) error {
 
 		SessionCacheInter    *usecases.SessionCacheInter
 		PermissionCacheInter *usecases.PermissionCacheInter
-		AccountGuestInter    *ressources.AccountGuestInter
+		AccountGuestInter    *resources.AccountGuestInter
 
 		RouteDir *usecases.RouteDirectory
 		Render   *infrastructure.Render

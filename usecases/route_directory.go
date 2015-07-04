@@ -28,8 +28,8 @@ type (
 	}
 )
 
-func NewDirectoryKey(ressources string) *DirectoryKey {
-	return &DirectoryKey{Ressource: ressources}
+func NewDirectoryKey(resources string) *DirectoryKey {
+	return &DirectoryKey{Ressource: resources}
 }
 
 func (k *DirectoryKey) For(method string) *DirectoryKey {

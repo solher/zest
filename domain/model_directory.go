@@ -16,31 +16,31 @@ func newModelDirectory() *modelDirectory {
 	return modelDir
 }
 
-func (md *modelDirectory) Register(model interface{}, ressource string, relations []DBRelation) {
+func (md *modelDirectory) Register(model interface{}, resource string, relations []DBRelation) {
 	md.Models = append(md.Models, model)
 
 	for i := range relations {
-		relations[i].Ressource = ressource
+		relations[i].Ressource = resource
 	}
 
-	md.Relations[ressource] = relations
+	md.Relations[resource] = relations
 }
 
 // WARNING: MIGHT NOT WORK WHEN MULTIPLE PATH ARE AVAILABLE.
-func (md *modelDirectory) FindPathToOwner(ressource string) []DBRelation {
+func (md *modelDirectory) FindPathToOwner(resource string) []DBRelation {
 	relationPath := []DBRelation{}
 
-	if ressource == "accounts" {
+	if resource == "accounts" {
 		return relationPath
 	}
 
-	relationPath = md.findPathToOwner("", ressource, relationPath)
+	relationPath = md.findPathToOwner("", resource, relationPath)
 
 	return relationPath
 }
 
-func (md *modelDirectory) findPathToOwner(lastRessource, ressource string, relationPath []DBRelation) []DBRelation {
-	relations := md.Relations[ressource]
+func (md *modelDirectory) findPathToOwner(lastRessource, resource string, relationPath []DBRelation) []DBRelation {
+	relations := md.Relations[resource]
 
 	for _, relation := range relations {
 		if relation.Related == lastRessource && relation.Fk != "" {
@@ -56,7 +56,7 @@ func (md *modelDirectory) findPathToOwner(lastRessource, ressource string, relat
 			if relation.Fk != "" {
 				relationPathTmp = append(relationPath, relation)
 			}
-			relationPath := md.findPathToOwner(ressource, relation.Related, relationPathTmp)
+			relationPath := md.findPathToOwner(resource, relation.Related, relationPathTmp)
 			if relationPath != nil {
 				return relationPath
 			}
@@ -66,9 +66,9 @@ func (md *modelDirectory) findPathToOwner(lastRessource, ressource string, relat
 	return nil
 }
 
-func containsRessource(relations []DBRelation, ressource string) bool {
+func containsRessource(relations []DBRelation, resource string) bool {
 	for _, relation := range relations {
-		if relation.Related == ressource {
+		if relation.Related == resource {
 			return true
 		}
 	}

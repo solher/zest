@@ -16,7 +16,7 @@ type AbstractCacheStore interface {
 }
 
 type AbstractPermissionCacheInter interface {
-	GetPermissionRoles(accountID int, ressource, method string) ([]string, error)
+	GetPermissionRoles(accountID int, resource, method string) ([]string, error)
 	Refresh() error
 	RefreshRole(accountID int) error
 	RefreshAcl(aclID int) error
@@ -31,7 +31,7 @@ type AbstractSessionCacheInter interface {
 }
 
 type AbstractAccountInter interface {
-	GetGrantedRoles(accountID int, ressource, method string) ([]string, error)
+	GetGrantedRoles(accountID int, resource, method string) ([]string, error)
 }
 
 type AbstractRender interface {

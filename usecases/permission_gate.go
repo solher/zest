@@ -10,15 +10,15 @@ import (
 )
 
 type PermissionGate struct {
-	ressource, method string
+	resource, method string
 	accountInter      AbstractAccountInter
 	render            AbstractRender
 	next              HandlerFunc
 }
 
-func NewPermissionGate(ressource, method string, accountInter AbstractAccountInter, render AbstractRender,
+func NewPermissionGate(resource, method string, accountInter AbstractAccountInter, render AbstractRender,
 	next HandlerFunc) *PermissionGate {
-	return &PermissionGate{ressource: ressource, method: method, accountInter: accountInter, render: render, next: next}
+	return &PermissionGate{resource: resource, method: method, accountInter: accountInter, render: render, next: next}
 }
 
 func (p *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params map[string]string) {
@@ -31,7 +31,7 @@ func (p *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 		accountID = session.AccountID
 	}
 
-	roleNames, err := p.accountInter.GetGrantedRoles(accountID, p.ressource, p.method)
+	roleNames, err := p.accountInter.GetGrantedRoles(accountID, p.resource, p.method)
 	if err != nil {
 		p.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
@@ -48,12 +48,12 @@ func (p *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 			return
 		}
 
-		relations := domain.ModelDirectory.FindPathToOwner(p.ressource)
+		relations := domain.ModelDirectory.FindPathToOwner(p.resource)
 		context.Set(r, "ownerRelations", relations)
 	}
 
 	context.Set(r, "method", p.method)
-	context.Set(r, "ressource", p.ressource)
+	context.Set(r, "resource", p.resource)
 
 	p.next(w, r, params)
 }

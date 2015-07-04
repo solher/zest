@@ -72,7 +72,7 @@ func FilterIfOwnerRelations(r *http.Request, filter *usecases.Filter) *usecases.
 
 		idKey := "accountId"
 
-		if context.Get(r, "ressource").(string) == "accounts" {
+		if context.Get(r, "resource").(string) == "accounts" {
 			idKey = "id"
 		}
 

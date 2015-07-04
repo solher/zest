@@ -62,10 +62,10 @@ func (i *PermissionInter) SetRole(accountID int, roles ...string) error {
 	return nil
 }
 
-func (i *PermissionInter) SetAcl(ressource, method string, roles ...string) error {
+func (i *PermissionInter) SetAcl(resource, method string, roles ...string) error {
 	filter := &Filter{
 		Limit: 1,
-		Where: map[string]interface{}{"ressource": ressource, "method": method},
+		Where: map[string]interface{}{"resource": resource, "method": method},
 	}
 
 	acls, err := i.aclInter.Find(QueryContext{Filter: filter})
@@ -102,7 +102,7 @@ func (i *PermissionInter) RefreshFromRoutes(routes map[DirectoryKey]Route) error
 
 		filter := &Filter{
 			Where: map[string]interface{}{
-				"ressource": dirKey.Ressource,
+				"resource": dirKey.Ressource,
 				"method":    dirKey.Method,
 			},
 		}

@@ -32,7 +32,7 @@ func NewPermissionCacheInter(accountRepo AbstractAccountRepo, aclRepo AbstractAc
 		roleCache: roleCache, aclCache: aclCache}
 }
 
-func (i *PermissionCacheInter) GetPermissionRoles(accountID int, ressource, method string) ([]string, error) {
+func (i *PermissionCacheInter) GetPermissionRoles(accountID int, resource, method string) ([]string, error) {
 	roleNames := []string{}
 
 	cachedAccountRoles, err := i.roleCache.Get(accountID)
@@ -40,7 +40,7 @@ func (i *PermissionCacheInter) GetPermissionRoles(accountID int, ressource, meth
 		cachedAccountRoles = []string{}
 	}
 
-	cachedAclRoles, err := i.aclCache.Get(AclCacheKey{Ressource: ressource, Method: method})
+	cachedAclRoles, err := i.aclCache.Get(AclCacheKey{Ressource: resource, Method: method})
 	if err != nil {
 		cachedAclRoles = []string{}
 	}
