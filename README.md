@@ -58,6 +58,8 @@ Coming soon...
 
 Inspired by [Rails](https://github.com/rails/rails) and [Loopback](https://github.com/strongloop/loopback).
 
+This project is still in an alpha state. **DO NOT USE IT IN PRODUCTION**.
+
 ## License
 
 MIT
