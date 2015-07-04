@@ -2,7 +2,7 @@
 
 ## Installation
 
-Make sure you have a working Go environment.
+Make sure you have a working Node and Go environment.
 
 Simply install the [Zest app generator](https://github.com/solher/generator-zest) :
 
