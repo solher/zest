@@ -92,33 +92,33 @@ func FilterIfOwnerRelations(r *http.Request, filter *usecases.Filter) *usecases.
 	return filter
 }
 
-func GetLastRessource(r *http.Request) *Ressource {
-	lastRessourceCtx := context.Get(r, "lastRessource")
-	var lastRessource *Ressource
-	if lastRessourceCtx != nil {
-		lastRessource = lastRessourceCtx.(*Ressource)
+func GetLastResource(r *http.Request) *Resource {
+	lastResourceCtx := context.Get(r, "lastResource")
+	var lastResource *Resource
+	if lastResourceCtx != nil {
+		lastResource = lastResourceCtx.(*Resource)
 	} else {
-		lastRessource = &Ressource{}
+		lastResource = &Resource{}
 	}
 
-	return lastRessource
+	return lastResource
 }
 
-func FilterIfLastRessource(r *http.Request, filter *usecases.Filter) *usecases.Filter {
-	lastRessourceCtx := context.Get(r, "lastRessource")
+func FilterIfLastResource(r *http.Request, filter *usecases.Filter) *usecases.Filter {
+	lastResourceCtx := context.Get(r, "lastResource")
 
-	if lastRessourceCtx != nil {
-		lastRessource := lastRessourceCtx.(*Ressource)
+	if lastResourceCtx != nil {
+		lastResource := lastResourceCtx.(*Resource)
 
 		if filter == nil {
 			filter = &usecases.Filter{
-				Where: map[string]interface{}{lastRessource.IDKey: lastRessource.ID},
+				Where: map[string]interface{}{lastResource.IDKey: lastResource.ID},
 			}
 		} else {
 			if filter.Where == nil {
-				filter.Where = map[string]interface{}{lastRessource.IDKey: lastRessource.ID}
+				filter.Where = map[string]interface{}{lastResource.IDKey: lastResource.ID}
 			} else {
-				filter.Where[lastRessource.IDKey] = lastRessource.ID
+				filter.Where[lastResource.IDKey] = lastResource.ID
 			}
 		}
 	}

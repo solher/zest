@@ -10,7 +10,7 @@ func init() {
 
 type Acl struct {
 	GormModel
-	Ressource   string       `json:"resource"`
+	Resource   string       `json:"resource"`
 	Method      string       `json:"method"`
 	AclMappings []AclMapping `json:"aclMappings,omitempty"`
 }

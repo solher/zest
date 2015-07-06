@@ -102,7 +102,7 @@ func (i *PermissionInter) RefreshFromRoutes(routes map[DirectoryKey]Route) error
 
 		filter := &Filter{
 			Where: map[string]interface{}{
-				"resource": dirKey.Ressource,
+				"resource": dirKey.Resource,
 				"method":    dirKey.Method,
 			},
 		}
@@ -113,25 +113,25 @@ func (i *PermissionInter) RefreshFromRoutes(routes map[DirectoryKey]Route) error
 		}
 
 		if len(acls) == 0 {
-			acl := &domain.Acl{Ressource: dirKey.Ressource, Method: dirKey.Method}
+			acl := &domain.Acl{Resource: dirKey.Resource, Method: dirKey.Method}
 
 			acl, err := i.aclInter.CreateOne(acl)
 			if err != nil {
 				return err
 			}
 
-			switch acl.Ressource {
+			switch acl.Resource {
 			case "accounts", "sessions", "users", "acls", "aclMappings", "roles", "roleMappings":
 				switch acl.Method {
 				case "Signin", "Signout", "Signup":
-					i.SetAcl(dirKey.Ressource, dirKey.Method, "Admin", "Anyone")
+					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin", "Anyone")
 				case "FindByID":
-					i.SetAcl(dirKey.Ressource, dirKey.Method, "Admin", "Owner")
+					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin", "Owner")
 				default:
-					i.SetAcl(dirKey.Ressource, dirKey.Method, "Admin")
+					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin")
 				}
 			default:
-				i.SetAcl(dirKey.Ressource, dirKey.Method, "Admin", "Owner")
+				i.SetAcl(dirKey.Resource, dirKey.Method, "Admin", "Owner")
 			}
 		}
 	}

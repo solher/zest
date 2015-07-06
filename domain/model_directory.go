@@ -6,7 +6,7 @@ type modelDirectory struct {
 }
 
 type DBRelation struct {
-	Ressource, Fk, Related string
+	Resource, Fk, Related string
 }
 
 func newModelDirectory() *modelDirectory {
@@ -20,7 +20,7 @@ func (md *modelDirectory) Register(model interface{}, resource string, relations
 	md.Models = append(md.Models, model)
 
 	for i := range relations {
-		relations[i].Ressource = resource
+		relations[i].Resource = resource
 	}
 
 	md.Relations[resource] = relations
@@ -39,11 +39,11 @@ func (md *modelDirectory) FindPathToOwner(resource string) []DBRelation {
 	return relationPath
 }
 
-func (md *modelDirectory) findPathToOwner(lastRessource, resource string, relationPath []DBRelation) []DBRelation {
+func (md *modelDirectory) findPathToOwner(lastResource, resource string, relationPath []DBRelation) []DBRelation {
 	relations := md.Relations[resource]
 
 	for _, relation := range relations {
-		if relation.Related == lastRessource && relation.Fk != "" {
+		if relation.Related == lastResource && relation.Fk != "" {
 			relationPath = append(relationPath, relation)
 		}
 	}
@@ -51,7 +51,7 @@ func (md *modelDirectory) findPathToOwner(lastRessource, resource string, relati
 	for _, relation := range relations {
 		if relation.Fk == "accountId" {
 			return relationPath
-		} else if !containsRessource(relationPath, relation.Related) {
+		} else if !containsResource(relationPath, relation.Related) {
 			relationPathTmp := relationPath
 			if relation.Fk != "" {
 				relationPathTmp = append(relationPath, relation)
@@ -66,7 +66,7 @@ func (md *modelDirectory) findPathToOwner(lastRessource, resource string, relati
 	return nil
 }
 
-func containsRessource(relations []DBRelation, resource string) bool {
+func containsResource(relations []DBRelation, resource string) bool {
 	for _, relation := range relations {
 		if relation.Related == resource {
 			return true

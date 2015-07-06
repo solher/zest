@@ -61,14 +61,14 @@ func (c *RoleCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]s
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 
 	if roles == nil {
-		role.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		role.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		role, err = c.interactor.CreateOne(role)
 	} else {
 		for i := range roles {
-			(&roles[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&roles[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		roles, err = c.interactor.Create(roles)
 	}
@@ -101,7 +101,7 @@ func (c *RoleCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]str
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -163,16 +163,16 @@ func (c *RoleCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]s
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
 	if roles == nil {
-		role.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		role.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		role, err = c.interactor.UpsertOne(role, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
 		for i := range roles {
-			(&roles[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&roles[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		roles, err = c.interactor.Upsert(roles, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}
@@ -219,11 +219,11 @@ func (c *RoleCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
-	role.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+	role.SetRelatedID(lastResource.IDKey, lastResource.ID)
 	role, err = c.interactor.UpdateByID(id, role, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 
 	if err != nil {
@@ -247,7 +247,7 @@ func (c *RoleCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[strin
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -311,7 +311,7 @@ func (c *RoleCtrl) Related(w http.ResponseWriter, r *http.Request, params map[st
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "roleID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "roleID", ID: pk})
 
 	handler(w, r, params)
 }
@@ -342,7 +342,7 @@ func (c *RoleCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "roleID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "roleID", ID: pk})
 
 	handler(w, r, params)
 }

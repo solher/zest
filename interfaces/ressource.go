@@ -1,6 +1,6 @@
 package interfaces
 
-type Ressource struct {
+type Resource struct {
 	Name, IDKey string
 	ID          int
 }

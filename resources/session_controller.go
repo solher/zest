@@ -61,14 +61,14 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 
 	if sessions == nil {
-		session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		session.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		session, err = c.interactor.CreateOne(session)
 	} else {
 		for i := range sessions {
-			(&sessions[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&sessions[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		sessions, err = c.interactor.Create(sessions)
 	}
@@ -101,7 +101,7 @@ func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -163,16 +163,16 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
 	if sessions == nil {
-		session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		session.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		session, err = c.interactor.UpsertOne(session, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
 		for i := range sessions {
-			(&sessions[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&sessions[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		sessions, err = c.interactor.Upsert(sessions, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}
@@ -219,11 +219,11 @@ func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
-	session.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+	session.SetRelatedID(lastResource.IDKey, lastResource.ID)
 	session, err = c.interactor.UpdateByID(id, session, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 
 	if err != nil {
@@ -247,7 +247,7 @@ func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -311,7 +311,7 @@ func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "sessionID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "sessionID", ID: pk})
 
 	handler(w, r, params)
 }
@@ -342,7 +342,7 @@ func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "sessionID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "sessionID", ID: pk})
 
 	handler(w, r, params)
 }

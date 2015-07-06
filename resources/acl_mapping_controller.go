@@ -61,14 +61,14 @@ func (c *AclMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[st
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 
 	if aclMappings == nil {
-		aclMapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		aclMapping.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		aclMapping, err = c.interactor.CreateOne(aclMapping)
 	} else {
 		for i := range aclMappings {
-			(&aclMappings[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&aclMappings[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		aclMappings, err = c.interactor.Create(aclMappings)
 	}
@@ -101,7 +101,7 @@ func (c *AclMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[stri
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -163,16 +163,16 @@ func (c *AclMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[st
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
 	if aclMappings == nil {
-		aclMapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		aclMapping.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		aclMapping, err = c.interactor.UpsertOne(aclMapping, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
 		for i := range aclMappings {
-			(&aclMappings[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&aclMappings[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		aclMappings, err = c.interactor.Upsert(aclMappings, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}
@@ -219,11 +219,11 @@ func (c *AclMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, para
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
-	aclMapping.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+	aclMapping.SetRelatedID(lastResource.IDKey, lastResource.ID)
 	aclMapping, err = c.interactor.UpdateByID(id, aclMapping, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 
 	if err != nil {
@@ -247,7 +247,7 @@ func (c *AclMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -311,7 +311,7 @@ func (c *AclMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "aclMappingID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "aclMappingID", ID: pk})
 
 	handler(w, r, params)
 }
@@ -342,7 +342,7 @@ func (c *AclMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, para
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "aclMappingID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "aclMappingID", ID: pk})
 
 	handler(w, r, params)
 }

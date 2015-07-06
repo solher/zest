@@ -193,14 +193,14 @@ func (c *AccountCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 
 	if accounts == nil {
-		account.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		account.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		account, err = c.interactor.CreateOne(account)
 	} else {
 		for i := range accounts {
-			(&accounts[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&accounts[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		accounts, err = c.interactor.Create(accounts)
 	}
@@ -233,7 +233,7 @@ func (c *AccountCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -310,16 +310,16 @@ func (c *AccountCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 		}
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
 	if accounts == nil {
-		account.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+		account.SetRelatedID(lastResource.IDKey, lastResource.ID)
 		account, err = c.interactor.UpsertOne(account, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
 		for i := range accounts {
-			(&accounts[i]).SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+			(&accounts[i]).SetRelatedID(lastResource.IDKey, lastResource.ID)
 		}
 		accounts, err = c.interactor.Upsert(accounts, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}
@@ -381,11 +381,11 @@ func (c *AccountCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	lastRessource := interfaces.GetLastRessource(r)
+	lastResource := interfaces.GetLastResource(r)
 	filter := interfaces.FilterIfOwnerRelations(r, nil)
 	relations := interfaces.GetOwnerRelations(r)
 
-	account.SetRelatedID(lastRessource.IDKey, lastRessource.ID)
+	account.SetRelatedID(lastResource.IDKey, lastResource.ID)
 	account, err = c.interactor.UpdateByID(id, account, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 
 	if err != nil {
@@ -409,7 +409,7 @@ func (c *AccountCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 		return
 	}
 
-	filter = interfaces.FilterIfLastRessource(r, filter)
+	filter = interfaces.FilterIfLastResource(r, filter)
 	filter = interfaces.FilterIfOwnerRelations(r, filter)
 	relations := interfaces.GetOwnerRelations(r)
 
@@ -503,7 +503,7 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "accountID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "accountID", ID: pk})
 
 	handler(w, r, params)
 }
@@ -551,7 +551,7 @@ func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	context.Set(r, "lastRessource", &interfaces.Ressource{Name: related, IDKey: "accountID", ID: pk})
+	context.Set(r, "lastResource", &interfaces.Resource{Name: related, IDKey: "accountID", ID: pk})
 
 	handler(w, r, params)
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type AclCacheKey struct {
-	Ressource, Method string
+	Resource, Method string
 }
 
 type AbstractAccountRepo interface {
@@ -40,7 +40,7 @@ func (i *PermissionCacheInter) GetPermissionRoles(accountID int, resource, metho
 		cachedAccountRoles = []string{}
 	}
 
-	cachedAclRoles, err := i.aclCache.Get(AclCacheKey{Ressource: resource, Method: method})
+	cachedAclRoles, err := i.aclCache.Get(AclCacheKey{Resource: resource, Method: method})
 	if err != nil {
 		cachedAclRoles = []string{}
 	}
@@ -111,7 +111,7 @@ func (i *PermissionCacheInter) Refresh() error {
 			roleNames = append(roleNames, aclMapping.Role.Name)
 		}
 
-		i.aclCache.Add(AclCacheKey{Ressource: acl.Ressource, Method: acl.Method}, roleNames)
+		i.aclCache.Add(AclCacheKey{Resource: acl.Resource, Method: acl.Method}, roleNames)
 	}
 
 	return nil
@@ -166,7 +166,7 @@ func (i *PermissionCacheInter) RefreshAcl(aclID int) error {
 		roleNames = append(roleNames, aclMapping.Role.Name)
 	}
 
-	i.aclCache.Add(AclCacheKey{Ressource: acl.Ressource, Method: acl.Method}, roleNames)
+	i.aclCache.Add(AclCacheKey{Resource: acl.Resource, Method: acl.Method}, roleNames)
 
 	return nil
 }

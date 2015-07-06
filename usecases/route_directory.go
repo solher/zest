@@ -18,7 +18,7 @@ type (
 	}
 
 	DirectoryKey struct {
-		Ressource, Method string
+		Resource, Method string
 	}
 
 	RouteDirectory struct {
@@ -29,7 +29,7 @@ type (
 )
 
 func NewDirectoryKey(resources string) *DirectoryKey {
-	return &DirectoryKey{Ressource: resources}
+	return &DirectoryKey{Resource: resources}
 }
 
 func (k *DirectoryKey) For(method string) *DirectoryKey {
@@ -65,7 +65,7 @@ func (routeDir *RouteDirectory) Register(router *httptreemux.TreeMux) {
 			handler := route.Handler
 
 			if route.CheckPermissions {
-				permissionGate := NewPermissionGate(k.Ressource, k.Method, routeDir.accountInter, routeDir.render, route.Handler)
+				permissionGate := NewPermissionGate(k.Resource, k.Method, routeDir.accountInter, routeDir.render, route.Handler)
 				handler = permissionGate.Handler
 			}
 

@@ -80,11 +80,11 @@ func (st *GormStore) BuildQuery(filter *usecases.Filter, ownerRelations []domain
 
 	if ownerRelations != nil {
 		for _, relation := range ownerRelations {
-			relation.Ressource = utils.ToDBName(relation.Ressource)
+			relation.Resource = utils.ToDBName(relation.Resource)
 			relation.Fk = utils.ToDBName(relation.Fk)
 			relation.Related = utils.ToDBName(relation.Related)
 
-			queryString := fmt.Sprintf("INNER JOIN %s ON %s.%s = %s.id", relation.Ressource, relation.Ressource, relation.Fk, relation.Related)
+			queryString := fmt.Sprintf("INNER JOIN %s ON %s.%s = %s.id", relation.Resource, relation.Resource, relation.Fk, relation.Related)
 			query = query.Joins(queryString)
 			query = query.Table(relation.Related)
 		}
