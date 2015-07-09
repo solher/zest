@@ -17,6 +17,7 @@ type Zest struct {
 
 	App      *negroni.Negroni
 	Injector *infrastructure.Injector
+	Swagger  *infrastructure.Swagger
 
 	HandleOsArgs     func(z *Zest) (bool, error)
 	Build            func(z *Zest) error
@@ -35,6 +36,7 @@ func New() *Zest {
 		Environment: "development",
 		Port:        ":3000",
 		App:         negroni.New(),
+		Swagger:     infrastructure.NewSwagger(),
 		Injector:    infrastructure.NewInjector(),
 	}
 }
@@ -44,6 +46,7 @@ func Classic() *Zest {
 		Environment:      "development",
 		Port:             ":3000",
 		App:              negroni.New(),
+		Swagger:          infrastructure.NewSwagger(),
 		Injector:         infrastructure.NewInjector(),
 		HandleOsArgs:     handleOsArgs,
 		Build:            buildApp,
@@ -163,6 +166,18 @@ func buildApp(z *Zest) error {
 	if err != nil {
 		return err
 	}
+
+	type dependencies struct {
+		RouteDir *usecases.RouteDirectory
+	}
+
+	d := &dependencies{}
+	err = z.Injector.Get(d)
+	if err != nil {
+		return err
+	}
+
+	z.Swagger.AddRoutes(d.RouteDir)
 
 	return nil
 }

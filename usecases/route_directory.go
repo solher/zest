@@ -28,6 +28,12 @@ type (
 	}
 )
 
+func WrapHandler(handler http.Handler) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		handler.ServeHTTP(w, r)
+	}
+}
+
 func NewDirectoryKey(resources string) *DirectoryKey {
 	return &DirectoryKey{Resource: resources}
 }
