@@ -1,3 +1,4 @@
+// @SubApi Acl resource [/acls]
 package resources
 
 import (
@@ -46,6 +47,12 @@ func NewAclCtrl(interactor AbstractAclInter, render interfaces.AbstractRender, r
 	return controller
 }
 
+// @Title Create
+// @Description Create one or multiple Acl instances
+// @Accept  json
+// @Param   Acl body domain.Acl true "Acl instance(s) data"
+// @Success 201 {object} domain.Acl "Request was successful"
+// @Router /acls [post]
 func (c *AclCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	acl := &domain.Acl{}
 	var acls []domain.Acl
@@ -94,6 +101,12 @@ func (c *AclCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]st
 	}
 }
 
+// @Title Find
+// @Description Find all Acl instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Acl "Request was successful"
+// @Router /acls [get]
 func (c *AclCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -117,6 +130,13 @@ func (c *AclCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]stri
 	c.render.JSON(w, http.StatusOK, acls)
 }
 
+// @Title FindByID
+// @Description Find a Acl instance
+// @Accept  json
+// @Param   id path int true "Acl id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Acl "Request was successful"
+// @Router /acls/{id} [get]
 func (c *AclCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -148,6 +168,12 @@ func (c *AclCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[st
 	c.render.JSON(w, http.StatusOK, acl)
 }
 
+// @Title Upsert
+// @Description Upsert one or multiple Acl instances
+// @Accept  json
+// @Param   Acl body domain.Acl true "Acl instance(s) data"
+// @Success 201 {object} domain.Acl "Request was successful"
+// @Router /acls [put]
 func (c *AclCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	acl := &domain.Acl{}
 	var acls []domain.Acl
@@ -204,6 +230,13 @@ func (c *AclCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]st
 	}
 }
 
+// @Title UpdateByID
+// @Description Update attributes of a Acl instance
+// @Accept  json
+// @Param   id path int true "Acl id"
+// @Param   Acl body domain.Acl true "Acl instance data"
+// @Success 201 {object} domain.Acl
+// @Router /acls/{id} [put]
 func (c *AclCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -240,6 +273,12 @@ func (c *AclCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[
 	c.render.JSON(w, http.StatusCreated, acl)
 }
 
+// @Title DeleteAll
+// @Description Delete all Acl instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /acls [delete]
 func (c *AclCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -260,6 +299,12 @@ func (c *AclCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
+// @Title DeleteByID
+// @Description Delete a Acl instance
+// @Accept  json
+// @Param   id path int true "Acl id"
+// @Success 204 {object} error "Request was successful"
+// @Router /acls/{id} [delete]
 func (c *AclCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -283,6 +328,38 @@ func (c *AclCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[
 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
+
+// @Title CreateRelated
+// @Description Create one or multiple Acl instances of a related resource
+// @Accept  json
+// @Param   Acl body domain.Acl true "Acl instance(s) data"
+// @Success 201 {object} domain.Acl "Request was successful"
+// @Router /acls/{id}/{relatedResource} [post]
+func aclCreateRelated() {}
+
+// @Title FindRelated
+// @Description Find all Acl instances  of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Acl "Request was successful"
+// @Router /acls/{id}/{relatedResource} [get]
+func aclFindRelated() {}
+
+// @Title UpsertRelated
+// @Description Upsert one or multiple Acl instances of a related resource
+// @Accept  json
+// @Param   Acl body domain.Acl true "Acl instance(s) data"
+// @Success 201 {object} domain.Acl "Request was successful"
+// @Router /acls/{id}/{relatedResource} [put]
+func aclUpsertRelated() {}
+
+// @Title DeleteAllRelated
+// @Description Delete all Acl instances of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /acls/{id}/{relatedResource} [delete]
+func aclDeleteAllRelated() {}
 
 func (c *AclCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
@@ -316,6 +393,32 @@ func (c *AclCtrl) Related(w http.ResponseWriter, r *http.Request, params map[str
 	handler(w, r, params)
 }
 
+// @Title FindByIDRelated
+// @Description Find a Acl instance of a related resource
+// @Accept  json
+// @Param   id path int true "Acl id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Acl "Request was successful"
+// @Router /acls/{pk}/{relatedResource}/{fk} [get]
+func aclFindByIDRelated() {}
+
+// @Title UpdateByIDRelated
+// @Description Update attributes of a Acl instance of a related resource
+// @Accept  json
+// @Param   id path int true "Acl id"
+// @Param   Acl body domain.Acl true "Acl instance data"
+// @Success 201 {object} domain.Acl
+// @Router /acls/{pk}/{relatedResource}/{fk} [put]
+func aclUpdateByIDRelated() {}
+
+// @Title DeleteByIDRelated
+// @Description Delete a Acl instance of a related resource
+// @Accept  json
+// @Param   id path int true "Acl id"
+// @Success 204 {object} error "Request was successful"
+// @Router /acls/{pk}/{relatedResource}/{fk} [delete]
+func aclDeleteByIDRelated() {}
+
 func (c *AclCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
@@ -333,6 +436,8 @@ func (c *AclCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[
 	switch r.Method {
 	case "GET":
 		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("UpdateByID")).EffectiveHandler
 	case "DELETE":
 		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}

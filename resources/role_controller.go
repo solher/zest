@@ -1,3 +1,4 @@
+// @SubApi Role resource [/roles]
 package resources
 
 import (
@@ -46,6 +47,12 @@ func NewRoleCtrl(interactor AbstractRoleInter, render interfaces.AbstractRender,
 	return controller
 }
 
+// @Title Create
+// @Description Create one or multiple Role instances
+// @Accept  json
+// @Param   Role body domain.Role true "Role instance(s) data"
+// @Success 201 {object} domain.Role "Request was successful"
+// @Router /roles [post]
 func (c *RoleCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	role := &domain.Role{}
 	var roles []domain.Role
@@ -94,6 +101,12 @@ func (c *RoleCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]s
 	}
 }
 
+// @Title Find
+// @Description Find all Role instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Role "Request was successful"
+// @Router /roles [get]
 func (c *RoleCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -117,6 +130,13 @@ func (c *RoleCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]str
 	c.render.JSON(w, http.StatusOK, roles)
 }
 
+// @Title FindByID
+// @Description Find a Role instance
+// @Accept  json
+// @Param   id path int true "Role id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Role "Request was successful"
+// @Router /roles/{id} [get]
 func (c *RoleCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -148,6 +168,12 @@ func (c *RoleCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[s
 	c.render.JSON(w, http.StatusOK, role)
 }
 
+// @Title Upsert
+// @Description Upsert one or multiple Role instances
+// @Accept  json
+// @Param   Role body domain.Role true "Role instance(s) data"
+// @Success 201 {object} domain.Role "Request was successful"
+// @Router /roles [put]
 func (c *RoleCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	role := &domain.Role{}
 	var roles []domain.Role
@@ -204,6 +230,13 @@ func (c *RoleCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]s
 	}
 }
 
+// @Title UpdateByID
+// @Description Update attributes of a Role instance
+// @Accept  json
+// @Param   id path int true "Role id"
+// @Param   Role body domain.Role true "Role instance data"
+// @Success 201 {object} domain.Role
+// @Router /roles/{id} [put]
 func (c *RoleCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -240,6 +273,12 @@ func (c *RoleCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 	c.render.JSON(w, http.StatusCreated, role)
 }
 
+// @Title DeleteAll
+// @Description Delete all Role instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /roles [delete]
 func (c *RoleCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -260,6 +299,12 @@ func (c *RoleCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[strin
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
+// @Title DeleteByID
+// @Description Delete a Role instance
+// @Accept  json
+// @Param   id path int true "Role id"
+// @Success 204 {object} error "Request was successful"
+// @Router /roles/{id} [delete]
 func (c *RoleCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -283,6 +328,38 @@ func (c *RoleCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map
 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
+
+// @Title CreateRelated
+// @Description Create one or multiple Role instances of a related resource
+// @Accept  json
+// @Param   Role body domain.Role true "Role instance(s) data"
+// @Success 201 {object} domain.Role "Request was successful"
+// @Router /roles/{id}/{relatedResource} [post]
+func roleCreateRelated() {}
+
+// @Title FindRelated
+// @Description Find all Role instances  of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Role "Request was successful"
+// @Router /roles/{id}/{relatedResource} [get]
+func roleFindRelated() {}
+
+// @Title UpsertRelated
+// @Description Upsert one or multiple Role instances of a related resource
+// @Accept  json
+// @Param   Role body domain.Role true "Role instance(s) data"
+// @Success 201 {object} domain.Role "Request was successful"
+// @Router /roles/{id}/{relatedResource} [put]
+func roleUpsertRelated() {}
+
+// @Title DeleteAllRelated
+// @Description Delete all Role instances of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /roles/{id}/{relatedResource} [delete]
+func roleDeleteAllRelated() {}
 
 func (c *RoleCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
@@ -316,6 +393,32 @@ func (c *RoleCtrl) Related(w http.ResponseWriter, r *http.Request, params map[st
 	handler(w, r, params)
 }
 
+// @Title FindByIDRelated
+// @Description Find a Role instance of a related resource
+// @Accept  json
+// @Param   id path int true "Role id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Role "Request was successful"
+// @Router /roles/{pk}/{relatedResource}/{fk} [get]
+func roleFindByIDRelated() {}
+
+// @Title UpdateByIDRelated
+// @Description Update attributes of a Role instance of a related resource
+// @Accept  json
+// @Param   id path int true "Role id"
+// @Param   Role body domain.Role true "Role instance data"
+// @Success 201 {object} domain.Role
+// @Router /roles/{pk}/{relatedResource}/{fk} [put]
+func roleUpdateByIDRelated() {}
+
+// @Title DeleteByIDRelated
+// @Description Delete a Role instance of a related resource
+// @Accept  json
+// @Param   id path int true "Role id"
+// @Success 204 {object} error "Request was successful"
+// @Router /roles/{pk}/{relatedResource}/{fk} [delete]
+func roleDeleteByIDRelated() {}
+
 func (c *RoleCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
@@ -333,6 +436,8 @@ func (c *RoleCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map
 	switch r.Method {
 	case "GET":
 		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("UpdateByID")).EffectiveHandler
 	case "DELETE":
 		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}

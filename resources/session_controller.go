@@ -1,3 +1,4 @@
+// @SubApi Session resource [/sessions]
 package resources
 
 import (
@@ -46,6 +47,12 @@ func NewSessionCtrl(interactor AbstractSessionInter, render interfaces.AbstractR
 	return controller
 }
 
+// @Title Create
+// @Description Create one or multiple Session instances
+// @Accept  json
+// @Param   Session body domain.Session true "Session instance(s) data"
+// @Success 201 {object} domain.Session "Request was successful"
+// @Router /sessions [post]
 func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	session := &domain.Session{}
 	var sessions []domain.Session
@@ -94,6 +101,12 @@ func (c *SessionCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 }
 
+// @Title Find
+// @Description Find all Session instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Session "Request was successful"
+// @Router /sessions [get]
 func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -117,6 +130,13 @@ func (c *SessionCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 	c.render.JSON(w, http.StatusOK, sessions)
 }
 
+// @Title FindByID
+// @Description Find a Session instance
+// @Accept  json
+// @Param   id path int true "Session id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Session "Request was successful"
+// @Router /sessions/{id} [get]
 func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -148,6 +168,12 @@ func (c *SessionCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 	c.render.JSON(w, http.StatusOK, session)
 }
 
+// @Title Upsert
+// @Description Upsert one or multiple Session instances
+// @Accept  json
+// @Param   Session body domain.Session true "Session instance(s) data"
+// @Success 201 {object} domain.Session "Request was successful"
+// @Router /sessions [put]
 func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	session := &domain.Session{}
 	var sessions []domain.Session
@@ -204,6 +230,13 @@ func (c *SessionCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 }
 
+// @Title UpdateByID
+// @Description Update attributes of a Session instance
+// @Accept  json
+// @Param   id path int true "Session id"
+// @Param   Session body domain.Session true "Session instance data"
+// @Success 201 {object} domain.Session
+// @Router /sessions/{id} [put]
 func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -240,6 +273,12 @@ func (c *SessionCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 	c.render.JSON(w, http.StatusCreated, session)
 }
 
+// @Title DeleteAll
+// @Description Delete all Session instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /sessions [delete]
 func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -260,6 +299,12 @@ func (c *SessionCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
+// @Title DeleteByID
+// @Description Delete a Session instance
+// @Accept  json
+// @Param   id path int true "Session id"
+// @Success 204 {object} error "Request was successful"
+// @Router /sessions/{id} [delete]
 func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -283,6 +328,38 @@ func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
+
+// @Title CreateRelated
+// @Description Create one or multiple Session instances of a related resource
+// @Accept  json
+// @Param   Session body domain.Session true "Session instance(s) data"
+// @Success 201 {object} domain.Session "Request was successful"
+// @Router /sessions/{id}/{relatedResource} [post]
+func sessionCreateRelated() {}
+
+// @Title FindRelated
+// @Description Find all Session instances  of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Session "Request was successful"
+// @Router /sessions/{id}/{relatedResource} [get]
+func sessionFindRelated() {}
+
+// @Title UpsertRelated
+// @Description Upsert one or multiple Session instances of a related resource
+// @Accept  json
+// @Param   Session body domain.Session true "Session instance(s) data"
+// @Success 201 {object} domain.Session "Request was successful"
+// @Router /sessions/{id}/{relatedResource} [put]
+func sessionUpsertRelated() {}
+
+// @Title DeleteAllRelated
+// @Description Delete all Session instances of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /sessions/{id}/{relatedResource} [delete]
+func sessionDeleteAllRelated() {}
 
 func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
@@ -316,6 +393,32 @@ func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 	handler(w, r, params)
 }
 
+// @Title FindByIDRelated
+// @Description Find a Session instance of a related resource
+// @Accept  json
+// @Param   id path int true "Session id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Session "Request was successful"
+// @Router /sessions/{pk}/{relatedResource}/{fk} [get]
+func sessionFindByIDRelated() {}
+
+// @Title UpdateByIDRelated
+// @Description Update attributes of a Session instance of a related resource
+// @Accept  json
+// @Param   id path int true "Session id"
+// @Param   Session body domain.Session true "Session instance data"
+// @Success 201 {object} domain.Session
+// @Router /sessions/{pk}/{relatedResource}/{fk} [put]
+func sessionUpdateByIDRelated() {}
+
+// @Title DeleteByIDRelated
+// @Description Delete a Session instance of a related resource
+// @Accept  json
+// @Param   id path int true "Session id"
+// @Success 204 {object} error "Request was successful"
+// @Router /sessions/{pk}/{relatedResource}/{fk} [delete]
+func sessionDeleteByIDRelated() {}
+
 func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
@@ -333,6 +436,8 @@ func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params 
 	switch r.Method {
 	case "GET":
 		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("UpdateByID")).EffectiveHandler
 	case "DELETE":
 		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}

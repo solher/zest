@@ -62,6 +62,12 @@ func NewAccountCtrl(interactor AbstractAccountInter, guestInter AbstractAccountG
 	return controller
 }
 
+// @Title Signin
+// @Description Signin with an email and a password
+// @Accept  json
+// @Param   Credentials body Credentials true "The user credentials"
+// @Success 200 {object} domain.Session "Request was successful"
+// @Router /accounts/signin [post]
 func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	var credentials Credentials
 
@@ -91,9 +97,14 @@ func (c *AccountCtrl) Signin(w http.ResponseWriter, r *http.Request, _ map[strin
 	http.SetCookie(w, &cookie)
 
 	session.BeforeRender()
-	c.render.JSON(w, http.StatusCreated, session)
+	c.render.JSON(w, http.StatusOK, session)
 }
 
+// @Title Signout
+// @Description Signout an account
+// @Accept  json
+// @Success 204 {object} error "Request was successful"
+// @Router /accounts/signout [post]
 func (c *AccountCtrl) Signout(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	sessionCtx := context.Get(r, "currentSession")
 
@@ -113,6 +124,12 @@ func (c *AccountCtrl) Signout(w http.ResponseWriter, r *http.Request, _ map[stri
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Title Signup
+// @Description Signup a user
+// @Accept  json
+// @Param   User body domain.User true "User instance data"
+// @Success 200 {object} domain.Account "Request was successful"
+// @Router /accounts/signup [post]
 func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	type Params struct {
 		FirstName string `json:"firstName"`
@@ -153,25 +170,6 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ map[strin
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		}
-		return
-	}
-
-	account.BeforeRender()
-	c.render.JSON(w, http.StatusCreated, account)
-}
-
-func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	sessionCtx := context.Get(r, "currentSession")
-
-	if sessionCtx == nil {
-		c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
-		return
-	}
-	session := sessionCtx.(domain.Session)
-
-	account, err := c.guestInter.Current(&session)
-	if err != nil {
-		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
 	}
 
@@ -512,7 +510,7 @@ func (c *AccountCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 // @Param   Account body domain.Account true "Account instance(s) data"
 // @Success 201 {object} domain.Account "Request was successful"
 // @Router /accounts/{id}/{relatedResource} [post]
-func CreateRelated() {}
+func accountCreateRelated() {}
 
 // @Title FindRelated
 // @Description Find all Account instances  of a related resource matched by filter
@@ -520,7 +518,7 @@ func CreateRelated() {}
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Account "Request was successful"
 // @Router /accounts/{id}/{relatedResource} [get]
-func FindRelated() {}
+func accountFindRelated() {}
 
 // @Title UpsertRelated
 // @Description Upsert one or multiple Account instances of a related resource
@@ -528,7 +526,7 @@ func FindRelated() {}
 // @Param   Account body domain.Account true "Account instance(s) data"
 // @Success 201 {object} domain.Account "Request was successful"
 // @Router /accounts/{id}/{relatedResource} [put]
-func UpsertRelated() {}
+func accountUpsertRelated() {}
 
 // @Title DeleteAllRelated
 // @Description Delete all Account instances of a related resource matched by filter
@@ -536,7 +534,7 @@ func UpsertRelated() {}
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 204 {object} error "Request was successful"
 // @Router /accounts/{id}/{relatedResource} [delete]
-func DeleteAllRelated() {}
+func accountDeleteAllRelated() {}
 
 func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
@@ -592,7 +590,7 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Account "Request was successful"
 // @Router /accounts/{pk}/{relatedResource}/{fk} [get]
-func FindByIDRelated() {}
+func accountFindByIDRelated() {}
 
 // @Title UpdateByIDRelated
 // @Description Update attributes of a Account instance of a related resource
@@ -601,7 +599,7 @@ func FindByIDRelated() {}
 // @Param   Account body domain.Account true "Account instance data"
 // @Success 201 {object} domain.Account
 // @Router /accounts/{pk}/{relatedResource}/{fk} [put]
-func UpdateByIDRelated() {}
+func accountUpdateByIDRelated() {}
 
 // @Title DeleteByIDRelated
 // @Description Delete a Account instance of a related resource
@@ -609,7 +607,7 @@ func UpdateByIDRelated() {}
 // @Param   id path int true "Account id"
 // @Success 204 {object} error "Request was successful"
 // @Router /accounts/{pk}/{relatedResource}/{fk} [delete]
-func DeleteByIDRelated() {}
+func accountDeleteByIDRelated() {}
 
 func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (

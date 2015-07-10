@@ -1,3 +1,4 @@
+// @SubApi AclMapping resource [/aclMappings]
 package resources
 
 import (
@@ -46,6 +47,12 @@ func NewAclMappingCtrl(interactor AbstractAclMappingInter, render interfaces.Abs
 	return controller
 }
 
+// @Title Create
+// @Description Create one or multiple AclMapping instances
+// @Accept  json
+// @Param   AclMapping body domain.AclMapping true "AclMapping instance(s) data"
+// @Success 201 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings [post]
 func (c *AclMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	aclMapping := &domain.AclMapping{}
 	var aclMappings []domain.AclMapping
@@ -94,6 +101,12 @@ func (c *AclMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[st
 	}
 }
 
+// @Title Find
+// @Description Find all AclMapping instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings [get]
 func (c *AclMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -117,6 +130,13 @@ func (c *AclMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[stri
 	c.render.JSON(w, http.StatusOK, aclMappings)
 }
 
+// @Title FindByID
+// @Description Find a AclMapping instance
+// @Accept  json
+// @Param   id path int true "AclMapping id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings/{id} [get]
 func (c *AclMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -148,6 +168,12 @@ func (c *AclMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, params
 	c.render.JSON(w, http.StatusOK, aclMapping)
 }
 
+// @Title Upsert
+// @Description Upsert one or multiple AclMapping instances
+// @Accept  json
+// @Param   AclMapping body domain.AclMapping true "AclMapping instance(s) data"
+// @Success 201 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings [put]
 func (c *AclMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	aclMapping := &domain.AclMapping{}
 	var aclMappings []domain.AclMapping
@@ -204,6 +230,13 @@ func (c *AclMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[st
 	}
 }
 
+// @Title UpdateByID
+// @Description Update attributes of a AclMapping instance
+// @Accept  json
+// @Param   id path int true "AclMapping id"
+// @Param   AclMapping body domain.AclMapping true "AclMapping instance data"
+// @Success 201 {object} domain.AclMapping
+// @Router /aclMappings/{id} [put]
 func (c *AclMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -240,6 +273,12 @@ func (c *AclMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, para
 	c.render.JSON(w, http.StatusCreated, aclMapping)
 }
 
+// @Title DeleteAll
+// @Description Delete all AclMapping instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /aclMappings [delete]
 func (c *AclMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -260,6 +299,12 @@ func (c *AclMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
+// @Title DeleteByID
+// @Description Delete a AclMapping instance
+// @Accept  json
+// @Param   id path int true "AclMapping id"
+// @Success 204 {object} error "Request was successful"
+// @Router /aclMappings/{id} [delete]
 func (c *AclMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -283,6 +328,38 @@ func (c *AclMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, para
 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
+
+// @Title CreateRelated
+// @Description Create one or multiple AclMapping instances of a related resource
+// @Accept  json
+// @Param   AclMapping body domain.AclMapping true "AclMapping instance(s) data"
+// @Success 201 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings/{id}/{relatedResource} [post]
+func aclMappingCreateRelated() {}
+
+// @Title FindRelated
+// @Description Find all AclMapping instances  of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings/{id}/{relatedResource} [get]
+func aclMappingFindRelated() {}
+
+// @Title UpsertRelated
+// @Description Upsert one or multiple AclMapping instances of a related resource
+// @Accept  json
+// @Param   AclMapping body domain.AclMapping true "AclMapping instance(s) data"
+// @Success 201 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings/{id}/{relatedResource} [put]
+func aclMappingUpsertRelated() {}
+
+// @Title DeleteAllRelated
+// @Description Delete all AclMapping instances of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /aclMappings/{id}/{relatedResource} [delete]
+func aclMappingDeleteAllRelated() {}
 
 func (c *AclMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
@@ -316,6 +393,32 @@ func (c *AclMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params 
 	handler(w, r, params)
 }
 
+// @Title FindByIDRelated
+// @Description Find a AclMapping instance of a related resource
+// @Accept  json
+// @Param   id path int true "AclMapping id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.AclMapping "Request was successful"
+// @Router /aclMappings/{pk}/{relatedResource}/{fk} [get]
+func aclMappingFindByIDRelated() {}
+
+// @Title UpdateByIDRelated
+// @Description Update attributes of a AclMapping instance of a related resource
+// @Accept  json
+// @Param   id path int true "AclMapping id"
+// @Param   AclMapping body domain.AclMapping true "AclMapping instance data"
+// @Success 201 {object} domain.AclMapping
+// @Router /aclMappings/{pk}/{relatedResource}/{fk} [put]
+func aclMappingUpdateByIDRelated() {}
+
+// @Title DeleteByIDRelated
+// @Description Delete a AclMapping instance of a related resource
+// @Accept  json
+// @Param   id path int true "AclMapping id"
+// @Success 204 {object} error "Request was successful"
+// @Router /aclMappings/{pk}/{relatedResource}/{fk} [delete]
+func aclMappingDeleteByIDRelated() {}
+
 func (c *AclMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
@@ -333,6 +436,8 @@ func (c *AclMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, para
 	switch r.Method {
 	case "GET":
 		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("UpdateByID")).EffectiveHandler
 	case "DELETE":
 		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}

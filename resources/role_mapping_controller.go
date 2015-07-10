@@ -1,3 +1,4 @@
+// @SubApi RoleMapping resource [/roleMappings]
 package resources
 
 import (
@@ -46,6 +47,12 @@ func NewRoleMappingCtrl(interactor AbstractRoleMappingInter, render interfaces.A
 	return controller
 }
 
+// @Title Create
+// @Description Create one or multiple RoleMapping instances
+// @Accept  json
+// @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance(s) data"
+// @Success 201 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings [post]
 func (c *RoleMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	roleMapping := &domain.RoleMapping{}
 	var roleMappings []domain.RoleMapping
@@ -94,6 +101,12 @@ func (c *RoleMappingCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[s
 	}
 }
 
+// @Title Find
+// @Description Find all RoleMapping instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings [get]
 func (c *RoleMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -117,6 +130,13 @@ func (c *RoleMappingCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[str
 	c.render.JSON(w, http.StatusOK, roleMappings)
 }
 
+// @Title FindByID
+// @Description Find a RoleMapping instance
+// @Accept  json
+// @Param   id path int true "RoleMapping id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings/{id} [get]
 func (c *RoleMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -148,6 +168,12 @@ func (c *RoleMappingCtrl) FindByID(w http.ResponseWriter, r *http.Request, param
 	c.render.JSON(w, http.StatusOK, roleMapping)
 }
 
+// @Title Upsert
+// @Description Upsert one or multiple RoleMapping instances
+// @Accept  json
+// @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance(s) data"
+// @Success 201 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings [put]
 func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	roleMapping := &domain.RoleMapping{}
 	var roleMappings []domain.RoleMapping
@@ -204,6 +230,13 @@ func (c *RoleMappingCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[s
 	}
 }
 
+// @Title UpdateByID
+// @Description Update attributes of a RoleMapping instance
+// @Accept  json
+// @Param   id path int true "RoleMapping id"
+// @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance data"
+// @Success 201 {object} domain.RoleMapping
+// @Router /roleMappings/{id} [put]
 func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -240,6 +273,12 @@ func (c *RoleMappingCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, par
 	c.render.JSON(w, http.StatusCreated, roleMapping)
 }
 
+// @Title DeleteAll
+// @Description Delete all RoleMapping instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /roleMappings [delete]
 func (c *RoleMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -260,6 +299,12 @@ func (c *RoleMappingCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ ma
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
+// @Title DeleteByID
+// @Description Delete a RoleMapping instance
+// @Accept  json
+// @Param   id path int true "RoleMapping id"
+// @Success 204 {object} error "Request was successful"
+// @Router /roleMappings/{id} [delete]
 func (c *RoleMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -283,6 +328,38 @@ func (c *RoleMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, par
 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
+
+// @Title CreateRelated
+// @Description Create one or multiple RoleMapping instances of a related resource
+// @Accept  json
+// @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance(s) data"
+// @Success 201 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings/{id}/{relatedResource} [post]
+func roleMappingCreateRelated() {}
+
+// @Title FindRelated
+// @Description Find all RoleMapping instances  of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings/{id}/{relatedResource} [get]
+func roleMappingFindRelated() {}
+
+// @Title UpsertRelated
+// @Description Upsert one or multiple RoleMapping instances of a related resource
+// @Accept  json
+// @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance(s) data"
+// @Success 201 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings/{id}/{relatedResource} [put]
+func roleMappingUpsertRelated() {}
+
+// @Title DeleteAllRelated
+// @Description Delete all RoleMapping instances of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /roleMappings/{id}/{relatedResource} [delete]
+func roleMappingDeleteAllRelated() {}
 
 func (c *RoleMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
@@ -316,6 +393,32 @@ func (c *RoleMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params
 	handler(w, r, params)
 }
 
+// @Title FindByIDRelated
+// @Description Find a RoleMapping instance of a related resource
+// @Accept  json
+// @Param   id path int true "RoleMapping id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.RoleMapping "Request was successful"
+// @Router /roleMappings/{pk}/{relatedResource}/{fk} [get]
+func roleMappingFindByIDRelated() {}
+
+// @Title UpdateByIDRelated
+// @Description Update attributes of a RoleMapping instance of a related resource
+// @Accept  json
+// @Param   id path int true "RoleMapping id"
+// @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance data"
+// @Success 201 {object} domain.RoleMapping
+// @Router /roleMappings/{pk}/{relatedResource}/{fk} [put]
+func roleMappingUpdateByIDRelated() {}
+
+// @Title DeleteByIDRelated
+// @Description Delete a RoleMapping instance of a related resource
+// @Accept  json
+// @Param   id path int true "RoleMapping id"
+// @Success 204 {object} error "Request was successful"
+// @Router /roleMappings/{pk}/{relatedResource}/{fk} [delete]
+func roleMappingDeleteByIDRelated() {}
+
 func (c *RoleMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
@@ -333,6 +436,8 @@ func (c *RoleMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, par
 	switch r.Method {
 	case "GET":
 		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("UpdateByID")).EffectiveHandler
 	case "DELETE":
 		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}

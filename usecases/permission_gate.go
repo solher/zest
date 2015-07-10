@@ -11,9 +11,9 @@ import (
 
 type PermissionGate struct {
 	resource, method string
-	accountInter      AbstractAccountInter
-	render            AbstractRender
-	next              HandlerFunc
+	accountInter     AbstractAccountInter
+	render           AbstractRender
+	next             HandlerFunc
 }
 
 func NewPermissionGate(resource, method string, accountInter AbstractAccountInter, render AbstractRender,

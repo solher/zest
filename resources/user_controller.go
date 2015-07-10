@@ -1,3 +1,4 @@
+// @SubApi User resource [/users]
 package resources
 
 import (
@@ -46,6 +47,12 @@ func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender,
 	return controller
 }
 
+// @Title Create
+// @Description Create one or multiple User instances
+// @Accept  json
+// @Param   User body domain.User true "User instance(s) data"
+// @Success 201 {object} domain.User "Request was successful"
+// @Router /users [post]
 func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	user := &domain.User{}
 	var users []domain.User
@@ -94,6 +101,12 @@ func (c *UserCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]s
 	}
 }
 
+// @Title Find
+// @Description Find all User instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.User "Request was successful"
+// @Router /users [get]
 func (c *UserCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -117,6 +130,13 @@ func (c *UserCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]str
 	c.render.JSON(w, http.StatusOK, users)
 }
 
+// @Title FindByID
+// @Description Find a User instance
+// @Accept  json
+// @Param   id path int true "User id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.User "Request was successful"
+// @Router /users/{id} [get]
 func (c *UserCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -148,6 +168,12 @@ func (c *UserCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[s
 	c.render.JSON(w, http.StatusOK, user)
 }
 
+// @Title Upsert
+// @Description Upsert one or multiple User instances
+// @Accept  json
+// @Param   User body domain.User true "User instance(s) data"
+// @Success 201 {object} domain.User "Request was successful"
+// @Router /users [put]
 func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	user := &domain.User{}
 	var users []domain.User
@@ -204,6 +230,13 @@ func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]s
 	}
 }
 
+// @Title UpdateByID
+// @Description Update attributes of a User instance
+// @Accept  json
+// @Param   id path int true "User id"
+// @Param   User body domain.User true "User instance data"
+// @Success 201 {object} domain.User
+// @Router /users/{id} [put]
 func (c *UserCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -240,6 +273,12 @@ func (c *UserCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 	c.render.JSON(w, http.StatusCreated, user)
 }
 
+// @Title DeleteAll
+// @Description Delete all User instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /users [delete]
 func (c *UserCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -260,6 +299,12 @@ func (c *UserCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[strin
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
+// @Title DeleteByID
+// @Description Delete a User instance
+// @Accept  json
+// @Param   id path int true "User id"
+// @Success 204 {object} error "Request was successful"
+// @Router /users/{id} [delete]
 func (c *UserCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -283,6 +328,38 @@ func (c *UserCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map
 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
+
+// @Title CreateRelated
+// @Description Create one or multiple User instances of a related resource
+// @Accept  json
+// @Param   User body domain.User true "User instance(s) data"
+// @Success 201 {object} domain.User "Request was successful"
+// @Router /users/{id}/{relatedResource} [post]
+func userCreateRelated() {}
+
+// @Title FindRelated
+// @Description Find all User instances  of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.User "Request was successful"
+// @Router /users/{id}/{relatedResource} [get]
+func userFindRelated() {}
+
+// @Title UpsertRelated
+// @Description Upsert one or multiple User instances of a related resource
+// @Accept  json
+// @Param   User body domain.User true "User instance(s) data"
+// @Success 201 {object} domain.User "Request was successful"
+// @Router /users/{id}/{relatedResource} [put]
+func userUpsertRelated() {}
+
+// @Title DeleteAllRelated
+// @Description Delete all User instances of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /users/{id}/{relatedResource} [delete]
+func userDeleteAllRelated() {}
 
 func (c *UserCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
@@ -316,6 +393,32 @@ func (c *UserCtrl) Related(w http.ResponseWriter, r *http.Request, params map[st
 	handler(w, r, params)
 }
 
+// @Title FindByIDRelated
+// @Description Find a User instance of a related resource
+// @Accept  json
+// @Param   id path int true "User id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.User "Request was successful"
+// @Router /users/{pk}/{relatedResource}/{fk} [get]
+func userFindByIDRelated() {}
+
+// @Title UpdateByIDRelated
+// @Description Update attributes of a User instance of a related resource
+// @Accept  json
+// @Param   id path int true "User id"
+// @Param   User body domain.User true "User instance data"
+// @Success 201 {object} domain.User
+// @Router /users/{pk}/{relatedResource}/{fk} [put]
+func userUpdateByIDRelated() {}
+
+// @Title DeleteByIDRelated
+// @Description Delete a User instance of a related resource
+// @Accept  json
+// @Param   id path int true "User id"
+// @Success 204 {object} error "Request was successful"
+// @Router /users/{pk}/{relatedResource}/{fk} [delete]
+func userDeleteByIDRelated() {}
+
 func (c *UserCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
@@ -333,6 +436,8 @@ func (c *UserCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map
 	switch r.Method {
 	case "GET":
 		handler = c.routeDir.Get(key.For("FindByID")).EffectiveHandler
+	case "PUT":
+		handler = c.routeDir.Get(key.For("UpdateByID")).EffectiveHandler
 	case "DELETE":
 		handler = c.routeDir.Get(key.For("DeleteByID")).EffectiveHandler
 	}

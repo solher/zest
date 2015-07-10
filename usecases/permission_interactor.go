@@ -103,7 +103,7 @@ func (i *PermissionInter) RefreshFromRoutes(routes map[DirectoryKey]Route) error
 		filter := &Filter{
 			Where: map[string]interface{}{
 				"resource": dirKey.Resource,
-				"method":    dirKey.Method,
+				"method":   dirKey.Method,
 			},
 		}
 
