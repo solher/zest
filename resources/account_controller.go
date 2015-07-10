@@ -1,3 +1,4 @@
+// @SubApi Account resource [/accounts]
 package resources
 
 import (
@@ -178,6 +179,12 @@ func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ map[stri
 	c.render.JSON(w, http.StatusOK, account)
 }
 
+// @Title Create
+// @Description Create one or multiple Account instances
+// @Accept  json
+// @Param   Account body domain.Account true "Account instance(s) data"
+// @Success 201 {object} domain.Account "Request was successful"
+// @Router /accounts [post]
 func (c *AccountCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	account := &domain.Account{}
 	var accounts []domain.Account
@@ -226,6 +233,12 @@ func (c *AccountCtrl) Create(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 }
 
+// @Title Find
+// @Description Find all Account instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Account "Request was successful"
+// @Router /accounts [get]
 func (c *AccountCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -249,6 +262,13 @@ func (c *AccountCtrl) Find(w http.ResponseWriter, r *http.Request, _ map[string]
 	c.render.JSON(w, http.StatusOK, accounts)
 }
 
+// @Title FindByID
+// @Description Find a Account instance
+// @Accept  json
+// @Param   id path int true "Account id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Account "Request was successful"
+// @Router /accounts/{id} [get]
 func (c *AccountCtrl) FindByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
 		id  int
@@ -295,6 +315,12 @@ func (c *AccountCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 	c.render.JSON(w, http.StatusOK, account)
 }
 
+// @Title Upsert
+// @Description Upsert one or multiple Account instances
+// @Accept  json
+// @Param   Account body domain.Account true "Account instance(s) data"
+// @Success 201 {object} domain.Account "Request was successful"
+// @Router /accounts [put]
 func (c *AccountCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	account := &domain.Account{}
 	var accounts []domain.Account
@@ -351,6 +377,13 @@ func (c *AccountCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[strin
 	}
 }
 
+// @Title UpdateByID
+// @Description Update attributes of a Account instance
+// @Accept  json
+// @Param   id path int true "Account id"
+// @Param   Account body domain.Account true "Account instance data"
+// @Success 201 {object} domain.Account
+// @Router /accounts/{id} [put]
 func (c *AccountCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
 		id  int
@@ -402,6 +435,12 @@ func (c *AccountCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 	c.render.JSON(w, http.StatusCreated, account)
 }
 
+// @Title DeleteAll
+// @Description Delete all Account instances matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /accounts [delete]
 func (c *AccountCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	filter, err := interfaces.GetQueryFilter(r)
 	if err != nil {
@@ -422,6 +461,12 @@ func (c *AccountCtrl) DeleteAll(w http.ResponseWriter, r *http.Request, _ map[st
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
+// @Title DeleteByID
+// @Description Delete a Account instance
+// @Accept  json
+// @Param   id path int true "Account id"
+// @Success 204 {object} error "Request was successful"
+// @Router /accounts/{id} [delete]
 func (c *AccountCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
 		id  int
@@ -460,6 +505,38 @@ func (c *AccountCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 
 	c.render.JSON(w, http.StatusNoContent, nil)
 }
+
+// @Title CreateRelated
+// @Description Create one or multiple Account instances of a related resource
+// @Accept  json
+// @Param   Account body domain.Account true "Account instance(s) data"
+// @Success 201 {object} domain.Account "Request was successful"
+// @Router /accounts/{id}/{relatedResource} [post]
+func CreateRelated() {}
+
+// @Title FindRelated
+// @Description Find all Account instances  of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Account "Request was successful"
+// @Router /accounts/{id}/{relatedResource} [get]
+func FindRelated() {}
+
+// @Title UpsertRelated
+// @Description Upsert one or multiple Account instances of a related resource
+// @Accept  json
+// @Param   Account body domain.Account true "Account instance(s) data"
+// @Success 201 {object} domain.Account "Request was successful"
+// @Router /accounts/{id}/{relatedResource} [put]
+func UpsertRelated() {}
+
+// @Title DeleteAllRelated
+// @Description Delete all Account instances of a related resource matched by filter
+// @Accept  json
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 204 {object} error "Request was successful"
+// @Router /accounts/{id}/{relatedResource} [delete]
+func DeleteAllRelated() {}
 
 func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
@@ -507,6 +584,32 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 
 	handler(w, r, params)
 }
+
+// @Title FindByIDRelated
+// @Description Find a Account instance of a related resource
+// @Accept  json
+// @Param   id path int true "Account id"
+// @Param   filter query string false "JSON filter defining fields and includes"
+// @Success 200 {object} domain.Account "Request was successful"
+// @Router /accounts/{pk}/{relatedResource}/{fk} [get]
+func FindByIDRelated() {}
+
+// @Title UpdateByIDRelated
+// @Description Update attributes of a Account instance of a related resource
+// @Accept  json
+// @Param   id path int true "Account id"
+// @Param   Account body domain.Account true "Account instance data"
+// @Success 201 {object} domain.Account
+// @Router /accounts/{pk}/{relatedResource}/{fk} [put]
+func UpdateByIDRelated() {}
+
+// @Title DeleteByIDRelated
+// @Description Delete a Account instance of a related resource
+// @Accept  json
+// @Param   id path int true "Account id"
+// @Success 204 {object} error "Request was successful"
+// @Router /accounts/{pk}/{relatedResource}/{fk} [delete]
+func DeleteByIDRelated() {}
 
 func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
