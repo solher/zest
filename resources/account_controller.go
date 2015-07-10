@@ -41,7 +41,6 @@ type AbstractAccountGuestInter interface {
 	Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error)
 	Signout(currentSession *domain.Session) error
 	Signup(user *domain.User) (*domain.Account, error)
-	Current(currentSession *domain.Session) (*domain.Account, error)
 	CurrentSessionFromToken(authToken string) (*domain.Session, error)
 }
 
