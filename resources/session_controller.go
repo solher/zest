@@ -332,36 +332,52 @@ func (c *SessionCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 // @Title CreateRelated
 // @Description Create one or multiple Session instances of a related resource
 // @Accept  json
+// @Param   pk path int true "Session id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   Session body domain.Session true "Session instance(s) data"
 // @Success 201 {object} domain.Session "Request was successful"
-// @Router /sessions/{id}/{relatedResource} [post]
-func sessionCreateRelated() {}
+// @Router /sessions/{pk}/{relatedResource} [post]
+func (c *SessionCtrl) CreateRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title FindRelated
 // @Description Find all Session instances  of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "Session id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Session "Request was successful"
-// @Router /sessions/{id}/{relatedResource} [get]
-func sessionFindRelated() {}
+// @Router /sessions/{pk}/{relatedResource} [get]
+func (c *SessionCtrl) FindRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title UpsertRelated
 // @Description Upsert one or multiple Session instances of a related resource
 // @Accept  json
+// @Param   pk path int true "Session id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   Session body domain.Session true "Session instance(s) data"
 // @Success 201 {object} domain.Session "Request was successful"
-// @Router /sessions/{id}/{relatedResource} [put]
-func sessionUpsertRelated() {}
+// @Router /sessions/{pk}/{relatedResource} [put]
+func (c *SessionCtrl) UpsertRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title DeleteAllRelated
 // @Description Delete all Session instances of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "Session id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 204 {object} error "Request was successful"
-// @Router /sessions/{id}/{relatedResource} [delete]
-func sessionDeleteAllRelated() {}
+// @Router /sessions/{pk}/{relatedResource} [delete]
+func (c *SessionCtrl) DeleteAllRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
-func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *SessionCtrl) related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -396,30 +412,42 @@ func (c *SessionCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 // @Title FindByIDRelated
 // @Description Find a Session instance of a related resource
 // @Accept  json
-// @Param   id path int true "Session id"
+// @Param   pk path int true "Session id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Session "Request was successful"
 // @Router /sessions/{pk}/{relatedResource}/{fk} [get]
-func sessionFindByIDRelated() {}
+func (c *SessionCtrl) FindByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title UpdateByIDRelated
 // @Description Update attributes of a Session instance of a related resource
 // @Accept  json
-// @Param   id path int true "Session id"
+// @Param   pk path int true "Session id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   Session body domain.Session true "Session instance data"
 // @Success 201 {object} domain.Session
 // @Router /sessions/{pk}/{relatedResource}/{fk} [put]
-func sessionUpdateByIDRelated() {}
+func (c *SessionCtrl) UpdateByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title DeleteByIDRelated
 // @Description Delete a Session instance of a related resource
 // @Accept  json
-// @Param   id path int true "Session id"
+// @Param   pk path int true "Session id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Success 204 {object} error "Request was successful"
 // @Router /sessions/{pk}/{relatedResource}/{fk} [delete]
-func sessionDeleteByIDRelated() {}
+func (c *SessionCtrl) DeleteByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
-func (c *SessionCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *SessionCtrl) relatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)

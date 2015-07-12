@@ -332,36 +332,52 @@ func (c *AclCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map[
 // @Title CreateRelated
 // @Description Create one or multiple Acl instances of a related resource
 // @Accept  json
+// @Param   pk path int true "Acl id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   Acl body domain.Acl true "Acl instance(s) data"
 // @Success 201 {object} domain.Acl "Request was successful"
-// @Router /acls/{id}/{relatedResource} [post]
-func aclCreateRelated() {}
+// @Router /acls/{pk}/{relatedResource} [post]
+func (c *AclCtrl) CreateRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title FindRelated
 // @Description Find all Acl instances  of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "Acl id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Acl "Request was successful"
-// @Router /acls/{id}/{relatedResource} [get]
-func aclFindRelated() {}
+// @Router /acls/{pk}/{relatedResource} [get]
+func (c *AclCtrl) FindRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title UpsertRelated
 // @Description Upsert one or multiple Acl instances of a related resource
 // @Accept  json
+// @Param   pk path int true "Acl id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   Acl body domain.Acl true "Acl instance(s) data"
 // @Success 201 {object} domain.Acl "Request was successful"
-// @Router /acls/{id}/{relatedResource} [put]
-func aclUpsertRelated() {}
+// @Router /acls/{pk}/{relatedResource} [put]
+func (c *AclCtrl) UpsertRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title DeleteAllRelated
 // @Description Delete all Acl instances of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "Acl id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 204 {object} error "Request was successful"
-// @Router /acls/{id}/{relatedResource} [delete]
-func aclDeleteAllRelated() {}
+// @Router /acls/{pk}/{relatedResource} [delete]
+func (c *AclCtrl) DeleteAllRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
-func (c *AclCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AclCtrl) related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -396,30 +412,42 @@ func (c *AclCtrl) Related(w http.ResponseWriter, r *http.Request, params map[str
 // @Title FindByIDRelated
 // @Description Find a Acl instance of a related resource
 // @Accept  json
-// @Param   id path int true "Acl id"
+// @Param   pk path int true "Acl id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Acl "Request was successful"
 // @Router /acls/{pk}/{relatedResource}/{fk} [get]
-func aclFindByIDRelated() {}
+func (c *AclCtrl) FindByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title UpdateByIDRelated
 // @Description Update attributes of a Acl instance of a related resource
 // @Accept  json
-// @Param   id path int true "Acl id"
+// @Param   pk path int true "Acl id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   Acl body domain.Acl true "Acl instance data"
 // @Success 201 {object} domain.Acl
 // @Router /acls/{pk}/{relatedResource}/{fk} [put]
-func aclUpdateByIDRelated() {}
+func (c *AclCtrl) UpdateByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title DeleteByIDRelated
 // @Description Delete a Acl instance of a related resource
 // @Accept  json
-// @Param   id path int true "Acl id"
+// @Param   pk path int true "Acl id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Success 204 {object} error "Request was successful"
 // @Router /acls/{pk}/{relatedResource}/{fk} [delete]
-func aclDeleteByIDRelated() {}
+func (c *AclCtrl) DeleteByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
-func (c *AclCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AclCtrl) relatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)

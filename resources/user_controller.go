@@ -332,36 +332,52 @@ func (c *UserCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params map
 // @Title CreateRelated
 // @Description Create one or multiple User instances of a related resource
 // @Accept  json
+// @Param   pk path int true "User id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   User body domain.User true "User instance(s) data"
 // @Success 201 {object} domain.User "Request was successful"
-// @Router /users/{id}/{relatedResource} [post]
-func userCreateRelated() {}
+// @Router /users/{pk}/{relatedResource} [post]
+func (c *UserCtrl) CreateRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title FindRelated
 // @Description Find all User instances  of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "User id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.User "Request was successful"
-// @Router /users/{id}/{relatedResource} [get]
-func userFindRelated() {}
+// @Router /users/{pk}/{relatedResource} [get]
+func (c *UserCtrl) FindRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title UpsertRelated
 // @Description Upsert one or multiple User instances of a related resource
 // @Accept  json
+// @Param   pk path int true "User id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   User body domain.User true "User instance(s) data"
 // @Success 201 {object} domain.User "Request was successful"
-// @Router /users/{id}/{relatedResource} [put]
-func userUpsertRelated() {}
+// @Router /users/{pk}/{relatedResource} [put]
+func (c *UserCtrl) UpsertRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title DeleteAllRelated
 // @Description Delete all User instances of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "User id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 204 {object} error "Request was successful"
-// @Router /users/{id}/{relatedResource} [delete]
-func userDeleteAllRelated() {}
+// @Router /users/{pk}/{relatedResource} [delete]
+func (c *UserCtrl) DeleteAllRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
-func (c *UserCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *UserCtrl) related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -396,30 +412,42 @@ func (c *UserCtrl) Related(w http.ResponseWriter, r *http.Request, params map[st
 // @Title FindByIDRelated
 // @Description Find a User instance of a related resource
 // @Accept  json
-// @Param   id path int true "User id"
+// @Param   pk path int true "User id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.User "Request was successful"
 // @Router /users/{pk}/{relatedResource}/{fk} [get]
-func userFindByIDRelated() {}
+func (c *UserCtrl) FindByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title UpdateByIDRelated
 // @Description Update attributes of a User instance of a related resource
 // @Accept  json
-// @Param   id path int true "User id"
+// @Param   pk path int true "User id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   User body domain.User true "User instance data"
 // @Success 201 {object} domain.User
 // @Router /users/{pk}/{relatedResource}/{fk} [put]
-func userUpdateByIDRelated() {}
+func (c *UserCtrl) UpdateByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title DeleteByIDRelated
 // @Description Delete a User instance of a related resource
 // @Accept  json
-// @Param   id path int true "User id"
+// @Param   pk path int true "User id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Success 204 {object} error "Request was successful"
 // @Router /users/{pk}/{relatedResource}/{fk} [delete]
-func userDeleteByIDRelated() {}
+func (c *UserCtrl) DeleteByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
-func (c *UserCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *UserCtrl) relatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)

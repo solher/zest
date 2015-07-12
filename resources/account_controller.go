@@ -124,7 +124,7 @@ func (c *AccountCtrl) Signout(w http.ResponseWriter, r *http.Request, _ map[stri
 }
 
 // @Title Signup
-// @Description Signup a user
+// @Description Signup an account
 // @Accept  json
 // @Param   User body domain.User true "User instance data"
 // @Success 200 {object} domain.Account "Request was successful"
@@ -506,36 +506,52 @@ func (c *AccountCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 // @Title CreateRelated
 // @Description Create one or multiple Account instances of a related resource
 // @Accept  json
+// @Param   pk path int true "Account id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   Account body domain.Account true "Account instance(s) data"
 // @Success 201 {object} domain.Account "Request was successful"
-// @Router /accounts/{id}/{relatedResource} [post]
-func accountCreateRelated() {}
+// @Router /accounts/{pk}/{relatedResource} [post]
+func (c *AccountCtrl) CreateRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title FindRelated
 // @Description Find all Account instances  of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "Account id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Account "Request was successful"
-// @Router /accounts/{id}/{relatedResource} [get]
-func accountFindRelated() {}
+// @Router /accounts/{pk}/{relatedResource} [get]
+func (c *AccountCtrl) FindRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title UpsertRelated
 // @Description Upsert one or multiple Account instances of a related resource
 // @Accept  json
+// @Param   pk path int true "Account id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   Account body domain.Account true "Account instance(s) data"
 // @Success 201 {object} domain.Account "Request was successful"
-// @Router /accounts/{id}/{relatedResource} [put]
-func accountUpsertRelated() {}
+// @Router /accounts/{pk}/{relatedResource} [put]
+func (c *AccountCtrl) UpsertRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title DeleteAllRelated
 // @Description Delete all Account instances of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "Account id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 204 {object} error "Request was successful"
-// @Router /accounts/{id}/{relatedResource} [delete]
-func accountDeleteAllRelated() {}
+// @Router /accounts/{pk}/{relatedResource} [delete]
+func (c *AccountCtrl) DeleteAllRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
-func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AccountCtrl) related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
 		pk  int
 		err error
@@ -585,30 +601,42 @@ func (c *AccountCtrl) Related(w http.ResponseWriter, r *http.Request, params map
 // @Title FindByIDRelated
 // @Description Find a Account instance of a related resource
 // @Accept  json
-// @Param   id path int true "Account id"
+// @Param   pk path int true "Account id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.Account "Request was successful"
 // @Router /accounts/{pk}/{relatedResource}/{fk} [get]
-func accountFindByIDRelated() {}
+func (c *AccountCtrl) FindByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title UpdateByIDRelated
 // @Description Update attributes of a Account instance of a related resource
 // @Accept  json
-// @Param   id path int true "Account id"
+// @Param   pk path int true "Account id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   Account body domain.Account true "Account instance data"
 // @Success 201 {object} domain.Account
 // @Router /accounts/{pk}/{relatedResource}/{fk} [put]
-func accountUpdateByIDRelated() {}
+func (c *AccountCtrl) UpdateByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title DeleteByIDRelated
 // @Description Delete a Account instance of a related resource
 // @Accept  json
-// @Param   id path int true "Account id"
+// @Param   pk path int true "Account id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Success 204 {object} error "Request was successful"
 // @Router /accounts/{pk}/{relatedResource}/{fk} [delete]
-func accountDeleteByIDRelated() {}
+func (c *AccountCtrl) DeleteByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
-func (c *AccountCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *AccountCtrl) relatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
 		pk  int
 		err error

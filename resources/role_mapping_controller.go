@@ -332,36 +332,52 @@ func (c *RoleMappingCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, par
 // @Title CreateRelated
 // @Description Create one or multiple RoleMapping instances of a related resource
 // @Accept  json
+// @Param   pk path int true "RoleMapping id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance(s) data"
 // @Success 201 {object} domain.RoleMapping "Request was successful"
-// @Router /roleMappings/{id}/{relatedResource} [post]
-func roleMappingCreateRelated() {}
+// @Router /roleMappings/{pk}/{relatedResource} [post]
+func (c *RoleMappingCtrl) CreateRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title FindRelated
 // @Description Find all RoleMapping instances  of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "RoleMapping id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.RoleMapping "Request was successful"
-// @Router /roleMappings/{id}/{relatedResource} [get]
-func roleMappingFindRelated() {}
+// @Router /roleMappings/{pk}/{relatedResource} [get]
+func (c *RoleMappingCtrl) FindRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title UpsertRelated
 // @Description Upsert one or multiple RoleMapping instances of a related resource
 // @Accept  json
+// @Param   pk path int true "RoleMapping id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance(s) data"
 // @Success 201 {object} domain.RoleMapping "Request was successful"
-// @Router /roleMappings/{id}/{relatedResource} [put]
-func roleMappingUpsertRelated() {}
+// @Router /roleMappings/{pk}/{relatedResource} [put]
+func (c *RoleMappingCtrl) UpsertRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
 // @Title DeleteAllRelated
 // @Description Delete all RoleMapping instances of a related resource matched by filter
 // @Accept  json
+// @Param   pk path int true "RoleMapping id"
+// @Param   relatedResource path string true "Related resource name"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 204 {object} error "Request was successful"
-// @Router /roleMappings/{id}/{relatedResource} [delete]
-func roleMappingDeleteAllRelated() {}
+// @Router /roleMappings/{pk}/{relatedResource} [delete]
+func (c *RoleMappingCtrl) DeleteAllRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.related(w, r, params)
+}
 
-func (c *RoleMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *RoleMappingCtrl) related(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
@@ -396,30 +412,42 @@ func (c *RoleMappingCtrl) Related(w http.ResponseWriter, r *http.Request, params
 // @Title FindByIDRelated
 // @Description Find a RoleMapping instance of a related resource
 // @Accept  json
-// @Param   id path int true "RoleMapping id"
+// @Param   pk path int true "RoleMapping id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   filter query string false "JSON filter defining fields and includes"
 // @Success 200 {object} domain.RoleMapping "Request was successful"
 // @Router /roleMappings/{pk}/{relatedResource}/{fk} [get]
-func roleMappingFindByIDRelated() {}
+func (c *RoleMappingCtrl) FindByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title UpdateByIDRelated
 // @Description Update attributes of a RoleMapping instance of a related resource
 // @Accept  json
-// @Param   id path int true "RoleMapping id"
+// @Param   pk path int true "RoleMapping id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Param   RoleMapping body domain.RoleMapping true "RoleMapping instance data"
 // @Success 201 {object} domain.RoleMapping
 // @Router /roleMappings/{pk}/{relatedResource}/{fk} [put]
-func roleMappingUpdateByIDRelated() {}
+func (c *RoleMappingCtrl) UpdateByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
 // @Title DeleteByIDRelated
 // @Description Delete a RoleMapping instance of a related resource
 // @Accept  json
-// @Param   id path int true "RoleMapping id"
+// @Param   pk path int true "RoleMapping id"
+// @Param   relatedResource path string true "Related resource name"
+// @Param   fk path int true "Related resource id"
 // @Success 204 {object} error "Request was successful"
 // @Router /roleMappings/{pk}/{relatedResource}/{fk} [delete]
-func roleMappingDeleteByIDRelated() {}
+func (c *RoleMappingCtrl) DeleteByIDRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	c.relatedOne(w, r, params)
+}
 
-func (c *RoleMappingCtrl) RelatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *RoleMappingCtrl) relatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	pk, err := strconv.Atoi(params["pk"])
 	if err != nil {
 		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
