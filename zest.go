@@ -139,7 +139,7 @@ func handleOsArgs(z *Zest) (bool, error) {
 			}
 			return true, nil
 		default:
-			fmt.Printf("Unknown command. Available: resetDB, updateDB, generateDoc")
+			fmt.Println("Unknown command. Available: resetDB, updateDB, generateDoc")
 			return true, nil
 		}
 	}
