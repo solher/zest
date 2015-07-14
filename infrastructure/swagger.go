@@ -1,19 +1,49 @@
 package infrastructure
 
 import (
+	"errors"
 	"net/http"
 	"strings"
+	"text/template"
+
+	"github.com/yvasiyarov/swagger/generator"
 
 	"github.com/solher/zest/usecases"
 )
 
 type Swagger struct {
-	ResourceListingJSON string
-	APIDescriptionsJSON map[string]string
+	ResourceListingJSON, ExternalAPIPackage string
+	APIDescriptionsJSON                     map[string]string
 }
 
 func NewSwagger() *Swagger {
 	return &Swagger{}
+}
+
+func (s *Swagger) Init(apiDescriptionsJSON map[string]string, resourceListingJSON, externalAPIPackage string) {
+	s.APIDescriptionsJSON = apiDescriptionsJSON
+	s.ResourceListingJSON = resourceListingJSON
+	s.ExternalAPIPackage = externalAPIPackage
+}
+
+func (s *Swagger) Generate() error {
+	if s.ExternalAPIPackage == "" {
+		return errors.New("You must specify an api package for the swagger doc to be generated")
+	}
+
+	params := generator.Params{
+		ApiPackage:      "github.com/solher/zest," + s.ExternalAPIPackage,
+		MainApiFile:     s.ExternalAPIPackage + "/main.go",
+		OutputFormat:    "go",
+		ControllerClass: "(Ctrl)$",
+	}
+
+	err := generator.Run(params)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Swagger) AddRoutes(routeDir *usecases.RouteDirectory) {
@@ -52,7 +82,12 @@ func (s *Swagger) APIDescriptionHandler(w http.ResponseWriter, r *http.Request, 
 	apiKey := arrayURI[len(arrayURI)-1]
 
 	if json, ok := s.APIDescriptionsJSON[apiKey]; ok {
-		w.Write([]byte(json))
+		t, e := template.New("desc").Parse(json)
+		if e != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		t.Execute(w, "http://localhost:3005/api")
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}

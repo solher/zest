@@ -131,6 +131,12 @@ func handleOsArgs(z *Zest) (bool, error) {
 				return true, err
 			}
 			return true, nil
+		case "generateDoc":
+			err = z.Swagger.Generate()
+			if err != nil {
+				return true, err
+			}
+			return true, nil
 		}
 	}
 
