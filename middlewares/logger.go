@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/codegangsta/negroni"
@@ -31,6 +32,10 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 
 	// Process request
 	next(rw, r)
+
+	if strings.Contains(path, "explorer") || strings.Contains(path, "favicon") {
+		return
+	}
 
 	// Stop timer
 	end := time.Now()
