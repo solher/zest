@@ -1,6 +1,7 @@
 package zest
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -136,6 +137,9 @@ func handleOsArgs(z *Zest) (bool, error) {
 			if err != nil {
 				return true, err
 			}
+			return true, nil
+		default:
+			fmt.Printf("Unknown command. Available: resetDB, updateDB, generateDoc")
 			return true, nil
 		}
 	}
