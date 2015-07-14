@@ -65,7 +65,7 @@ func (s *Swagger) AddRoutes(routeDir *usecases.RouteDirectory) {
 		}
 
 		if shortPath == "" && !strings.HasSuffix(r.URL.Path, "/") {
-			w.Header().Set("Location", r.URL.Path+"/")
+			w.Header().Set("Location", shortPath+"explorer/")
 			w.WriteHeader(http.StatusMovedPermanently)
 			return
 		}

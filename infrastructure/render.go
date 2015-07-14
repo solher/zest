@@ -23,13 +23,6 @@ func (r *Render) JSON(w http.ResponseWriter, status int, object interface{}) {
 	if object == nil {
 		w.WriteHeader(status)
 	} else {
-		// value := reflect.ValueOf(object)
-		//
-		// if value.Kind() == reflect.Slice && value.Len() == 0 {
-		// 	r.renderer.JSON(w, status, []int{})
-		// 	return
-		// }
-
 		r.renderer.JSON(w, status, object)
 	}
 }
