@@ -55,13 +55,22 @@ func (s *Swagger) AddRoutes(routeDir *usecases.RouteDirectory) {
 
 	handlerFunc := func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		splittedPath := strings.Split(r.URL.Path, "/")
+		var shortPath string
 
 		for i, path := range splittedPath {
 			if path == "explorer" {
-				r.URL.Path = strings.Join(splittedPath[i+1:], "/")
+				shortPath = strings.Join(splittedPath[i+1:], "/")
 				break
 			}
 		}
+
+		if shortPath == "" && !strings.HasSuffix(r.URL.Path, "/") {
+			w.Header().Set("Location", r.URL.Path+"/")
+			w.WriteHeader(http.StatusMovedPermanently)
+			return
+		}
+
+		r.URL.Path = shortPath
 
 		fileServer.ServeHTTP(w, r)
 	}

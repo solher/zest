@@ -36,7 +36,7 @@ type Zest struct {
 func New() *Zest {
 	return &Zest{
 		Environment: "development",
-		Port:        ":3000",
+		Port:        "3000",
 		App:         negroni.New(),
 		Swagger:     infrastructure.NewSwagger(),
 		Injector:    infrastructure.NewInjector(),
@@ -46,7 +46,7 @@ func New() *Zest {
 func Classic() *Zest {
 	zest := &Zest{
 		Environment:      "development",
-		Port:             ":3000",
+		Port:             "3000",
 		App:              negroni.New(),
 		Swagger:          infrastructure.NewSwagger(),
 		Injector:         infrastructure.NewInjector(),
@@ -69,7 +69,7 @@ func Classic() *Zest {
 
 	port := os.Getenv("PORT")
 	if port != "" {
-		zest.Port = ":" + os.Getenv("PORT")
+		zest.Port = os.Getenv("PORT")
 	}
 
 	zest.DatabaseURL = os.Getenv("DATABASE_URL")
@@ -108,7 +108,7 @@ func (z *Zest) Run() {
 		panic(err)
 	}
 
-	z.App.Run(z.Port)
+	z.App.Run(":" + z.Port)
 }
 
 func handleOsArgs(z *Zest) (bool, error) {
