@@ -31,6 +31,10 @@ Create/migrate/seed the database:
 
     ./zest-app resetDB
 
+Generate the Swagger documentation:
+
+    ./zest-app generateDoc
+
 Run the app (on `localhost:3000` by default):
 
     ./zest-app
@@ -39,7 +43,7 @@ Enjoy the server freshly created.
 
 ## API documentation
 
-Coming soon...
+The Swagger API documentation is available on `/explorer`
 
 ## Features
 
@@ -48,6 +52,7 @@ Coming soon...
 * [GORM](https://github.com/jinzhu/gorm) powered (PostgreSQL and SQLite currently supported).
 * Zero runtime reflection.
 * High productivity: generate and run.
+* Auto Swagger documentation.
 * Out of the box session management and signin/signup/signout methods.
 * Sessions caching.
 * Fully dynamic permissions/role management, made insanely fast thanks to out of the box caching.

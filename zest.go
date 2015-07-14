@@ -2,7 +2,6 @@ package zest
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/codegangsta/negroni"
@@ -190,11 +189,6 @@ func buildApp(z *Zest) error {
 	}
 
 	z.Swagger.AddRoutes(d.RouteDir)
-
-	handler := func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-		http.ServeFile(w, r, "./swagger-ui/images/favicon.ico")
-	}
-	d.RouteDir.Add(usecases.NewDirectoryKey("static").For("Favicon"), &usecases.Route{Method: "GET", Path: "/favicon.ico", Handler: handler, Visible: true, CheckPermissions: false})
 
 	return nil
 }

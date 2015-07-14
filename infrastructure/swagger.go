@@ -12,17 +12,14 @@ import (
 )
 
 type Swagger struct {
-	ResourceListingJSON, ExternalAPIPackage string
-	APIDescriptionsJSON                     map[string]string
+	ExternalAPIPackage, SwaggerDir string
 }
 
 func NewSwagger() *Swagger {
-	return &Swagger{}
+	return &Swagger{SwaggerDir: "./swagger/"}
 }
 
-func (s *Swagger) Init(apiDescriptionsJSON map[string]string, resourceListingJSON, externalAPIPackage string) {
-	s.APIDescriptionsJSON = apiDescriptionsJSON
-	s.ResourceListingJSON = resourceListingJSON
+func (s *Swagger) Init(externalAPIPackage string) {
 	s.ExternalAPIPackage = externalAPIPackage
 }
 
@@ -34,8 +31,9 @@ func (s *Swagger) Generate() error {
 	params := generator.Params{
 		ApiPackage:      "github.com/solher/zest," + s.ExternalAPIPackage,
 		MainApiFile:     s.ExternalAPIPackage + "/main.go",
-		OutputFormat:    "go",
+		OutputFormat:    "swagger",
 		ControllerClass: "(Ctrl)$",
+		OutputSpec:      "swagger/resources",
 	}
 
 	err := generator.Run(params)
@@ -47,74 +45,60 @@ func (s *Swagger) Generate() error {
 }
 
 func (s *Swagger) AddRoutes(routeDir *usecases.RouteDirectory) {
-	if s.ResourceListingJSON == "" && s.APIDescriptionsJSON == nil {
+	dirKey := usecases.NewDirectoryKey("swagger")
+
+	routeDir.Add(dirKey.For("UI"), &usecases.Route{Method: "GET", Path: "/explorer", Handler: s.UIHandler, Visible: true, CheckPermissions: false})
+	routeDir.Add(dirKey.For("Resources"), &usecases.Route{Method: "GET", Path: "/explorer/*path", Handler: s.ResourcesHandler, Visible: true, CheckPermissions: false})
+	routeDir.Add(dirKey.For("Favicon"), &usecases.Route{Method: "GET", Path: "/favicon.ico", Handler: s.FaviconHandler, Visible: true, CheckPermissions: false})
+}
+
+func (s *Swagger) FaviconHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	http.ServeFile(w, r, s.SwaggerDir+"images/favicon.ico")
+}
+
+func (s *Swagger) UIHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	shortPath := getShortPath(r.URL.Path)
+
+	if shortPath == "" && !strings.HasSuffix(r.URL.Path, "/") {
+		w.Header().Set("Location", shortPath+"explorer/")
+		w.WriteHeader(http.StatusMovedPermanently)
 		return
 	}
 
-	fileServer := http.FileServer(http.Dir("./swagger-ui"))
-
-	handlerFunc := func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		splittedPath := strings.Split(r.URL.Path, "/")
-		var shortPath string
-
-		for i, path := range splittedPath {
-			if path == "explorer" {
-				shortPath = strings.Join(splittedPath[i+1:], "/")
-				break
-			}
-		}
-
-		if shortPath == "" && !strings.HasSuffix(r.URL.Path, "/") {
-			w.Header().Set("Location", shortPath+"explorer/")
-			w.WriteHeader(http.StatusMovedPermanently)
-			return
-		}
-
-		r.URL.Path = shortPath
-
-		fileServer.ServeHTTP(w, r)
-	}
-
-	dirKey := usecases.NewDirectoryKey("swagger")
-
-	routeDir.Add(dirKey.For("APIResources"), &usecases.Route{Method: "GET", Path: "/explorer/resources", Handler: s.IndexHandler, Visible: true, CheckPermissions: false})
-	routeDir.Add(dirKey.For("UI"), &usecases.Route{Method: "GET", Path: "/explorer", Handler: handlerFunc, Visible: true, CheckPermissions: false})
-	routeDir.Add(dirKey.For("UIResources"), &usecases.Route{Method: "GET", Path: "/explorer/*path", Handler: handlerFunc, Visible: true, CheckPermissions: false})
-
-	for apiKey := range s.APIDescriptionsJSON {
-		routeDir.Add(dirKey.For(apiKey), &usecases.Route{Method: "GET", Path: "/explorer/resources/" + apiKey, Handler: s.APIDescriptionHandler, Visible: true, CheckPermissions: false})
-	}
+	http.ServeFile(w, r, s.SwaggerDir+shortPath)
 }
 
-func (s *Swagger) APIDescriptionHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	arrayURI := strings.Split(r.RequestURI, "/")
-	apiKey := arrayURI[len(arrayURI)-1]
+func (s *Swagger) ResourcesHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	r.URL.Path = getShortPath(r.URL.Path)
 
-	if json, ok := s.APIDescriptionsJSON[apiKey]; ok {
-		t, e := template.New("desc").Parse(json)
+	if splittedPath := strings.Split(r.URL.Path, "/"); !strings.Contains(splittedPath[len(splittedPath)-1], ".") {
+		if !strings.HasSuffix(r.URL.Path, "/") {
+			r.URL.Path = r.URL.Path + "/"
+		}
+
+		r.URL.Path = r.URL.Path + "index.json"
+
+		t, e := template.ParseFiles(s.SwaggerDir + r.URL.Path)
 		if e != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			panic(e)
+		} else {
+			t.Execute(w, "http://"+r.Host)
 		}
-		t.Execute(w, "http://localhost:3005/api")
 	} else {
-		w.WriteHeader(http.StatusNotFound)
+		http.ServeFile(w, r, s.SwaggerDir+r.URL.Path)
 	}
 }
 
-func (s *Swagger) IndexHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	isJsonRequest := false
+func getShortPath(url string) string {
+	splittedPath := strings.Split(url, "/")
+	shortPath := ""
 
-	if acceptHeaders, ok := r.Header["Accept"]; ok {
-		for _, acceptHeader := range acceptHeaders {
-			if strings.Contains(acceptHeader, "json") {
-				isJsonRequest = true
-				break
-			}
+	for i, path := range splittedPath {
+		if path == "explorer" {
+			shortPath = strings.Join(splittedPath[i+1:], "/")
+			break
 		}
 	}
 
-	if isJsonRequest {
-		w.Write([]byte(s.ResourceListingJSON))
-	}
+	return shortPath
 }
