@@ -25,9 +25,9 @@ Add REST resources:
 
 Compile the project:
 
-    go build -v
+    go build -v -o zest-app
 
-Create/migrate/seed the database:
+Create/migrate/seed the database (SQLite is default if the environment variable `DATABASE_URL` is not set):
 
     ./zest-app resetDB
 
@@ -43,7 +43,15 @@ Enjoy the server freshly created.
 
 ## API documentation
 
-The Swagger API documentation is available on `/explorer`
+The Swagger API documentation is available on `/explorer`.
+
+## Why Zest ?
+
+The main purpose of Zest is to speed up the development of simple resource oriented apps, without doing compromises on the performances and the scalability.
+
+I see Zest more like a boilerplate/framework than a "toolbox" framework like [Beego](https://github.com/astaxie/beego) or [Revel](https://github.com/revel/revel).
+
+A good practice could be to clone the Zest repo and directly build an app on it.
 
 ## Features
 
@@ -52,7 +60,7 @@ The Swagger API documentation is available on `/explorer`
 * [GORM](https://github.com/jinzhu/gorm) powered (PostgreSQL and SQLite currently supported).
 * Zero runtime reflection.
 * High productivity: generate and run.
-* Auto Swagger documentation.
+* Auto API documentation.
 * Out of the box session management and signin/signup/signout methods.
 * Sessions caching.
 * Fully dynamic permissions/role management, made insanely fast thanks to out of the box caching.
