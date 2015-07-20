@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/yvasiyarov/swagger/generator"
+	"github.com/solher/swagger/generator"
 
 	"github.com/solher/zest/usecases"
 )
