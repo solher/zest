@@ -138,35 +138,3 @@ func seedDatabase(z *Zest) error {
 
 	return nil
 }
-
-func userSeedDatabase(z *Zest) error {
-	type dependencies struct {
-		AccountGuestInter *resources.AccountGuestInter
-		PermissionInter   *usecases.PermissionInter
-	}
-
-	d := &dependencies{}
-	err := z.Injector.Get(d)
-	if err != nil {
-		return err
-	}
-
-	user := &domain.User{
-		FirstName: "Admin",
-		LastName:  "Admin",
-		Password:  "admin",
-		Email:     "admin",
-	}
-
-	account, err := d.AccountGuestInter.Signup(user)
-	if err != nil {
-		return err
-	}
-
-	err = d.PermissionInter.SetRole(account.ID, "Admin")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}

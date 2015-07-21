@@ -57,7 +57,7 @@ func Classic() *Zest {
 		Close:            closeApp,
 		ReinitDatabase:   reinitDatabase,
 		SeedDatabase:     seedDatabase,
-		UserSeedDatabase: userSeedDatabase,
+		UserSeedDatabase: func(z *Zest) error { return nil },
 		UpdateDatabase:   updateDatabase,
 	}
 
