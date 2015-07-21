@@ -29,7 +29,7 @@ func (s *Swagger) Generate() error {
 	}
 
 	params := generator.Params{
-		ApiPackage:      "github.com/solher/zest," + s.ExternalAPIPackage,
+		ApiPackage:      "github.com/solher/zest/resources," + s.ExternalAPIPackage + "/resources",
 		MainApiFile:     s.ExternalAPIPackage + "/main.go",
 		OutputFormat:    "swagger",
 		ControllerClass: "(Ctrl)$",
@@ -49,27 +49,23 @@ func (s *Swagger) AddRoutes(routeDir *usecases.RouteDirectory) {
 
 	routeDir.Add(dirKey.For("UI"), &usecases.Route{Method: "GET", Path: "/explorer", Handler: s.UIHandler, Visible: true, CheckPermissions: false})
 	routeDir.Add(dirKey.For("Resources"), &usecases.Route{Method: "GET", Path: "/explorer/*path", Handler: s.ResourcesHandler, Visible: true, CheckPermissions: false})
-	routeDir.Add(dirKey.For("Favicon"), &usecases.Route{Method: "GET", Path: "/favicon.ico", Handler: s.FaviconHandler, Visible: true, CheckPermissions: false})
-}
-
-func (s *Swagger) FaviconHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	http.ServeFile(w, r, s.SwaggerDir+"images/favicon.ico")
 }
 
 func (s *Swagger) UIHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	shortPath := getShortPath(r.URL.Path)
+	relativePath, _ := getRelativePath(r.URL.Path)
 
-	if shortPath == "" && !strings.HasSuffix(r.URL.Path, "/") {
-		w.Header().Set("Location", shortPath+"explorer/")
+	if relativePath == "" && !strings.HasSuffix(r.URL.Path, "/") {
+		w.Header().Set("Location", relativePath+"explorer/")
 		w.WriteHeader(http.StatusMovedPermanently)
 		return
 	}
 
-	http.ServeFile(w, r, s.SwaggerDir+shortPath)
+	http.ServeFile(w, r, s.SwaggerDir+relativePath)
 }
 
 func (s *Swagger) ResourcesHandler(w http.ResponseWriter, r *http.Request, _ map[string]string) {
-	r.URL.Path = getShortPath(r.URL.Path)
+	var pathPrefix string
+	r.URL.Path, pathPrefix = getRelativePath(r.URL.Path)
 
 	if splittedPath := strings.Split(r.URL.Path, "/"); !strings.Contains(splittedPath[len(splittedPath)-1], ".") {
 		if !strings.HasSuffix(r.URL.Path, "/") {
@@ -82,23 +78,24 @@ func (s *Swagger) ResourcesHandler(w http.ResponseWriter, r *http.Request, _ map
 		if e != nil {
 			panic(e)
 		} else {
-			t.Execute(w, "http://"+r.Host)
+			t.Execute(w, "http://"+r.Host+pathPrefix)
 		}
 	} else {
 		http.ServeFile(w, r, s.SwaggerDir+r.URL.Path)
 	}
 }
 
-func getShortPath(url string) string {
+func getRelativePath(url string) (string, string) {
 	splittedPath := strings.Split(url, "/")
-	shortPath := ""
+	var relativePath, prefix string
 
 	for i, path := range splittedPath {
 		if path == "explorer" {
-			shortPath = strings.Join(splittedPath[i+1:], "/")
+			relativePath = strings.Join(splittedPath[i+1:], "/")
+			prefix = strings.Join(splittedPath[:i], "/")
 			break
 		}
 	}
 
-	return shortPath
+	return relativePath, prefix
 }
