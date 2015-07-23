@@ -13,7 +13,7 @@ type User struct {
 	FirstName string  `json:"firstName"`
 	LastName  string  `json:"lastName"`
 	Password  string  `json:"password"`
-	Email     string  `json:"email"`
+	Email     string  `json:"email" sql:"unique"`
 	AccountID int     `json:"accountId" sql:"index"`
 	Account   Account `json:"account,omitempty"`
 }
