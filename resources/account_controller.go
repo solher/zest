@@ -41,6 +41,7 @@ type AbstractAccountGuestInter interface {
 	Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error)
 	Signout(currentSession *domain.Session) error
 	Signup(user *domain.User) (*domain.Account, error)
+	Current(currentSession *domain.Session) (*domain.Account, error)
 	CurrentSessionFromToken(authToken string) (*domain.Session, error)
 }
 
@@ -169,6 +170,30 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ map[strin
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		}
+		return
+	}
+
+	account.BeforeRender()
+	c.render.JSON(w, http.StatusCreated, account)
+}
+
+// @Title Current
+// @Description Return the account associated with the current session
+// @Accept  json
+// @Success 200 {object} domain.Account "Request was successful"
+// @Router /accounts/current [get]
+func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	sessionCtx := context.Get(r, "currentSession")
+
+	if sessionCtx == nil {
+		c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+		return
+	}
+	session := sessionCtx.(domain.Session)
+
+	account, err := c.guestInter.Current(&session)
+	if err != nil {
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		return
 	}
 

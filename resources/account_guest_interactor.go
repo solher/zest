@@ -115,6 +115,22 @@ func (i *AccountGuestInter) Signup(user *domain.User) (*domain.Account, error) {
 	return account, nil
 }
 
+func (i *AccountGuestInter) Current(currentSession *domain.Session) (*domain.Account, error) {
+	filter := &usecases.Filter{
+		Include: []interface{}{"users"},
+	}
+
+	account, err := i.repo.FindByID(currentSession.AccountID, usecases.QueryContext{Filter: filter})
+	if err != nil {
+		return nil, err
+	}
+
+	currentSession.Account = domain.Account{}
+	account.Sessions = []domain.Session{*currentSession}
+
+	return account, nil
+}
+
 func (i *AccountGuestInter) CurrentSessionFromToken(authToken string) (*domain.Session, error) {
 	session, err := i.sessionCacheInter.Get(authToken)
 
