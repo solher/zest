@@ -1,6 +1,10 @@
 package usecases
 
-import "github.com/solher/zest/domain"
+import (
+	"errors"
+
+	"github.com/solher/zest/domain"
+)
 
 type AbstractAclMappingInter interface {
 	Find(context QueryContext) ([]domain.AclMapping, error)
@@ -74,6 +78,9 @@ func (i *PermissionInter) SetAcl(resource, method string, roles ...string) error
 	}
 
 	aclMappings := []domain.AclMapping{}
+	if len(acls) == 0 {
+		return errors.New("resource/method not found")
+	}
 
 	for _, role := range roles {
 		filter.Where = map[string]interface{}{"name": role}
@@ -81,6 +88,9 @@ func (i *PermissionInter) SetAcl(resource, method string, roles ...string) error
 		roles, err := i.roleInter.Find(QueryContext{Filter: filter})
 		if err != nil {
 			return err
+		}
+		if len(roles) == 0 {
+			return errors.New("Role " + role + " not found")
 		}
 
 		aclMappings = append(aclMappings, domain.AclMapping{RoleID: roles[0].ID, AclID: acls[0].ID})
@@ -121,11 +131,18 @@ func (i *PermissionInter) RefreshFromRoutes(routes map[DirectoryKey]Route) error
 			}
 
 			switch acl.Resource {
-			case "accounts", "sessions", "users", "acls", "aclMappings", "roles", "roleMappings":
+			case "users":
+				switch acl.Method {
+				case "Find", "FindByID", "UpdateByID":
+					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin", "Owner")
+				default:
+					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin")
+				}
+			case "accounts", "sessions", "acls", "aclMappings", "roles", "roleMappings":
 				switch acl.Method {
 				case "Signin", "Signout", "Signup", "Current":
 					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin", "Anyone")
-				case "FindByID":
+				case "Find", "FindByID":
 					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin", "Owner")
 				default:
 					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin")
