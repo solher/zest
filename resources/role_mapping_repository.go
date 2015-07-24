@@ -108,8 +108,9 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 		queryCopy := *query
 
 		dbName := utils.ToDBName("roleMappings")
+		oldRoleMapping := &domain.RoleMapping{}
 
-		err = queryCopy.Where(dbName+".id = ?", roleMapping.ID).First(&domain.RoleMapping{}).Error
+		err = queryCopy.Where(dbName+".id = ?", roleMapping.ID).First(oldRoleMapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -118,7 +119,10 @@ func (r *RoleMappingRepo) Update(roleMappings []domain.RoleMapping, context usec
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Where(dbName+".id = ?", roleMapping.ID).Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
+		roleMapping.ID = oldRoleMapping.ID
+		roleMapping.CreatedAt = oldRoleMapping.CreatedAt
+
+		err = r.store.GetDB().Save(&roleMapping).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -141,8 +145,9 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 	}
 
 	dbName := utils.ToDBName("roleMappings")
+	oldRoleMapping := &domain.RoleMapping{}
 
-	err = query.Where(dbName+".id = ?", id).First(&domain.RoleMapping{}).Error
+	err = query.Where(dbName+".id = ?", id).First(oldRoleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -151,7 +156,10 @@ func (r *RoleMappingRepo) UpdateByID(id int, roleMapping *domain.RoleMapping,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.RoleMapping{}).Updates(&roleMapping).Error
+	roleMapping.ID = oldRoleMapping.ID
+	roleMapping.CreatedAt = oldRoleMapping.CreatedAt
+
+	err = r.store.GetDB().Save(&roleMapping).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

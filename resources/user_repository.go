@@ -108,8 +108,9 @@ func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([
 		queryCopy := *query
 
 		dbName := utils.ToDBName("users")
+		oldUser := &domain.User{}
 
-		err = queryCopy.Where(dbName+".id = ?", user.ID).First(&domain.User{}).Error
+		err = queryCopy.Where(dbName+".id = ?", user.ID).First(oldUser).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -118,7 +119,10 @@ func (r *UserRepo) Update(users []domain.User, context usecases.QueryContext) ([
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Where(dbName+".id = ?", user.ID).Model(&domain.User{}).Updates(&user).Error
+		user.ID = oldUser.ID
+		user.CreatedAt = oldUser.CreatedAt
+
+		err = r.store.GetDB().Save(&user).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -141,8 +145,9 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 	}
 
 	dbName := utils.ToDBName("users")
+	oldUser := &domain.User{}
 
-	err = query.Where(dbName+".id = ?", id).First(&domain.User{}).Error
+	err = query.Where(dbName+".id = ?", id).First(oldUser).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -151,7 +156,10 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.User{}).Updates(&user).Error
+	user.ID = oldUser.ID
+	user.CreatedAt = oldUser.CreatedAt
+
+	err = r.store.GetDB().Save(&user).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

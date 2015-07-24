@@ -108,8 +108,9 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 		queryCopy := *query
 
 		dbName := utils.ToDBName("acls")
+		oldAcl := &domain.Acl{}
 
-		err = queryCopy.Where(dbName+".id = ?", acl.ID).First(&domain.Acl{}).Error
+		err = queryCopy.Where(dbName+".id = ?", acl.ID).First(oldAcl).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -118,7 +119,10 @@ func (r *AclRepo) Update(acls []domain.Acl, context usecases.QueryContext) ([]do
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Where(dbName+".id = ?", acl.ID).Model(&domain.Acl{}).Updates(&acl).Error
+		acl.ID = oldAcl.ID
+		acl.CreatedAt = oldAcl.CreatedAt
+
+		err = r.store.GetDB().Save(&acl).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -141,8 +145,9 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 	}
 
 	dbName := utils.ToDBName("acls")
+	oldAcl := &domain.Acl{}
 
-	err = query.Where(dbName+".id = ?", id).First(&domain.Acl{}).Error
+	err = query.Where(dbName+".id = ?", id).First(oldAcl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -151,7 +156,10 @@ func (r *AclRepo) UpdateByID(id int, acl *domain.Acl,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.Acl{}).Updates(&acl).Error
+	acl.ID = oldAcl.ID
+	acl.CreatedAt = oldAcl.CreatedAt
+
+	err = r.store.GetDB().Save(&acl).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())

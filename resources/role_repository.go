@@ -108,8 +108,9 @@ func (r *RoleRepo) Update(roles []domain.Role, context usecases.QueryContext) ([
 		queryCopy := *query
 
 		dbName := utils.ToDBName("roles")
+		oldRole := &domain.Role{}
 
-		err = queryCopy.Where(dbName+".id = ?", role.ID).First(&domain.Role{}).Error
+		err = queryCopy.Where(dbName+".id = ?", role.ID).First(oldRole).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "record not found") {
 				return nil, internalerrors.NotFound
@@ -118,7 +119,10 @@ func (r *RoleRepo) Update(roles []domain.Role, context usecases.QueryContext) ([
 			return nil, internalerrors.DatabaseError
 		}
 
-		err = r.store.GetDB().Where(dbName+".id = ?", role.ID).Model(&domain.Role{}).Updates(&role).Error
+		role.ID = oldRole.ID
+		role.CreatedAt = oldRole.CreatedAt
+
+		err = r.store.GetDB().Save(&role).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "constraint") {
 				return nil, internalerrors.NewViolatedConstraint(err.Error())
@@ -141,8 +145,9 @@ func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
 	}
 
 	dbName := utils.ToDBName("roles")
+	oldRole := &domain.Role{}
 
-	err = query.Where(dbName+".id = ?", id).First(&domain.Role{}).Error
+	err = query.Where(dbName+".id = ?", id).First(oldRole).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			return nil, internalerrors.NotFound
@@ -151,7 +156,10 @@ func (r *RoleRepo) UpdateByID(id int, role *domain.Role,
 		return nil, internalerrors.DatabaseError
 	}
 
-	err = r.store.GetDB().Where(dbName+".id = ?", id).Model(&domain.Role{}).Updates(&role).Error
+	role.ID = oldRole.ID
+	role.CreatedAt = oldRole.CreatedAt
+
+	err = r.store.GetDB().Save(&role).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "constraint") {
 			return nil, internalerrors.NewViolatedConstraint(err.Error())
