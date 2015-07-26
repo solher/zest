@@ -2,7 +2,7 @@ package domain
 
 func init() {
 	relations := []DBRelation{
-		{Related: "users"},
+		{Related: "users", Fk: "userId"},
 		{Related: "sessions"},
 		{Related: "roleMappings"},
 	}
@@ -12,20 +12,21 @@ func init() {
 
 type Account struct {
 	GormModel
-	Users        []User        `json:"users,omitempty"`
+	UserID       int           `json:"userId" sql:"index"`
+	User         User          `json:"user,omitempty"`
 	Sessions     []Session     `json:"sessions,omitempty"`
 	RoleMappings []RoleMapping `json:"roleMappings,omitempty"`
 }
 
 func (m *Account) SetRelatedID(idKey string, id int) {
 	switch idKey {
+	case "userID":
+		m.UserID = id
 	}
 }
 
 func (m *Account) BeforeRender() {
-	for i := range m.Users {
-		(&m.Users[i]).BeforeRender()
-	}
+	m.User.BeforeRender()
 
 	for i := range m.Sessions {
 		(&m.Sessions[i]).BeforeRender()

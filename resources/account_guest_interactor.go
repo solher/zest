@@ -32,8 +32,9 @@ func NewAccountGuestInter(repo AbstractAccountRepo, userInter AbstractUserInter,
 
 func (i *AccountGuestInter) Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error) {
 	filter := &usecases.Filter{
-		Limit: 1,
-		Where: map[string]interface{}{"email": credentials.Email},
+		Limit:   1,
+		Where:   map[string]interface{}{"email": credentials.Email},
+		Include: []interface{}{"accounts"},
 	}
 
 	users, err := i.userInter.Find(usecases.QueryContext{Filter: filter})
@@ -61,7 +62,7 @@ func (i *AccountGuestInter) Signin(ip, userAgent string, credentials *Credential
 	}
 
 	session := &domain.Session{
-		AccountID: user.AccountID,
+		AccountID: user.Accounts[0].ID,
 		AuthToken: authToken,
 		IP:        ip,
 		Agent:     userAgent,
@@ -103,14 +104,14 @@ func (i *AccountGuestInter) Signup(user *domain.User) (*domain.Account, error) {
 		return nil, err
 	}
 
-	user.AccountID = account.ID
+	user.Accounts = []domain.Account{*account}
 
 	user, err = i.userInter.CreateOne(user)
 	if err != nil {
 		return nil, err
 	}
 
-	account.Users = []domain.User{*user}
+	account.User = *user
 
 	return account, nil
 }
