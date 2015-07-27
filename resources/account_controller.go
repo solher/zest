@@ -42,6 +42,7 @@ type AbstractAccountGuestInter interface {
 	Signout(currentSession *domain.Session) error
 	Signup(user *domain.User) (*domain.Account, error)
 	Current(currentSession *domain.Session) (*domain.Account, error)
+	DeleteCurrent(currentSession *domain.Session) error
 	CurrentSessionFromToken(authToken string) (*domain.Session, error)
 }
 
@@ -181,7 +182,7 @@ func (c *AccountCtrl) Signup(w http.ResponseWriter, r *http.Request, _ map[strin
 // @Description Return the account associated with the current session
 // @Accept  json
 // @Success 200 {object} domain.Account "Request was successful"
-// @Router /accounts/current [get]
+// @Router /accounts/me [get]
 func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	sessionCtx := context.Get(r, "currentSession")
 
@@ -199,6 +200,29 @@ func (c *AccountCtrl) Current(w http.ResponseWriter, r *http.Request, _ map[stri
 
 	account.BeforeRender()
 	c.render.JSON(w, http.StatusOK, account)
+}
+
+// @Title DeleteCurrent
+// @Description Delete the account associated with the current session
+// @Accept  json
+// @Success 204 {object} error "Request was successful"
+// @Router /accounts/me [delete]
+func (c *AccountCtrl) DeleteCurrent(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	sessionCtx := context.Get(r, "currentSession")
+
+	if sessionCtx == nil {
+		c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+		return
+	}
+	session := sessionCtx.(domain.Session)
+
+	err := c.guestInter.DeleteCurrent(&session)
+	if err != nil {
+		c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		return
+	}
+
+	c.render.JSON(w, http.StatusNoContent, nil)
 }
 
 // @Title Create
@@ -297,20 +321,10 @@ func (c *AccountCtrl) FindByID(w http.ResponseWriter, r *http.Request, params ma
 		err error
 	)
 
-	if params["id"] == "me" {
-		sessionCtx := context.Get(r, "currentSession")
-		if sessionCtx == nil {
-			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
-			return
-		}
-
-		id = sessionCtx.(domain.Session).AccountID
-	} else {
-		id, err = strconv.Atoi(params["id"])
-		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
-			return
-		}
+	id, err = strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
 	}
 
 	filter, err := interfaces.GetQueryFilter(r)
@@ -412,20 +426,10 @@ func (c *AccountCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params 
 		err error
 	)
 
-	if params["id"] == "me" {
-		sessionCtx := context.Get(r, "currentSession")
-		if sessionCtx == nil {
-			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
-			return
-		}
-
-		id = sessionCtx.(domain.Session).AccountID
-	} else {
-		id, err = strconv.Atoi(params["id"])
-		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
-			return
-		}
+	id, err = strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
 	}
 
 	account := &domain.Account{}
@@ -495,20 +499,10 @@ func (c *AccountCtrl) DeleteByID(w http.ResponseWriter, r *http.Request, params 
 		err error
 	)
 
-	if params["id"] == "me" {
-		sessionCtx := context.Get(r, "currentSession")
-		if sessionCtx == nil {
-			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
-			return
-		}
-
-		id = sessionCtx.(domain.Session).AccountID
-	} else {
-		id, err = strconv.Atoi(params["id"])
-		if err != nil {
-			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
-			return
-		}
+	id, err = strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
 	}
 
 	filter := interfaces.FilterIfOwnerRelations(r, nil)

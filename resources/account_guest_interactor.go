@@ -132,6 +132,20 @@ func (i *AccountGuestInter) Current(currentSession *domain.Session) (*domain.Acc
 	return account, nil
 }
 
+func (i *AccountGuestInter) DeleteCurrent(currentSession *domain.Session) (*domain.Account, error) {
+	account, err := i.Current(currentSession)
+	if err != nil {
+		return nil, err
+	}
+
+	err = i.userInter.DeleteByID(account.User.ID, usecases.QueryContext{})
+	if err != nil {
+		return nil, err
+	}
+
+	return account, nil
+}
+
 func (i *AccountGuestInter) CurrentSessionFromToken(authToken string) (*domain.Session, error) {
 	session, err := i.sessionCacheInter.Get(authToken)
 
