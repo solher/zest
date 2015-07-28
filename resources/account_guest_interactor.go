@@ -99,14 +99,12 @@ func (i *AccountGuestInter) Signout(currentSession *domain.Session) error {
 }
 
 func (i *AccountGuestInter) Signup(user *domain.User) (*domain.Account, error) {
-	account, err := i.repo.CreateOne(&domain.Account{})
+	user, err := i.userInter.CreateOne(user)
 	if err != nil {
 		return nil, err
 	}
 
-	user.Accounts = []domain.Account{*account}
-
-	user, err = i.userInter.CreateOne(user)
+	account, err := i.repo.CreateOne(&domain.Account{UserID: user.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +116,7 @@ func (i *AccountGuestInter) Signup(user *domain.User) (*domain.Account, error) {
 
 func (i *AccountGuestInter) Current(currentSession *domain.Session) (*domain.Account, error) {
 	filter := &usecases.Filter{
-		Include: []interface{}{"users"},
+		Include: []interface{}{"user"},
 	}
 
 	account, err := i.repo.FindByID(currentSession.AccountID, usecases.QueryContext{Filter: filter})
