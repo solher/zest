@@ -1,7 +1,9 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/context"
 	"github.com/solher/zest/domain"
@@ -20,7 +22,15 @@ func NewSessions(accountInteractor AbstractAccountInter) *Sessions {
 }
 
 func (s *Sessions) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	authToken := r.Header.Get("Authorization")
+	authorizations := strings.Split(r.Header.Get("Authorization"), ",")
+	var authToken string
+
+	for _, v := range authorizations {
+		fmt.Sscanf(strings.Trim(v, " "), "AuthToken authToken=%s", &authToken)
+		if authToken != "" {
+			break
+		}
+	}
 
 	if authToken == "" {
 		cookie, err := r.Cookie("authToken")
