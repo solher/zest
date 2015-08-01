@@ -54,6 +54,7 @@ func (p *PermissionGate) Handler(w http.ResponseWriter, r *http.Request, params 
 
 	context.Set(r, "method", p.method)
 	context.Set(r, "resource", p.resource)
+	context.Set(r, "roles", roleNames)
 
 	p.next(w, r, params)
 }

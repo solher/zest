@@ -19,6 +19,7 @@ type AbstractUserRepo interface {
 	FindByID(id int, context usecases.QueryContext) (*domain.User, error)
 	Update(users []domain.User, context usecases.QueryContext) ([]domain.User, error)
 	UpdateByID(id int, user *domain.User, context usecases.QueryContext) (*domain.User, error)
+	UpdateAttributesByID(id int, attributes map[string]interface{}, context usecases.QueryContext) (*domain.User, error)
 	DeleteAll(context usecases.QueryContext) error
 	DeleteByID(id int, context usecases.QueryContext) error
 	Raw(query string, values ...interface{}) (*sql.Rows, error)

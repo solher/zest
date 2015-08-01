@@ -171,6 +171,38 @@ func (r *UserRepo) UpdateByID(id int, user *domain.User,
 	return user, nil
 }
 
+func (r *UserRepo) UpdateAttributesByID(id int, attributes map[string]interface{},
+	context usecases.QueryContext) (*domain.User, error) {
+
+	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
+	if err != nil {
+		return nil, internalerrors.DatabaseError
+	}
+
+	dbName := utils.ToDBName("users")
+	user := &domain.User{}
+
+	err = query.Where(dbName+".id = ?", id).First(user).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			return nil, internalerrors.NotFound
+		}
+
+		return nil, internalerrors.DatabaseError
+	}
+
+	err = r.store.GetDB().Model(&user).Updates(attributes).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "constraint") {
+			return nil, internalerrors.NewViolatedConstraint(err.Error())
+		}
+
+		return nil, internalerrors.DatabaseError
+	}
+
+	return user, nil
+}
+
 func (r *UserRepo) DeleteAll(context usecases.QueryContext) error {
 	query, err := r.store.BuildQuery(context.Filter, context.OwnerRelations)
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/solher/zest/interfaces"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 )
 
 func init() {
@@ -31,8 +32,14 @@ type AbstractUserInter interface {
 	DeleteByID(id int, context usecases.QueryContext) error
 }
 
+type AbstractGuestUserInter interface {
+	UpdateByID(id int, user *domain.User, context usecases.QueryContext) (*domain.User, error)
+	UpdatePassword(id int, oldPassword, newPassword string) (*domain.User, error)
+}
+
 type UserCtrl struct {
 	interactor AbstractUserInter
+	guestInter AbstractGuestUserInter
 	render     interfaces.AbstractRender
 	routeDir   *usecases.RouteDirectory
 }
@@ -45,6 +52,47 @@ func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender,
 	}
 
 	return controller
+}
+
+type PasswordForm struct {
+	oldPassword, newPassword string
+}
+
+// @Title UpdatePassword
+// @Description Update the user password
+// @Accept  json
+// @Param   PasswordForm body PasswordForm true "The old and the new password"
+// @Success 200 {object} domain.User "Request was successful"
+// @Router /users/:id/updatePassword [post]
+func (c *UserCtrl) UpdatePassword(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+		return
+	}
+
+	form := &PasswordForm{}
+
+	err = json.NewDecoder(r.Body).Decode(form)
+	if err != nil {
+		c.render.JSONError(w, http.StatusBadRequest, apierrors.BodyDecodingError, err)
+		return
+	}
+
+	user, err := c.guestInter.UpdatePassword(id, form.oldPassword, form.newPassword)
+
+	if err != nil {
+		switch err {
+		case internalerrors.NotFound:
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
+		default:
+			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
+		}
+		return
+	}
+
+	user.BeforeRender()
+	c.render.JSON(w, http.StatusOK, user)
 }
 
 // @Title Create
@@ -235,7 +283,7 @@ func (c *UserCtrl) Upsert(w http.ResponseWriter, r *http.Request, _ map[string]s
 // @Accept  json
 // @Param   id path int true "User id"
 // @Param   User body domain.User true "User instance data"
-// @Success 201 {object} domain.User
+// @Success 200 {object} domain.User
 // @Router /users/{id} [put]
 func (c *UserCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
@@ -257,7 +305,14 @@ func (c *UserCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 	relations := interfaces.GetOwnerRelations(r)
 
 	user.SetRelatedID(lastResource.IDKey, lastResource.ID)
-	user, err = c.interactor.UpdateByID(id, user, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+
+	if roles := context.Get(r, "roles"); roles != nil {
+		if utils.ContainsStr(roles.([]string), "Admin") {
+			user, err = c.interactor.UpdateByID(id, user, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+		}
+	} else {
+		user, err = c.guestInter.UpdateByID(id, user, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
+	}
 
 	if err != nil {
 		switch err {
@@ -270,7 +325,7 @@ func (c *UserCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 	}
 
 	user.BeforeRender()
-	c.render.JSON(w, http.StatusCreated, user)
+	c.render.JSON(w, http.StatusOK, user)
 }
 
 // @Title DeleteAll

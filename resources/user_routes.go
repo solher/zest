@@ -5,6 +5,8 @@ import "github.com/solher/zest/usecases"
 func setUserRoutes(routeDir *usecases.RouteDirectory, controller *UserCtrl) {
 	key := usecases.NewDirectoryKey("users")
 
+	routeDir.Add(key.For("UpdatePassword"), &usecases.Route{Method: "POST", Path: "/users/:id/updatePassword", Handler: controller.UpdatePassword, Visible: true, CheckPermissions: true})
+
 	routeDir.Add(key.For("Create"), &usecases.Route{Method: "POST", Path: "/users", Handler: controller.Create, Visible: true, CheckPermissions: true})
 	routeDir.Add(key.For("Find"), &usecases.Route{Method: "GET", Path: "/users", Handler: controller.Find, Visible: true, CheckPermissions: true})
 	routeDir.Add(key.For("FindByID"), &usecases.Route{Method: "GET", Path: "/users/:id", Handler: controller.FindByID, Visible: true, CheckPermissions: true})
