@@ -26,21 +26,16 @@ type AbstractUserRepo interface {
 }
 
 type UserInter struct {
-	repo         AbstractUserRepo
-	accountInter AbstractAccountInter
+	repo AbstractUserRepo
 }
 
-func NewUserInter(repo AbstractUserRepo, accountInter AbstractAccountInter) *UserInter {
-	return &UserInter{repo: repo, accountInter: accountInter}
+func NewUserInter(repo AbstractUserRepo) *UserInter {
+	return &UserInter{repo: repo}
 }
 
-func PopulateUserInter(userInter *UserInter, repo AbstractUserRepo, accountInter AbstractAccountInter) {
+func PopulateUserInter(userInter *UserInter, repo AbstractUserRepo) {
 	if userInter.repo == nil {
 		userInter.repo = repo
-	}
-
-	if userInter.accountInter == nil {
-		userInter.accountInter = accountInter
 	}
 }
 
@@ -188,20 +183,6 @@ func (i *UserInter) DeleteAll(context usecases.QueryContext) error {
 		return err
 	}
 
-	userIds := []int{}
-	for _, user := range users {
-		userIds = append(userIds, user.ID)
-	}
-
-	filter := &usecases.Filter{
-		Where: map[string]interface{}{"userId": userIds},
-	}
-
-	err = i.accountInter.DeleteAll(usecases.QueryContext{Filter: filter})
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -224,15 +205,6 @@ func (i *UserInter) DeleteByID(id int, context usecases.QueryContext) error {
 	}
 
 	_, err = i.AfterDelete([]domain.User{*user})
-	if err != nil {
-		return err
-	}
-
-	filter := &usecases.Filter{
-		Where: map[string]interface{}{"userId": id},
-	}
-
-	err = i.accountInter.DeleteAll(usecases.QueryContext{Filter: filter})
 	if err != nil {
 		return err
 	}

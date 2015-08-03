@@ -44,8 +44,8 @@ type UserCtrl struct {
 	routeDir   *usecases.RouteDirectory
 }
 
-func NewUserCtrl(interactor AbstractUserInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *UserCtrl {
-	controller := &UserCtrl{interactor: interactor, render: render, routeDir: routeDir}
+func NewUserCtrl(interactor AbstractUserInter, guestInter AbstractGuestUserInter, render interfaces.AbstractRender, routeDir *usecases.RouteDirectory) *UserCtrl {
+	controller := &UserCtrl{interactor: interactor, guestInter: guestInter, render: render, routeDir: routeDir}
 
 	if routeDir != nil {
 		setUserRoutes(routeDir, controller)
@@ -306,10 +306,8 @@ func (c *UserCtrl) UpdateByID(w http.ResponseWriter, r *http.Request, params map
 
 	user.SetRelatedID(lastResource.IDKey, lastResource.ID)
 
-	if roles := context.Get(r, "roles"); roles != nil {
-		if utils.ContainsStr(roles.([]string), "Admin") {
-			user, err = c.interactor.UpdateByID(id, user, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
-		}
+	if roles := context.Get(r, "roles"); roles != nil && utils.ContainsStr(roles.([]string), "Admin") {
+		user, err = c.interactor.UpdateByID(id, user, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	} else {
 		user, err = c.guestInter.UpdateByID(id, user, usecases.QueryContext{Filter: filter, OwnerRelations: relations})
 	}

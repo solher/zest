@@ -26,17 +26,22 @@ type AbstractAccountRepo interface {
 
 type AccountInter struct {
 	repo             AbstractAccountRepo
+	userInter        AbstractUserInter
 	sessionInter     AbstractSessionInter
 	roleMappingInter AbstractRoleMappingInter
 }
 
-func NewAccountInter(repo AbstractAccountRepo, sessionInter AbstractSessionInter, roleMappingInter AbstractRoleMappingInter) *AccountInter {
-	return &AccountInter{repo: repo, sessionInter: sessionInter, roleMappingInter: roleMappingInter}
+func NewAccountInter(repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter, roleMappingInter AbstractRoleMappingInter) *AccountInter {
+	return &AccountInter{repo: repo, userInter: userInter, sessionInter: sessionInter, roleMappingInter: roleMappingInter}
 }
 
-func PopulateAccountInter(accountInter *AccountInter, repo AbstractAccountRepo, sessionInter AbstractSessionInter, roleMappingInter AbstractRoleMappingInter) {
+func PopulateAccountInter(accountInter *AccountInter, repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter, roleMappingInter AbstractRoleMappingInter) {
 	if accountInter.repo == nil {
 		accountInter.repo = repo
+	}
+
+	if accountInter.userInter == nil {
+		accountInter.userInter = userInter
 	}
 
 	if accountInter.sessionInter == nil {
@@ -201,6 +206,11 @@ func (i *AccountInter) DeleteAll(context usecases.QueryContext) error {
 		Where: map[string]interface{}{"accountId": accountIds},
 	}
 
+	err = i.userInter.DeleteAll(usecases.QueryContext{Filter: filter})
+	if err != nil {
+		return err
+	}
+
 	err = i.sessionInter.DeleteAll(usecases.QueryContext{Filter: filter})
 	if err != nil {
 		return err
@@ -239,6 +249,11 @@ func (i *AccountInter) DeleteByID(id int, context usecases.QueryContext) error {
 
 	filter := &usecases.Filter{
 		Where: map[string]interface{}{"accountId": id},
+	}
+
+	err = i.userInter.DeleteAll(usecases.QueryContext{Filter: filter})
+	if err != nil {
+		return err
 	}
 
 	err = i.sessionInter.DeleteAll(usecases.QueryContext{Filter: filter})

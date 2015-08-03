@@ -9,7 +9,7 @@ import (
 func (i *AccountInter) scopeModel(account *domain.Account) error {
 	account.CreatedAt = time.Time{}
 	account.UpdatedAt = time.Time{}
-	account.User = domain.User{}
+	account.Users = []domain.User{}
 	account.Sessions = []domain.Session{}
 	account.RoleMappings = []domain.RoleMapping{}
 

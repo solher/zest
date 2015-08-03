@@ -6,6 +6,7 @@ import (
 	"github.com/solher/zest/domain"
 	"github.com/solher/zest/internalerrors"
 	"github.com/solher/zest/usecases"
+	"github.com/solher/zest/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,13 +26,15 @@ func NewUserGuestInter(repo AbstractUserRepo, userInter AbstractUserInter) *User
 func (i *UserGuestInter) scopeModel(user *domain.User) error {
 	user.CreatedAt = time.Time{}
 	user.UpdatedAt = time.Time{}
-	user.Accounts = []domain.Account{}
+	user.Account = domain.Account{}
 
 	return nil
 }
 
 func (i *UserGuestInter) UpdateByID(id int, user *domain.User, context usecases.QueryContext) (*domain.User, error) {
 	i.scopeModel(user)
+
+	utils.Breakpoint()
 
 	attributes := map[string]interface{}{
 		"FirstName": user.FirstName,

@@ -11,7 +11,7 @@ import (
 func (i *UserInter) scopeModel(user *domain.User) error {
 	user.CreatedAt = time.Time{}
 	user.UpdatedAt = time.Time{}
-	user.Accounts = []domain.Account{}
+	user.Account = domain.Account{}
 
 	if user.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 0)

@@ -17,24 +17,24 @@ func init() {
 
 type AccountGuestInter struct {
 	repo                 AbstractAccountRepo
+	accountInter         AbstractAccountInter
 	userInter            AbstractUserInter
 	sessionInter         AbstractSessionInter
 	sessionCacheInter    usecases.AbstractSessionCacheInter
 	permissionCacheInter usecases.AbstractPermissionCacheInter
 }
 
-func NewAccountGuestInter(repo AbstractAccountRepo, userInter AbstractUserInter, sessionInter AbstractSessionInter,
+func NewAccountGuestInter(repo AbstractAccountRepo, userInter AbstractUserInter, accountInter AbstractAccountInter, sessionInter AbstractSessionInter,
 	sessionCacheInter *usecases.SessionCacheInter, permissionCacheInter *usecases.PermissionCacheInter) *AccountGuestInter {
 
-	return &AccountGuestInter{repo: repo, userInter: userInter, sessionInter: sessionInter,
+	return &AccountGuestInter{repo: repo, accountInter: accountInter, userInter: userInter, sessionInter: sessionInter,
 		sessionCacheInter: sessionCacheInter, permissionCacheInter: permissionCacheInter}
 }
 
 func (i *AccountGuestInter) Signin(ip, userAgent string, credentials *Credentials) (*domain.Session, error) {
 	filter := &usecases.Filter{
-		Limit:   1,
-		Where:   map[string]interface{}{"email": credentials.Email},
-		Include: []interface{}{"accounts"},
+		Limit: 1,
+		Where: map[string]interface{}{"email": credentials.Email},
 	}
 
 	users, err := i.userInter.Find(usecases.QueryContext{Filter: filter})
@@ -62,7 +62,7 @@ func (i *AccountGuestInter) Signin(ip, userAgent string, credentials *Credential
 	}
 
 	session := &domain.Session{
-		AccountID: user.Accounts[0].ID,
+		AccountID: user.AccountID,
 		AuthToken: authToken,
 		IP:        ip,
 		Agent:     userAgent,
@@ -99,24 +99,26 @@ func (i *AccountGuestInter) Signout(currentSession *domain.Session) error {
 }
 
 func (i *AccountGuestInter) Signup(user *domain.User) (*domain.Account, error) {
-	user, err := i.userInter.CreateOne(user)
+	account, err := i.repo.CreateOne(&domain.Account{})
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := i.repo.CreateOne(&domain.Account{UserID: user.ID})
+	user.AccountID = account.ID
+
+	user, err = i.userInter.CreateOne(user)
 	if err != nil {
 		return nil, err
 	}
 
-	account.User = *user
+	account.Users = []domain.User{*user}
 
 	return account, nil
 }
 
 func (i *AccountGuestInter) Current(currentSession *domain.Session) (*domain.Account, error) {
 	filter := &usecases.Filter{
-		Include: []interface{}{"user"},
+		Include: []interface{}{"users"},
 	}
 
 	account, err := i.repo.FindByID(currentSession.AccountID, usecases.QueryContext{Filter: filter})
@@ -136,7 +138,7 @@ func (i *AccountGuestInter) DeleteCurrent(currentSession *domain.Session) error 
 		return err
 	}
 
-	err = i.userInter.DeleteByID(account.User.ID, usecases.QueryContext{})
+	err = i.accountInter.DeleteByID(account.ID, usecases.QueryContext{})
 	if err != nil {
 		return err
 	}
