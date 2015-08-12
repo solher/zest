@@ -50,15 +50,19 @@ func (i *UserGuestInter) UpdateByID(id int, user *domain.User, context usecases.
 	return user, nil
 }
 
-func (i *UserGuestInter) UpdatePassword(id int, oldPassword, newPassword string) (*domain.User, error) {
-	user, err := i.repo.FindByID(id, usecases.QueryContext{})
+func (i *UserGuestInter) UpdatePassword(id int, context usecases.QueryContext, oldPassword, newPassword string) (*domain.User, error) {
+	user, err := i.repo.FindByID(id, context)
 	if err != nil {
 		return nil, err
 	}
 
+	if user.ID == 0 {
+		return nil, internalerrors.NotFound
+	}
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
 	if err != nil {
-		return nil, internalerrors.NotFound
+		return nil, internalerrors.InvalidCredentials
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 0)

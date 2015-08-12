@@ -133,7 +133,7 @@ func (i *PermissionInter) RefreshFromRoutes(routes map[DirectoryKey]Route) error
 			switch acl.Resource {
 			case "users":
 				switch acl.Method {
-				case "Find", "FindByID", "UpdateByID":
+				case "Find", "FindByID", "UpdateByID", "UpdatePassword":
 					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin", "Owner")
 				default:
 					i.SetAcl(dirKey.Resource, dirKey.Method, "Admin")

@@ -34,7 +34,7 @@ type AbstractUserInter interface {
 
 type AbstractGuestUserInter interface {
 	UpdateByID(id int, user *domain.User, context usecases.QueryContext) (*domain.User, error)
-	UpdatePassword(id int, oldPassword, newPassword string) (*domain.User, error)
+	UpdatePassword(id int, context usecases.QueryContext, oldPassword, newPassword string) (*domain.User, error)
 }
 
 type UserCtrl struct {
@@ -55,7 +55,8 @@ func NewUserCtrl(interactor AbstractUserInter, guestInter AbstractGuestUserInter
 }
 
 type PasswordForm struct {
-	oldPassword, newPassword string
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
 }
 
 // @Title UpdatePassword
@@ -79,12 +80,17 @@ func (c *UserCtrl) UpdatePassword(w http.ResponseWriter, r *http.Request, params
 		return
 	}
 
-	user, err := c.guestInter.UpdatePassword(id, form.oldPassword, form.newPassword)
+	filter := interfaces.FilterIfOwnerRelations(r, nil)
+	relations := interfaces.GetOwnerRelations(r)
+
+	user, err := c.guestInter.UpdatePassword(id, usecases.QueryContext{Filter: filter, OwnerRelations: relations}, form.OldPassword, form.NewPassword)
 
 	if err != nil {
 		switch err {
 		case internalerrors.NotFound:
 			c.render.JSONError(w, http.StatusUnauthorized, apierrors.Unauthorized, err)
+		case internalerrors.InvalidCredentials:
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.InvalidCredentials, err)
 		default:
 			c.render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, err)
 		}

@@ -9,9 +9,10 @@ func (internalError *InternalError) Error() string {
 }
 
 var (
-	DatabaseError = &InternalError{Description: "A database error occured."}
-	NotFound      = &InternalError{Description: "The specified resource was not found or you do not have sufficient permissions."}
-	Undefined     = &InternalError{Description: "Undefined error."}
+	DatabaseError      = &InternalError{Description: "A database error occured."}
+	NotFound           = &InternalError{Description: "The specified resource was not found or you do not have sufficient permissions."}
+	InvalidCredentials = &InternalError{Description: "Invalid credentials."}
+	Undefined          = &InternalError{Description: "Undefined error."}
 )
 
 type ViolatedConstraint struct {

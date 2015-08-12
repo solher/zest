@@ -655,6 +655,43 @@ func (c *AccountCtrl) DeleteByIDRelated(w http.ResponseWriter, r *http.Request, 
 	c.relatedOne(w, r, params)
 }
 
+func (c *AccountCtrl) UpdatePasswordRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	var (
+		pk  int
+		err error
+	)
+
+	if params["pk"] == "me" {
+		sessionCtx := context.Get(r, "currentSession")
+		if sessionCtx == nil {
+			c.render.JSONError(w, http.StatusUnauthorized, apierrors.SessionNotFound, nil)
+			return
+		}
+
+		pk = sessionCtx.(domain.Session).AccountID
+	} else {
+		pk, err = strconv.Atoi(params["pk"])
+		if err != nil {
+			c.render.JSONError(w, http.StatusBadRequest, apierrors.InvalidPathParams, err)
+			return
+		}
+	}
+
+	params["id"] = params["fk"]
+
+	key := usecases.NewDirectoryKey("users")
+	handler := c.routeDir.Get(key.For("UpdatePassword")).EffectiveHandler
+
+	if handler == nil {
+		c.render.JSON(w, http.StatusNotFound, nil)
+		return
+	}
+
+	context.Set(r, "lastResource", &interfaces.Resource{Name: "users", IDKey: "accountID", ID: pk})
+
+	handler(w, r, params)
+}
+
 func (c *AccountCtrl) relatedOne(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
 		pk  int
