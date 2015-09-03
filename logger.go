@@ -1,14 +1,9 @@
-// Copyright 2014 Manu Martinez-Almeida.  All rights reserved.
-// Use of this source code is governed by a MIT style
-// license that can be found in the LICENSE file.
-
 package zest
 
 import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/codegangsta/negroni"
@@ -32,10 +27,6 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 
 	// Process request
 	next(rw, r)
-
-	if strings.Contains(path, "explorer") || strings.Contains(path, "favicon") {
-		return
-	}
 
 	// Stop timer
 	end := time.Now()
