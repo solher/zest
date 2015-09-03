@@ -1,31 +1,24 @@
-package middlewares
+package zest
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
 	"runtime"
-
-	"github.com/solher/zest/apierrors"
-	"github.com/solher/zest/internalerrors"
 )
-
-type AbstractRender interface {
-	JSONError(w http.ResponseWriter, status int, apiError *apierrors.APIError, err error)
-	JSON(w http.ResponseWriter, status int, object interface{})
-}
 
 type Recovery struct {
 	Logger    *log.Logger
-	Render    AbstractRender
+	Render    *Render
 	StackAll  bool
 	StackSize int
 }
 
-func NewRecovery(render AbstractRender) *Recovery {
+func NewRecovery() *Recovery {
 	return &Recovery{
 		Logger:    log.New(os.Stdout, "", 0),
-		Render:    render,
+		Render:    NewRender(),
 		StackAll:  false,
 		StackSize: 1024 * 8,
 	}
@@ -40,7 +33,9 @@ func (rec *Recovery) ServeHTTP(w http.ResponseWriter, r *http.Request, next http
 			f := "PANIC: %s\n%s"
 			rec.Logger.Printf(f, err, stack)
 
-			rec.Render.JSONError(w, http.StatusInternalServerError, apierrors.InternalServerError, internalerrors.Undefined)
+			err := &APIError{Description: "An internal error occured. Please retry later.", ErrorCode: "INTERNAL_SERVER_ERROR"}
+
+			rec.Render.JSONError(w, http.StatusInternalServerError, err, errors.New("Undefined error."))
 		}
 	}()
 
