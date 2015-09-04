@@ -23,4 +23,25 @@ func TestCli(t *testing.T) {
 	cli = zest.Cli()
 
 	a.Equal(cli.Name, "foobar")
+
+	zest = Classic() // Should also work with the Classic zest
+
+	r.NotPanics(func() { _ = zest.Cli() })
+	cli = zest.Cli()
+
+	cli.Name = "foobar"
+	zest.SetCli(cli)
+
+	r.NotPanics(func() { _ = zest.Cli() })
+	cli = zest.Cli()
+
+	a.Equal(cli.Name, "foobar")
 }
+
+// TestRun runs tests on the zest Run method.
+// func TestRun(t *testing.T) {
+// 	// a := assert.New(t)
+// 	r := require.New(t)
+// 	zest := New()
+// 	r.NotPanics(func() { zest.Run() })
+// }
