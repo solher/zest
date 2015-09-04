@@ -1,32 +1,43 @@
 package zest
 
 import (
+	"bytes"
+	"log"
 	"net/http"
-	"net/url"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func (rec *Recovery) PanicServeHTTP(w http.ResponseWriter, r *http.Request) {
-	rec.ServeHTTP(w, r, func(_ http.ResponseWriter, _ *http.Request) { panic("panic") })
-}
-
-func (rec *Recovery) WrappedServeHTTP(w http.ResponseWriter, r *http.Request) {
-	rec.ServeHTTP(w, r, func(_ http.ResponseWriter, _ *http.Request) {})
-}
+var (
+	emptyFunc http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {}
+	panicFunc http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) { panic("panic") }
+)
 
 // TestRecovery runs tests on the recovery middleware.
 func TestRecovery(t *testing.T) {
 	a := assert.New(t)
-	// r := require.New(t)
-	recovery := NewRecovery()
-	recovery.Logger = nil
+	r := require.New(t)
+	rec := NewRecovery()
+	rec.Logger = nil
 
-	a.HTTPBodyContains(recovery.PanicServeHTTP, "GET", "/", url.Values{}, "500")
-	a.HTTPBodyContains(recovery.PanicServeHTTP, "GET", "/", url.Values{}, "An internal error occured. Please retry later.")
-	a.HTTPBodyContains(recovery.PanicServeHTTP, "GET", "/", url.Values{}, "undefined error")
-	a.HTTPBodyContains(recovery.PanicServeHTTP, "GET", "/", url.Values{}, "INTERNAL_SERVER_ERROR")
+	recorder := httptest.NewRecorder()
 
-	a.HTTPBodyNotContains(recovery.WrappedServeHTTP, "GET", "/", url.Values{}, "undefined error")
+	r.NotPanics(func() {
+		rec.ServeHTTP(recorder, (*http.Request)(nil), emptyFunc)
+	})
+
+	a.NotContains(recorder.Body.String(), "undefined error")
+
+	buff := bytes.NewBufferString("")
+	rec.Logger = log.New(buff, "[Zest] ", 0)
+	rec.ServeHTTP(recorder, (*http.Request)(nil), panicFunc)
+
+	r.NotEqual(buff.Len(), 0)
+	a.Contains(recorder.Body.String(), "500")
+	a.Contains(recorder.Body.String(), "An internal error occured. Please retry later.")
+	a.Contains(recorder.Body.String(), "undefined error")
+	a.Contains(recorder.Body.String(), "INTERNAL_SERVER_ERROR")
 }
