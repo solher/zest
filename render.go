@@ -15,6 +15,10 @@ func NewRender() *Render {
 }
 
 func (r *Render) JSONError(w http.ResponseWriter, status int, apiError *APIError, err error) {
+	if apiError == nil {
+		apiError = &APIError{}
+	}
+
 	if err != nil {
 		apiError.Raw = err.Error()
 	}
