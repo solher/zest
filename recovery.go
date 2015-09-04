@@ -31,11 +31,13 @@ func (rec *Recovery) ServeHTTP(w http.ResponseWriter, r *http.Request, next http
 			stack = stack[:runtime.Stack(stack, rec.StackAll)]
 
 			f := "PANIC: %s\n%s"
-			rec.Logger.Printf(f, err, stack)
+			if rec.Logger != nil {
+				rec.Logger.Printf(f, err, stack)
+			}
 
 			err := &APIError{Description: "An internal error occured. Please retry later.", ErrorCode: "INTERNAL_SERVER_ERROR"}
 
-			rec.Render.JSONError(w, http.StatusInternalServerError, err, errors.New("Undefined error."))
+			rec.Render.JSONError(w, http.StatusInternalServerError, err, errors.New("undefined error"))
 		}
 	}()
 
