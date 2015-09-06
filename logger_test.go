@@ -21,17 +21,30 @@ func TestLogger(t *testing.T) {
 
 	n := negroni.New()
 	n.Use(logger)
-	n.UseHandler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		rw.WriteHeader(http.StatusOK)
-	}))
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/foobar", nil)
-	if err != nil {
-		t.Error(err)
+	codes := []int{100, 200, 300, 400, 500}
+	for _, code := range codes {
+		n.UseHandler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(code)
+		}))
+
+		req, err := http.NewRequest("GET", "http://localhost:3000/foobar", nil)
+		a.NoError(err)
+
+		n.ServeHTTP(httptest.NewRecorder(), req)
+		r.NotEqual(buff.Len(), 0)
+		a.Contains(buff.String(), "GET")
+		a.Contains(buff.String(), "/foobar")
 	}
 
-	n.ServeHTTP(httptest.NewRecorder(), req)
-	r.NotEqual(buff.Len(), 0)
-	a.Contains(buff.String(), "GET")
-	a.Contains(buff.String(), "/foobar")
+	methods := []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "OTHER"}
+	for _, method := range methods {
+		req, err := http.NewRequest(method, "http://localhost:3000/foobar", nil)
+		a.NoError(err)
+
+		n.ServeHTTP(httptest.NewRecorder(), req)
+		r.NotEqual(buff.Len(), 0)
+		a.Contains(buff.String(), method)
+		a.Contains(buff.String(), "/foobar")
+	}
 }

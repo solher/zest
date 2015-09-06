@@ -39,9 +39,7 @@ func TestCli(t *testing.T) {
 }
 
 // TestRun runs tests on the zest Run method.
-// func TestRun(t *testing.T) {
-// 	// a := assert.New(t)
-// 	r := require.New(t)
-// 	zest := New()
-// 	r.NotPanics(func() { zest.Run() })
-// }
+func TestRun(t *testing.T) {
+	// Just test that Run doesn't bomb
+	go New().Run()
+}
