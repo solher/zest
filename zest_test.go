@@ -1,6 +1,7 @@
 package zest
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,6 +41,8 @@ func TestCli(t *testing.T) {
 
 // TestRun runs tests on the zest Run method.
 func TestRun(t *testing.T) {
+	os.Args = []string{"zest", "--port", "3001"}
+
 	// Just test that Run doesn't bomb
-	go New().Run()
+	go Classic().Run()
 }
