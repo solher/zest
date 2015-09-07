@@ -1,77 +1,153 @@
 # Zest
 
+Zest is a lightweight framework based on the [Cli](https://github.com/codegangsta/cli) package allowing clean and easy command line interfaces, the [Negroni](https://github.com/codegangsta/negroni) middleware handler, and the  [Syringe](https://github.com/solher/syringe) injector.
+
+Zest encourages the use of small, well chosen individual dependencies instead of high productivity, full-stack frameworks.
+
 ## Installation
 
-Make sure you have a working Node and Go environment.
+To install Zest:
 
-Simply install the [Zest app generator](https://github.com/solher/generator-zest) :
+    go get github.com/solher/zest
 
-    npm install -g yo solher/generator-zest
+## Init/exit sequences
+## zest.Classic()
 
-## Getting Started
 
-Make a new directory and `cd` into it:
+## Example
 
-    mkdir zest-app
-    cd zest-app
+**main.go**
 
-Then create a new Zest project:
+```go
+package main
 
-    yo zest
+import (
+	"github.com/dimfeld/httptreemux"
+	"github.com/solher/zest"
+)
 
-Add REST resources:
+func main() {
+	app := zest.Classic()
 
-    yo zest:resource
+	cli := app.Cli()
+	cli.Name = "Test"
+	cli.Usage = "Test app"
+	app.SetCli(cli)
 
-Compile the project:
+	app.InitSequence = append(app.InitSequence, SetRoutes)
 
-    go build -v -o zest-app
+	app.Run()
+}
 
-Create/migrate/seed the database (SQLite is default if the environment variable `DATABASE_URL` is not set):
+func SetRoutes(z *zest.Zest) error {
+	type deps struct {
+		Router *httptreemux.TreeMux
+		Ctrl   *Controller
+	}
 
-    ./zest-app resetDB
+	d := &deps{}
 
-Generate the Swagger documentation:
+	if err := z.Injector.Get(d); err != nil {
+		return err
+	}
 
-    ./zest-app generateDoc
+	d.Router.GET("/", d.Ctrl.Handler)
 
-Run the app (on `localhost:3000` by default):
+	return nil
+}
+```
 
-    ./zest-app
+**controller.go**
 
-Enjoy the server freshly created.
+```go
+package main
 
-## API documentation
+import (
+	"net/http"
 
-The Swagger API documentation is available on `/explorer`.
+	"github.com/solher/zest"
+)
+
+func init() {
+	zest.Injector.Register(NewController)
+}
+
+type Controller struct {
+	m *Model
+	r *zest.Render
+}
+
+func NewController(m *Model, r *zest.Render) *Controller {
+	return &Controller{m: m, r: r}
+}
+
+func (c *Controller) Handler(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	result, err := c.m.Action()
+	if err != nil {
+		apiErr := &zest.APIError{Description: "An error occured. Please retry later.", ErrorCode: "UNKNOWN_ERROR"}
+		c.r.JSONError(w, http.StatusInternalServerError, apiErr, err)
+		return
+	}
+
+	c.r.JSON(w, http.StatusOK, result)
+}
+```
+
+**model.go**
+
+```go
+package main
+
+import "github.com/solher/zest"
+
+func init() {
+	zest.Injector.Register(NewModel)
+}
+
+type Model struct {
+	s *Store
+}
+
+func NewModel(s *Store) *Model {
+	return &Model{s: s}
+}
+
+func (m *Model) Action() (string, error) {
+	result, err := m.s.DBAction()
+
+	return result, err
+}
+```
+
+**store.go**
+
+```go
+package main
+
+import "github.com/solher/zest"
+
+func init() {
+	zest.Injector.Register(NewStore)
+}
+
+type Store struct{}
+
+func NewStore() *Store {
+	return &Store{}
+}
+
+func (s *Store) DBAction() (string, error) {
+	return "foobar", nil
+}
+```
 
 ## Why Zest ?
 
-The main purpose of Zest is to speed up the development of simple resource oriented apps, without doing compromises on the performances and the scalability.
-
-I see Zest more like a boilerplate/framework than a "toolbox" framework like [Beego](https://github.com/astaxie/beego) or [Revel](https://github.com/revel/revel).
-
-A good practice could be to clone the Zest repo and directly build an app on it.
-
-## Features
-
-* Modular design based on the [Clean architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html).
-* Strongly opinionated.
-* [GORM](https://github.com/jinzhu/gorm) powered (PostgreSQL and SQLite currently supported).
-* Zero runtime reflection.
-* High productivity: generate and run.
-* Auto API documentation.
-* Out of the box session management and signin/signup/signout methods.
-* Sessions caching.
-* Fully dynamic permissions/role management, made insanely fast thanks to out of the box caching.
-* App automatically built thanks to the included injector.
-* Easy to add business logic thanks to hooks everywhere.
+Because having a good cli interface, a simple init/exit process and having your app built automatically should be the basis of your development.
 
 ## About
 
-Inspired by [Rails](https://github.com/rails/rails) and [Loopback](https://github.com/strongloop/loopback).
-
-This project is still in an alpha state. **DO NOT USE IT IN PRODUCTION**.
+Thanks to the [Code Gangsta](http://codegangsta.io/) for his amazing work on [Negroni](https://github.com/codegangsta/negroni) and [Cli](https://github.com/codegangsta/cli).
 
 ## License
 
