@@ -1,3 +1,9 @@
+// Package zest contains a lightweight framework based on the codegangsta/cli package allowing
+// clean and easy command line interfaces, the codegangsta/negroni middleware
+// handler, and the solher/syringe injector.
+//
+// Zest encourages the use of small, well chosen individual dependencies
+// instead of high productivity, full-stack frameworks.
 package zest
 
 import (
@@ -20,9 +26,8 @@ var Injector = syringe.New()
 // SeqFunc is the prototype of the functions present in the exit/init sequences.
 type SeqFunc func(z *Zest) error
 
-// Zest is a lightweight framework based on the codegangsta/cli package allowing
-// clean and easy command line interfaces, the codegangsta/negroni middleware
-// handler, and the solher/syringe injector.
+// Zest is an aggregation of well known and efficient package, also providing
+// a simple init/exit process to the user.
 //
 // Init and exit sequences are run following the order of the array, at each
 // start/stop of the app, thanks to Cli and the tylerb/graceful module.
