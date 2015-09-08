@@ -14,10 +14,18 @@ import (
 	"github.com/solher/syringe"
 )
 
+// Injector provide a quick access to an instanciated injector.
 var Injector = syringe.New()
 
-type ZestFunc func(z *Zest) error
+// SeqFunc is the prototype of the functions present in the exit/init sequences.
+type SeqFunc func(z *Zest) error
 
+// Zest is a lightweight framework based on the codegangsta/cli package allowing
+// clean and easy command line interfaces, the codegangsta/negroni middleware
+// handler, and the solher/syringe injector.
+//
+// Init and exit sequences are run following the order of the array, at each
+// start/stop of the app, thanks to Cli and the tylerb/graceful module.
 type Zest struct {
 	cli     *cli.App
 	Context *cli.Context
@@ -25,31 +33,39 @@ type Zest struct {
 	Server   *negroni.Negroni
 	Injector *syringe.Syringe
 
-	InitSequence []ZestFunc
-	ExitSequence []ZestFunc
+	InitSequence []SeqFunc
+	ExitSequence []SeqFunc
 }
 
+// Cli returns a copy of the embedded Cli app.
 func (z *Zest) Cli() cli.App {
 	return *z.cli
 }
 
+// SetCli sets a copy of the embedded Cli app.
 func (z *Zest) SetCli(cli cli.App) {
 	*z.cli = cli
 }
 
+// Run starts the Cli app.
 func (z *Zest) Run() {
 	z.cli.Run(os.Args)
 }
 
+// Classic returns a new instance of Zest, with some default init steps, in this order :
+// "classicRegister" which registers the default dependencies (Render, Httptreemux) in the injector.
+// "classicBuild" which triggers the dependency injection of the app.
+// "classicInit" which initialize the Httptreemux router and the default middlewares in Negroni.
 func Classic() *Zest {
 	z := New()
 
-	z.InitSequence = append([]ZestFunc{classicRegister}, z.InitSequence...)
+	z.InitSequence = append([]SeqFunc{classicRegister}, z.InitSequence...)
 	z.InitSequence = append(z.InitSequence, classicInit)
 
 	return z
 }
 
+// New returns a new instance of Zest.
 func New() *Zest {
 	z := &Zest{
 		cli:      cli.NewApp(),

@@ -2,6 +2,7 @@ package zest
 
 import "fmt"
 
+// APIError is the struct defining the format of Zest API errors.
 type APIError struct {
 	Status      int    `json:"status"`
 	Description string `json:"description"`
@@ -9,6 +10,6 @@ type APIError struct {
 	ErrorCode   string `json:"errorCode"`
 }
 
-func (apiError *APIError) Error() string {
-	return fmt.Sprintf("%s : %s", apiError.ErrorCode, apiError.Description)
+func (e *APIError) Error() string {
+	return fmt.Sprintf("%s : %s", e.ErrorCode, e.Description)
 }

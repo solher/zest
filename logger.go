@@ -11,7 +11,7 @@ import (
 
 // Logger is a middleware handler that logs the request as it goes in and the response as it goes out.
 type Logger struct {
-	// Logger inherits from log.Logger used to log messages with the Logger middleware
+	// Logger inherits from log.Logger used to log messages with the Logger middleware.
 	*log.Logger
 }
 
@@ -22,13 +22,13 @@ func NewLogger() *Logger {
 
 func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	path := r.URL.Path
-	// Start timer
+	// start timer
 	start := time.Now()
 
-	// Process request
+	// process request
 	next(rw, r)
 
-	// Stop timer
+	// stop timer
 	end := time.Now()
 	latency := end.Sub(start)
 
