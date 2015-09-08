@@ -3,6 +3,7 @@ package zest
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,7 @@ func TestCli(t *testing.T) {
 
 	a.Equal(cli.Name, "foobar")
 
-	zest = Classic() // Should also work with the Classic zest
+	zest = Classic() // should also work with the Classic zest
 
 	r.NotPanics(func() { _ = zest.Cli() })
 	cli = zest.Cli()
@@ -41,8 +42,9 @@ func TestCli(t *testing.T) {
 
 // TestRun runs tests on the zest Run method.
 func TestRun(t *testing.T) {
-	os.Args = []string{"zest", "--port", "3001"}
+	os.Args = []string{"zest"}
 
-	// Just test that Run doesn't bomb
 	go Classic().Run()
+
+	time.Sleep(time.Millisecond) // a better way to do this ?
 }
