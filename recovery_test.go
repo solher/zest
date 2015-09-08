@@ -39,5 +39,5 @@ func TestRecovery(t *testing.T) {
 	a.Contains(recorder.Body.String(), "500")
 	a.Contains(recorder.Body.String(), "An internal error occured. Please retry later.")
 	a.Contains(recorder.Body.String(), "undefined error")
-	a.Contains(recorder.Body.String(), "INTERNAL_SERVER_ERROR")
+	a.Contains(recorder.Body.String(), "UNDEFINED_ERROR")
 }
