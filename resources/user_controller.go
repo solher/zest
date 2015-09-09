@@ -62,9 +62,10 @@ type PasswordForm struct {
 // @Title UpdatePassword
 // @Description Update the user password
 // @Accept  json
+// @Param   id path int true "User id"
 // @Param   PasswordForm body PasswordForm true "The old and the new password"
 // @Success 200 {object} domain.User "Request was successful"
-// @Router /users/:id/updatePassword [post]
+// @Router /users/{id}/updatePassword [post]
 func (c *UserCtrl) UpdatePassword(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {

@@ -655,6 +655,14 @@ func (c *AccountCtrl) DeleteByIDRelated(w http.ResponseWriter, r *http.Request, 
 	c.relatedOne(w, r, params)
 }
 
+// @Title UpdatePasswordRelated
+// @Description Update the related user password
+// @Accept  json
+// @Param   pk path int true "Account id"
+// @Param   fk path int true "User id"
+// @Param   PasswordForm body PasswordForm true "The old and the new password"
+// @Success 200 {object} domain.User "Request was successful"
+// @Router /accounts/{pk}/users/{fk}/updatePassword [post]
 func (c *AccountCtrl) UpdatePasswordRelated(w http.ResponseWriter, r *http.Request, params map[string]string) {
 	var (
 		pk  int
