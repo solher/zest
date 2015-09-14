@@ -118,7 +118,7 @@ func (z *Zest) run(c *cli.Context) {
 	port := fmt.Sprintf(":%d", z.Context.GlobalInt("port"))
 	exitTimeout := time.Duration(z.Context.GlobalInt("exitTimeout")) * time.Second
 
-	fmt.Println("\n[Zest] Running on " + port)
+	fmt.Println("\n[Zest] Listening on " + port)
 
 	graceful.Run(port, exitTimeout, z.Server)
 }
@@ -152,11 +152,11 @@ func classicInit(z *Zest) error {
 		return err
 	}
 
-	z.Server.UseHandler(d.Router)
-
-	z.Server.Use(NewLogger())
 	z.Server.Use(NewRecovery())
+	z.Server.Use(NewLogger())
 	z.Server.Use(cors.Default())
+
+	z.Server.UseHandler(d.Router)
 
 	return nil
 }
