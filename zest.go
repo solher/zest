@@ -118,6 +118,8 @@ func (z *Zest) run(c *cli.Context) {
 	port := fmt.Sprintf(":%d", z.Context.GlobalInt("port"))
 	exitTimeout := time.Duration(z.Context.GlobalInt("exitTimeout")) * time.Second
 
+	fmt.Println("\n[Zest] Running on " + port)
+
 	graceful.Run(port, exitTimeout, z.Server)
 }
 
@@ -144,13 +146,13 @@ func classicBuild(z *Zest) error {
 }
 
 func classicInit(z *Zest) error {
-	router := &httptreemux.TreeMux{}
+	d := &struct{ Router *httptreemux.TreeMux }{}
 
-	if err := z.Injector.GetOne(router); err != nil {
+	if err := z.Injector.Get(d); err != nil {
 		return err
 	}
 
-	z.Server.UseHandler(router)
+	z.Server.UseHandler(d.Router)
 
 	z.Server.Use(NewLogger())
 	z.Server.Use(NewRecovery())

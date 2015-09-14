@@ -120,12 +120,10 @@ func main() {
 }
 
 func SetRoutes(z *zest.Zest) error {
-	type deps struct {
+	d := &struct {
 		Router *httptreemux.TreeMux
 		Ctrl   *Controller
-	}
-
-	d := &deps{}
+	}{}
 
 	if err := z.Injector.Get(d); err != nil {
 		return err
