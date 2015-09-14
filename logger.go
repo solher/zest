@@ -25,6 +25,18 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	// start timer
 	start := time.Now()
 
+	clientIP := r.RemoteAddr
+	method := r.Method
+	methodColor := colorForMethod(method)
+
+	l.Printf("%s BEGIN %s | %v | %s | %s %s %s %s\n\n",
+		green, reset,
+		start.Format("2006/01/02 - 15:04:05"),
+		clientIP,
+		methodColor, method, reset,
+		path,
+	)
+
 	// process request
 	next(rw, r)
 
@@ -32,14 +44,12 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	end := time.Now()
 	latency := end.Sub(start)
 
-	clientIP := r.RemoteAddr
-	method := r.Method
 	res := rw.(negroni.ResponseWriter)
 	statusCode := res.Status()
 	statusColor := colorForStatus(statusCode)
-	methodColor := colorForMethod(method)
 
-	l.Printf("%v | %s %3d %s | %v | %s | %s %s %s %s",
+	l.Printf("%s END %s | %v | %s %3d %s | %v | %s | %s %s %s %s",
+		red, reset,
 		end.Format("2006/01/02 - 15:04:05"),
 		statusColor, statusCode, reset,
 		latency,
