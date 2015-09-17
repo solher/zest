@@ -18,9 +18,14 @@ To install Zest:
 
     go get github.com/solher/zest
 
-## Init/exit sequences
+## Launch/exit sequences
 
-Init and exit sequences are run following the order of the array, at each start/stop of the app, thanks to Cli and the [graceful shutdown](https://github.com/tylerb/graceful) module.
+The launch sequence is divided into three steps:
+- The register sequence is run, allowing the user to register dependencies into the injector.
+- The dependency injection is run.
+- The init sequence is run, allowing the user to properly initialize the freshly built app.
+
+Launch and exit sequences are run following the order of the array, at each start/stop of the app, thanks to Cli and the [graceful shutdown](https://github.com/tylerb/graceful) module.
 
 ```go
 type ZestFunc func(z *Zest) error
@@ -32,19 +37,20 @@ type Zest struct {
 	Server   *negroni.Negroni
 	Injector *syringe.Syringe
 
-	InitSequence []ZestFunc
-	ExitSequence []ZestFunc
+	RegisterSequence []SeqFunc
+	InitSequence     []SeqFunc
+	ExitSequence     []SeqFunc
 }
 ```
 
 Each function is called with the Zest app in argument, allowing the user to interact with the cli context, the Negroni server or any dependency registered in the injector.
 
-In the `New` version of Zest, the init sequence only contains a single `Build` step, triggering the dependency injection of the app.
+In the `New` version of Zest, the launch sequence only triggers the dependency injection of the app.
+The `RegisterSequence` and `InitSequence` arrays are empty.
 
-In the `Classic` version, the init sequence contains three steps, in this order :
-- `Register` which registers the default dependencies (Render, Httptreemux) in the injector.
-- `Build` which triggers the dependency injection of the app.
-- `Init` which initialize the Httptreemux router and the default middlewares in Negroni.
+In the `Classic` version, default register and init steps are provided:
+- `classicRegister` which registers the default dependencies (Render, Httptreemux) in the injector.
+- `classicInit` which initialize the Httptreemux router and the default middlewares in Negroni.
 
 In both versions, the exit sequence is empty.
 
