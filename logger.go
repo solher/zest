@@ -17,7 +17,7 @@ type Logger struct {
 
 // NewLogger returns a new Logger instance
 func NewLogger() *Logger {
-	return &Logger{log.New(os.Stdout, "\n[Zest] ", 0)}
+	return &Logger{log.New(os.Stdout, "[Zest] ", 0)}
 }
 
 func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -28,14 +28,6 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	clientIP := r.RemoteAddr
 	method := r.Method
 	methodColor := colorForMethod(method)
-
-	l.Printf("%s BEGIN %s | %v | %s | %s %s %s %s",
-		green, reset,
-		start.Format("2006/01/02 - 15:04:05"),
-		clientIP,
-		methodColor, method, reset,
-		path,
-	)
 
 	// process request
 	next(rw, r)
@@ -48,8 +40,7 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	statusCode := res.Status()
 	statusColor := colorForStatus(statusCode)
 
-	l.Printf("%s END %s | %v | %s %3d %s | %v | %s | %s %s %s %s",
-		red, reset,
+	l.Printf("%v | %s %3d %s | %v | %s | %s %s %s %s",
 		end.Format("2006/01/02 - 15:04:05"),
 		statusColor, statusCode, reset,
 		latency,
