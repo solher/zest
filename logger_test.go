@@ -32,7 +32,7 @@ func TestLogger(t *testing.T) {
 		a.NoError(err)
 
 		n.ServeHTTP(httptest.NewRecorder(), req)
-		r.NotEqual(buff.Len(), 0)
+		r.NotEqual(0, buff.Len())
 		a.Contains(buff.String(), "GET")
 		a.Contains(buff.String(), "/foobar")
 	}
@@ -43,7 +43,7 @@ func TestLogger(t *testing.T) {
 		a.NoError(err)
 
 		n.ServeHTTP(httptest.NewRecorder(), req)
-		r.NotEqual(buff.Len(), 0)
+		r.NotEqual(0, buff.Len())
 		a.Contains(buff.String(), method)
 		a.Contains(buff.String(), "/foobar")
 	}

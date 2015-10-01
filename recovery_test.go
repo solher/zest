@@ -35,7 +35,7 @@ func TestRecovery(t *testing.T) {
 	rec.Logger = log.New(buff, "[Zest] ", 0)
 	rec.ServeHTTP(recorder, (*http.Request)(nil), panicFunc)
 
-	r.NotEqual(buff.Len(), 0)
+	r.NotEqual(0, buff.Len())
 	a.Contains(recorder.Body.String(), "500")
 	a.Contains(recorder.Body.String(), "An internal error occured. Please retry later.")
 	a.Contains(recorder.Body.String(), "undefined error")

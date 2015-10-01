@@ -24,7 +24,7 @@ func TestCli(t *testing.T) {
 	r.NotPanics(func() { _ = zest.Cli() })
 	cli = zest.Cli()
 
-	a.Equal(cli.Name, "foobar")
+	a.Equal("foobar", cli.Name)
 
 	zest = Classic() // should also work with the Classic zest
 
@@ -37,7 +37,7 @@ func TestCli(t *testing.T) {
 	r.NotPanics(func() { _ = zest.Cli() })
 	cli = zest.Cli()
 
-	a.Equal(cli.Name, "foobar")
+	a.Equal("foobar", cli.Name)
 }
 
 // TestRun runs tests on the zest Run method.
