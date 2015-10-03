@@ -40,7 +40,6 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	statusCode := res.Status()
 	statusColor := colorForStatus(statusCode)
 
-	l.Printf("%v | %s %3d %s | %v | %s | %s %s %s %s\n",
 		end.Format("2006/01/02 - 15:04:05"),
 		statusColor, statusCode, reset,
 		latency,
