@@ -10,7 +10,7 @@ Having a good cli interface, a simple init/exit process and your app injected au
 
 Zest makes all that simple by aggregating well known and efficient packages. The `Classic` version also provides some default tools useful for most applications :
 - [Gin](https://github.com/gin-gonic/gin) inspired logging, [CORS](https://github.com/rs/cors) (allowing all origins by default) and Recovery middlewares
-- Pre-injected custom JSON renderer and [Httptreemux](https://github.com/dimfeld/httptreemux) router
+- Pre-injected custom JSON renderer and [Bone](https://github.com/go-zoo/bone) router
 
 ## Installation
 
@@ -49,8 +49,8 @@ In the `New` version of Zest, the launch sequence only triggers the dependency i
 The `RegisterSequence` and `InitSequence` arrays are empty.
 
 In the `Classic` version, default register and init steps are provided:
-- `classicRegister` which registers the default dependencies (Render, Httptreemux) in the injector.
-- `classicInit` which initialize the Httptreemux router and the default middlewares in Negroni.
+- `classicRegister` which registers the default dependencies (Render, Bone) in the injector.
+- `classicInit` which initialize the Bone router and the default middlewares in Negroni.
 
 In both versions, the exit sequence is empty.
 
@@ -89,7 +89,7 @@ In situation, it looks like that :
 ```go
 var UnknownAPIError = &zest.APIError{Description: "An error occured. Please retry later.", ErrorCode: "UNKNOWN_ERROR"}
 
-func (c *Controller) Handler(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *Controller) Handler(w http.ResponseWriter, r *http.Request) {
 	result, err := c.m.Action()
 	if err != nil {
 		c.r.JSONError(w, http.StatusInternalServerError, UnknownAPIError, err)
@@ -108,7 +108,7 @@ func (c *Controller) Handler(w http.ResponseWriter, r *http.Request, params map[
 package main
 
 import (
-	"github.com/dimfeld/httptreemux"
+	"github.com/go-zoo/bone"
 	"github.com/solher/zest"
 )
 
@@ -127,7 +127,7 @@ func main() {
 
 func SetRoutes(z *zest.Zest) error {
 	d := &struct {
-		Router *httptreemux.TreeMux
+		Router *bone.Mux
 		Ctrl   *Controller
 	}{}
 
@@ -135,7 +135,7 @@ func SetRoutes(z *zest.Zest) error {
 		return err
 	}
 
-	d.Router.GET("/", d.Ctrl.Handler)
+	d.Router.GetFunc("/", d.Ctrl.Handler)
 
 	return nil
 }
@@ -165,7 +165,7 @@ func NewController(m *Model, r *zest.Render) *Controller {
 	return &Controller{m: m, r: r}
 }
 
-func (c *Controller) Handler(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func (c *Controller) Handler(w http.ResponseWriter, r *http.Request) {
 	result, err := c.m.Action()
 	if err != nil {
 		apiErr := &zest.APIError{Description: "An error occured. Please retry later.", ErrorCode: "UNKNOWN_ERROR"}

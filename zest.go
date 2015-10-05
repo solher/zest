@@ -15,7 +15,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/negroni"
-	"github.com/dimfeld/httptreemux"
+	"github.com/go-zoo/bone"
 	"github.com/rs/cors"
 	"github.com/solher/syringe"
 )
@@ -65,8 +65,8 @@ func (z *Zest) Run() {
 }
 
 // Classic returns a new instance of Zest, with some default register and init steps:
-// "classicRegister" which registers the default dependencies (Render, Httptreemux) in the injector.
-// "classicInit" which initialize the Httptreemux router and the default middlewares in Negroni.
+// "classicRegister" which registers the default dependencies (Render, Bone) in the injector.
+// "classicInit" which initialize the Bone router and the default middlewares in Negroni.
 func Classic() *Zest {
 	z := New()
 
@@ -148,13 +148,13 @@ func (z *Zest) exit(c *cli.Context) error {
 }
 
 func classicRegister(z *Zest) error {
-	z.Injector.Register(NewRender(), httptreemux.New())
+	z.Injector.Register(NewRender(), bone.New())
 
 	return nil
 }
 
 func classicInit(z *Zest) error {
-	d := &struct{ Router *httptreemux.TreeMux }{}
+	d := &struct{ Router *bone.Mux }{}
 
 	if err := z.Injector.Get(d); err != nil {
 		return err
