@@ -77,9 +77,9 @@ type APIError struct {
 The custom `Render` module is based on the [Render](https://github.com/unrolled/render) package, made more expressive thanks to the coupling with the Zest API error format.
 
 ```go
-func (r *Render) JSONError(w http.ResponseWriter, status int, apiError *APIError, err error)
+func (r *Render) JSONError(w http.ResponseWriter, status int, apiError *APIError, err error){}
 
-func (r *Render) JSON(w http.ResponseWriter, status int, object interface{})
+func (r *Render) JSON(w http.ResponseWriter, status int, object interface{}){}
 ```
 
 When the `JSONError` method is called, the status and the error are automatically copied into the final `APIError` struct so you don't have to worry about that.
