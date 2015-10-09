@@ -90,14 +90,16 @@ func New() *Zest {
 	z.cli.Action = z.run
 	z.cli.Flags = []cli.Flag{
 		cli.IntFlag{
-			Name:  "port,p",
-			Value: 3000,
-			Usage: "listening port",
+			Name:   "port,p",
+			Value:  3000,
+			Usage:  "listening port",
+			EnvVar: "ZEST_PORT",
 		},
 		cli.IntFlag{
-			Name:  "exitTimeout,t",
-			Value: 10,
-			Usage: "graceful shutdown timeout in seconds (0 for infinite)",
+			Name:   "exitTimeout,t",
+			Value:  10,
+			Usage:  "graceful shutdown timeout in seconds (0 for infinite)",
+			EnvVar: "ZEST_TIMEOUT",
 		},
 	}
 
