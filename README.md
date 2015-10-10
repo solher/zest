@@ -1,6 +1,7 @@
 ![logo](https://cloud.githubusercontent.com/assets/5517733/10375243/b4e6e794-6df7-11e5-9f9c-f18647b961bb.png)
 
 [![Build Status](https://travis-ci.org/solher/zest.svg)](https://travis-ci.org/solher/zest) [![Coverage Status](https://coveralls.io/repos/solher/zest/badge.svg?branch=master&service=github)](https://coveralls.io/github/solher/zest?branch=master) [![Code Climate](https://codeclimate.com/github/solher/zest/badges/gpa.svg)](https://codeclimate.com/github/solher/zest)
+---
 
 Zest is a lightweight framework based on the [Cli](https://github.com/codegangsta/cli) package allowing clean and easy command line interfaces, the [Negroni](https://github.com/codegangsta/negroni) middleware handler, and the [Syringe](https://github.com/solher/syringe) injector.
 
