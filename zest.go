@@ -60,8 +60,8 @@ func (z *Zest) SetCli(cli cli.App) {
 }
 
 // Run starts the Cli app.
-func (z *Zest) Run() {
-	z.cli.Run(os.Args)
+func (z *Zest) Run() error {
+	return z.cli.Run(os.Args)
 }
 
 // Classic returns a new instance of Zest, with some default register and init steps:
@@ -115,7 +115,9 @@ func (z *Zest) init(c *cli.Context) error {
 		}
 	}
 
-	z.Injector.Inject()
+	if err := z.Injector.Inject(); err != nil {
+		return err
+	}
 
 	for _, f := range z.InitSequence {
 		if err := f(z); err != nil {
