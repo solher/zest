@@ -166,7 +166,10 @@ func classicInit(z *Zest) error {
 
 	z.Server.Use(NewRecovery())
 	z.Server.Use(NewLogger())
-	z.Server.Use(cors.Default())
+	z.Server.Use(cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+	}))
 
 	z.Server.UseHandler(d.Router)
 
