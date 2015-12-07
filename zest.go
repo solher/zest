@@ -9,6 +9,7 @@ package zest
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"gopkg.in/tylerb/graceful.v1"
@@ -41,6 +42,9 @@ type Zest struct {
 	cli     *cli.App
 	Context *cli.Context
 
+	Port        int
+	ExitTimeout time.Duration
+
 	Server   *negroni.Negroni
 	Injector *syringe.Syringe
 
@@ -70,6 +74,21 @@ func (z *Zest) Run() error {
 func Classic() *Zest {
 	z := New()
 
+	z.cli.Flags = []cli.Flag{
+		cli.IntFlag{
+			Name:   "port,p",
+			Value:  3000,
+			Usage:  "listening port",
+			EnvVar: "ZEST_PORT",
+		},
+		cli.DurationFlag{
+			Name:   "exitTimeout,t",
+			Value:  10 * time.Second,
+			Usage:  "graceful shutdown timeout (0 for infinite)",
+			EnvVar: "ZEST_TIMEOUT",
+		},
+	}
+
 	z.RegisterSequence = append(z.RegisterSequence, classicRegister)
 	z.InitSequence = append(z.InitSequence, classicInit)
 
@@ -79,29 +98,17 @@ func Classic() *Zest {
 // New returns a new instance of Zest.
 func New() *Zest {
 	z := &Zest{
-		cli:      cli.NewApp(),
-		Server:   negroni.New(),
-		Injector: Injector,
+		cli:         cli.NewApp(),
+		Server:      negroni.New(),
+		Injector:    Injector,
+		Port:        3000,
+		ExitTimeout: 10 * time.Second,
 	}
 
 	z.cli.Usage = "A Zest powered service."
 	z.cli.Before = z.init
 	z.cli.After = z.exit
 	z.cli.Action = z.run
-	z.cli.Flags = []cli.Flag{
-		cli.IntFlag{
-			Name:   "port,p",
-			Value:  3000,
-			Usage:  "listening port",
-			EnvVar: "ZEST_PORT",
-		},
-		cli.IntFlag{
-			Name:   "exitTimeout,t",
-			Value:  10,
-			Usage:  "graceful shutdown timeout in seconds (0 for infinite)",
-			EnvVar: "ZEST_TIMEOUT",
-		},
-	}
 
 	return z
 }
@@ -129,14 +136,9 @@ func (z *Zest) init(c *cli.Context) error {
 }
 
 func (z *Zest) run(c *cli.Context) {
-	z.Context = c
+	fmt.Printf("\n[Zest] Listening on %d\n", z.Port)
 
-	port := fmt.Sprintf(":%d", z.Context.GlobalInt("port"))
-	exitTimeout := time.Duration(z.Context.GlobalInt("exitTimeout")) * time.Second
-
-	fmt.Println("\n[Zest] Listening on " + port)
-
-	graceful.Run(port, exitTimeout, z.Server)
+	graceful.Run(":"+strconv.Itoa(z.Port), z.ExitTimeout, z.Server)
 }
 
 func (z *Zest) exit(c *cli.Context) error {
@@ -172,6 +174,9 @@ func classicInit(z *Zest) error {
 	}))
 
 	z.Server.UseHandler(d.Router)
+
+	z.Port = z.Context.GlobalInt("port")
+	z.ExitTimeout = z.Context.GlobalDuration("exitTimeout")
 
 	return nil
 }
