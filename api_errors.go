@@ -12,6 +12,8 @@ type APIError struct {
 	Raw string `json:"raw"`
 	// The token uniquely identifying the API error.
 	ErrorCode string `json:"errorCode"`
+	// Additional infos.
+	Params map[string]interface{} `json:"params"`
 }
 
 func (e APIError) Error() string {
